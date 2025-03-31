@@ -1,14 +1,14 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HelloWorld from '../components/HelloWorld.vue';
- 
+import { createRouter, createWebHistory } from "vue-router";
+import Content from "../components/Header.vue";
+
 const routes = createRouter({
   history: createWebHistory(), //createWebHistory(), -> for browser history
-    routes: [
+  routes: [
     {
-      path: '/',
-      component: HelloWorld,
-      name: 'main'
-    }
+      path: "/",
+      component: Content,
+      name: "main",
+    },
   ],
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
@@ -18,8 +18,7 @@ const routes = createRouter({
       // 항상 맨 위로 이동
       return { top: 0 };
     }
-  }
+  },
 });
- 
- 
-export default routes
+
+export default routes;
