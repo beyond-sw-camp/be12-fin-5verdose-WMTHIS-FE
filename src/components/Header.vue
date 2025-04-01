@@ -12,7 +12,7 @@ const path3 = mdiDotsVertical;
 <template>
   <div class="total_header">
     <div class="header_up">
-      <svg-icon type="mdi" :path="path1" class="icon_style header_left_icon"></svg-icon>
+      <img src="../../img/logo.png" alt="로고 이미지" class="header_left_image" />
       <div class="header_up_write">홈 화면</div>
       <div class="header_right_icon">
         <svg-icon type="mdi" :path="path2" class="icon_style"></svg-icon>
@@ -38,7 +38,9 @@ const path3 = mdiDotsVertical;
   justify-content: space-between;
   align-items: center;
 }
-.header_left_icon {
+.header_left_image {
+  width: 5%;
+  height: 95%;
   margin-left: 1.25rem;
 }
 

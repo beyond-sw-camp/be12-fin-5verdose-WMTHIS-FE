@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
-import Content from "../components/Header.vue";
+import Content from "../components/MyMap.vue";
 
 const routes = createRouter({
   history: createWebHistory(), //createWebHistory(), -> for browser history
