@@ -11,7 +11,7 @@
 
     <!-- 오른쪽: 텍스트 + 버튼 -->
     <div class="right_content">
-      <img src="../../img/icon.png" alt="샐러드 이미지" class="right_logo_img" />
+      <img src="../../img/icon.png" alt="로고 이미지" class="right_logo_img" />
       <div>
         <p class="right_letter">자동화된 재고관리부터</p>
         <h1 class="right_letter right_letter_bold">다~ 되는 WMTHIS POS</h1>
