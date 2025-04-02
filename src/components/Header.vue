@@ -1,44 +1,16 @@
-<template>
-  <div class="total_header">
-    <div class="header_up">
-      <v-icon v-if="!menuHidden" class="header-icon" icon="mdi-menu" @click="toggleLeftPanel"></v-icon>
-      <v-icon v-if="!homeHidden" class="header-icon" icon="mdi-home"></v-icon>
-
-      <div class="header_right_icon">
-        <div class="bell-container">
-          <v-icon class="header-icon" icon="mdi-bell" @click="toggleBellDropdown"></v-icon>
-          <v-icon v-if="alarmToggle" class="alarm-icon" icon="mdi-exclamation-thick"></v-icon>
-        </div>
-
-        <div v-if="isBellDropdownOpen" class="dropdown">
-          <p>알림이 없습니다.</p>
-          <button class="close-btn" @click="closeBellDropdown">닫기 ✖</button>
-        </div>
-
-        <v-icon v-if="menuHidden && homeHidden" class="header-icon" icon="mdi-dots-vertical" @click="togglePanel"></v-icon>
-      </div>
-    </div>
-  </div>
-  <RightPanel :isPanelOpen="isPanelOpen" :closePanel="closePanel" />
-  <LeftPanel :isPanelOpen="isLeftPanelOpen" :closePanel="closeLeftPanel" />
-
-  <v-overlay :model-value="isPanelOpen || isLeftPanelOpen" class="overlay" @click="closePanels">
-    <div class="overlay-content"></div>
-  </v-overlay>
-</template>
 
 <script setup>
 import { ref } from "vue";
 import RightPanel from "./RightPanel.vue"; // 오른쪽 패널 컴포넌트 임포트
 import LeftPanel from "./LeftPanel.vue"; // 왼쪽패널 컴포넌트 임포트
-import ChatFloatBtn from "./ChatFloatBtn.vue";
 
 const isPanelOpen = ref(false);
 const isLeftPanelOpen = ref(false);
 const isBellDropdownOpen = ref(false);
-const alarmToggle = ref(true);
+const alarmToggle = ref(false);
 const menuHidden = ref(true);
-const homeHidden = ref(false);
+const homeHidden = ref(true);
+const dotHidden = ref(false);
 
 const togglePanel = () => {
   isPanelOpen.value = true;
@@ -70,6 +42,35 @@ const closePanels = () => {
   isLeftPanelOpen.value = false;
 };
 </script>
+<template>
+  <div class="total_header">
+    <div class="header_up">
+      <v-icon v-if="!menuHidden" class="header-icon" icon="mdi-menu" @click="toggleLeftPanel"></v-icon>
+      <v-icon v-if="!homeHidden" class="header-icon" icon="mdi-home"></v-icon>
+
+      <div class="header_right_icon">
+        <div class="bell-container">
+          <v-icon class="header-icon" icon="mdi-bell" @click="toggleBellDropdown"></v-icon>
+          <v-icon v-if="alarmToggle" class="alarm-icon" icon="mdi-exclamation-thick"></v-icon>
+        </div>
+
+        <div v-if="isBellDropdownOpen" class="dropdown">
+          <p>알림이 없습니다.</p>
+          <button class="close-btn" @click="closeBellDropdown">닫기 ✖</button>
+        </div>
+
+        <v-icon v-if="(menuHidden && homeHidden) && dotHidden" class="header-icon" icon="mdi-dots-vertical" @click="togglePanel"></v-icon>
+      </div>
+    </div>
+  </div>
+  <RightPanel :isPanelOpen="isPanelOpen" :closePanel="closePanel" />
+  <LeftPanel :isPanelOpen="isLeftPanelOpen" :closePanel="closeLeftPanel" />
+
+  <v-overlay :model-value="isPanelOpen || isLeftPanelOpen" class="overlay" @click="closePanels">
+    <div class="overlay-content"></div>
+  </v-overlay>
+</template>
+
 
 <style scoped>
 .total_header {

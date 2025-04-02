@@ -4,36 +4,25 @@ import BeforeLogin from "../components/BeforeLogin.vue";
 import FindID from "../components/FindID.vue";
 import SignUp from "../components/SignUp.vue";
 import FindPassword from "../components/FindPassword.vue";
+import UserMain from "../components/UserMain.vue";
+import StoreRegister from "../components/StoreRegister.vue";
 
 const routes = createRouter({
   history: createWebHistory(), //createWebHistory(), -> for browser history
   routes: [
     {
-      path: "/",
-      component: BeforeLogin,
-      name: "main",
+      path: "/", component: UserMain, name: "main",
+      children: [ // children 속성 추가
+        { path: "/", component: BeforeLogin, name: "beforeLogin" },
+        { path: "/signup", component: SignUp, name: "signup", },
+        { path: "/login", component: Login, name: "login", },
+        { path: "/findId", component: FindID, name: "findId", },
+        { path: "/findPwd", component: FindPassword, name: "findPassword", },
+        { path: "/registore", component: StoreRegister, name: "storeRegister", },
+      ],
     },
-    {
-      path: "/signup",
-      component: SignUp,
-      name: "signup",
-    },
-    {
-      path: "/login",
-      component: Login,
-      name: "login",
-    },
-    {
-      path: "/findId",
-      component: FindID,
-      name: "findId",
-    },
-    {
-      path: "/findPwd",
-      component: FindPassword,
-      name: "findPassword",
-    }
-    
+
+
   ],
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
