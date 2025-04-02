@@ -1,0 +1,12 @@
+body {
+    background-color: #EEEEEE;
+  }
+  a {
+    text-decoration: none; /* 밑줄 제거 */
+    color: inherit; /* 부모 요소의 색상 상속 */
+    cursor: pointer; /* 마우스 커서 설정 */
+  }
+  
+  a:hover {
+    text-decoration: none; /* 호버 시 밑줄 제거 (필요에 따라) */
+  }
