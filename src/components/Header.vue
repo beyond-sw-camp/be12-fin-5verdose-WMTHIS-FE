@@ -25,7 +25,6 @@
   <v-overlay :model-value="isPanelOpen || isLeftPanelOpen" class="overlay" @click="closePanels">
     <div class="overlay-content"></div>
   </v-overlay>
-  <ChatFloatBtn></ChatFloatBtn>
 </template>
 
 <script setup>
@@ -75,12 +74,12 @@ const closePanels = () => {
 <style scoped>
 .total_header {
   width: 100vw;
-  height: 17vh;
+  height: 8vh;
 }
 
 .header_up {
   width: 100%;
-  height: 50%;
+  height: 100%;
   background-color: #4d826c;
   display: flex;
   align-items: center;
