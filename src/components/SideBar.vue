@@ -1,7 +1,6 @@
 <script setup>
+import MyMenu from './MyMenu.vue';
 </script>
-
-
 <template>
     <aside class="sidebar">
       <div class="menu-section">
@@ -44,16 +43,15 @@
   </template>
   
   <style scoped>
-  .sidebar {
+.sidebar {
     width: 240px;
-    height: 100vh; /* 화면 전체 높이 */
+    min-height: 100vh; /* 최소 높이를 화면 전체 높이로 설정 */
     background-color: #D1D5C2;
     padding: 20px;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-    position: fixed; /* 화면에 고정 */
-    top: 60;
+    position: relative; /* 부모 요소 기준 배치 */
     left: 0;
-  }
+}
   
   .sidebar h2 {
     font-size: 20px;
