@@ -25,12 +25,14 @@
   <v-overlay :model-value="isPanelOpen || isLeftPanelOpen" class="overlay" @click="closePanels">
     <div class="overlay-content"></div>
   </v-overlay>
+  <ChatFloatBtn></ChatFloatBtn>
 </template>
 
 <script setup>
 import { ref } from "vue";
 import RightPanel from "./RightPanel.vue"; // 오른쪽 패널 컴포넌트 임포트
 import LeftPanel from "./LeftPanel.vue"; // 왼쪽패널 컴포넌트 임포트
+import ChatFloatBtn from "./ChatFloatBtn.vue";
 
 const isPanelOpen = ref(false);
 const isLeftPanelOpen = ref(false);
