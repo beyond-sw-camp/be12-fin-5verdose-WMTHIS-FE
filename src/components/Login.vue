@@ -80,8 +80,7 @@ const goToSignUp = (event) => {
 }
 
 .image {
-  max-width: 100%;
-  width: 20rem;
+  width: 10rem;
   height: auto;
 }
 </style>

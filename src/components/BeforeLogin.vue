@@ -1,14 +1,24 @@
 <script setup>
 import { useRouter } from 'vue-router';
+import { ref } from 'vue'; // ref 가져오기
 
 const router = useRouter();
-const goToSignUp = () => {
-  router.push('signup');
-};
-const goToLogin = () => {
-  router.push('login');
-};
+const isSignup = ref(true); // 상태 관리 변수 추가
 
+const upButtonClick = () => {
+  if (!isSignup.value) {
+    router.push({ name: 'signup' });
+  } else {
+    router.push({ name: 'storeRegister' });
+  }
+};
+const downButtonClick = () => {
+  if (!isSignup.value) {
+    router.push({ name: 'login' });
+  } else {
+    router.push({ name: 'main' });
+  }
+};
 </script>
 
 <template>
@@ -24,10 +34,24 @@ const goToLogin = () => {
         <h1 class="right_letter right_letter_bold">다~ 되는 WMTHIS POS</h1>
       </div>
       <div>
-        <v-btn rounded="xl" class="btn_template btn_font" color="primary" @Click = goToSignUp>회원가입</v-btn>
+        <v-btn
+          rounded="xl"
+          class="btn_template btn_font"
+          color="primary"
+          @click="upButtonClick"
+        >
+          {{ !isSignup ? '회원가입' : '내 가게 POS' }}
+        </v-btn>
       </div>
       <div>
-        <v-btn rounded="xl" class="btn_template btn_font" color="primary" @Click = goToLogin>회원이에요</v-btn>
+        <v-btn
+          rounded="xl"
+          class="btn_template btn_font"
+          color="primary"
+          @click="downButtonClick"
+        >
+          {{ !isSignup ? '회원이에요' : '장터' }}
+        </v-btn>
       </div>
     </div>
   </div>
@@ -76,8 +100,8 @@ const goToLogin = () => {
   width: 280px;
 }
 .btn_template {
-    display: flex;
-  align-items: center; /* 세로 정렬 */
+  display: flex;
+  align-items: center;
   justify-content: center;
   padding-top: 30px;
   padding-bottom: 30px;
