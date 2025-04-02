@@ -1,11 +1,4 @@
 <template>
-    <v-app>
-      <v-main>
-        <v-container>
-          <div style="height: 2000px;">
-          </div>
-        </v-container>
-  
         <div style="position: fixed; bottom: 20px; right: 20px; z-index: 100;">
           <v-btn fab color="#B1D5C2" @click="toggleComponent">
             <v-icon color="white" :icon="iconName"></v-icon>
@@ -14,8 +7,6 @@
           <ChatComponent :showComponent="showComponent">
           </ChatComponent>
         </div>
-      </v-main>
-    </v-app>
   </template>
   
   <script setup>
