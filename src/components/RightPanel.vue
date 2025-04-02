@@ -1,5 +1,5 @@
 <template>
-    <div class="side-panel" :class="{ 'open': isPanelOpen }">
+    <div class="side-panel-right side-panel" :class="{ 'open': isPanelOpen }">
       <div class="header">
         <v-icon icon="mdi-window-close" class="close-btn" @click="closePanel"></v-icon>
       </div>
@@ -40,7 +40,7 @@
   </script>
   
   <style scoped>
-  .side-panel {
+  .side-panel-right {
     position: fixed;
     top: 0;
     right: -250px;
@@ -55,7 +55,7 @@
     flex-direction: column;
   }
   
-  .side-panel.open {
+  .side-panel-right.open {
     right: 0;
   }
   

@@ -1,5 +1,5 @@
 <template>
-    <div class="side-panel-left" :class="{ 'open': isPanelOpen }">
+    <div class="side-panel-left side-panel" :class="{ 'open': isPanelOpen }">
       <div class="header">
         <v-icon icon="mdi-window-close" class="close-btn" @click="closePanel"></v-icon>
         <div class="user-info">
