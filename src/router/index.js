@@ -1,12 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HelloWorld from '../components/HelloWorld.vue';
+import Login from '../components/Login.vue'
+import SignUp from '../components/SignUp.vue'
+import Info from '../components/Info.vue'
+import InfoChange from '../components/InfoChange.vue'
+import StoreInfoChange from '../components/StoreInfoChange.vue'
+import MainHall from '../components/MainHall.vue'
  
 const routes = createRouter({
   history: createWebHistory(), //createWebHistory(), -> for browser history
     routes: [
     {
       path: '/',
-      component: HelloWorld,
+      component: MainHallq,
       name: 'main'
     }
   ],
