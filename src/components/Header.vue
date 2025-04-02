@@ -39,7 +39,7 @@ const isLeftPanelOpen = ref(false);
 const isBellDropdownOpen = ref(false);
 const alarmToggle = ref(true);
 const menuHidden = ref(true);
-const homeHidden = ref(true);
+const homeHidden = ref(false);
 
 const togglePanel = () => {
   isPanelOpen.value = true;
