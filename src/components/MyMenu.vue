@@ -5,9 +5,7 @@ const menuItems = ref([
     { name: "알리오올리오", price: 9000, soldOut: false },
     { name: "들깨 크림 뇨끼", price: 12000, soldOut: true },
     { name: "들깨 크림 뇨끼", price: 12000, soldOut: false },
-    { name: "들깨 크림 뇨끼", price: 12000, soldOut: false },
-    { name: "들깨 크림 뇨끼", price: 12000, soldOut: false },
-    { name: "들깨 크림 뇨끼", price: 12000, soldOut: false },
+    { name: "들깨 크림 뇨끼", price: 12000, soldOut: false }
 ]);
 
 const sortOptions = ref([
@@ -239,9 +237,20 @@ const selectSort = (option) => {
     border-bottom: 1px solid #ddd;
 }
 
+
 .menu-table th {
     background-color: #d1d5c2;
 }
+
+.menu-table tbody td {
+    padding: 0px 0px;
+}
+
+/* VSwitch 크기 조정 */
+.v-switch {
+    transform: scale(0.7);
+}
+
 .switch-slider {
     text-align: center; /* 수평 정렬 */
 }

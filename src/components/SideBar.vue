@@ -89,12 +89,19 @@ import MyMenu from './MyMenu.vue';
     background-color: #B8C2A5;
     color: #222;
   }
-  .footer-image {
-  width: 200px;  /* 너비 조정 */
-  height: auto;  /* 가로 비율 유지 */
-  max-width: 200px; /* 최대 크기 제한 */
-  display: block;
-  margin: 0 auto;  /* 가운데 정렬 */
+  .sidebar-footer {
+    position: absolute;
+    bottom: 20px; /* 하단 여백 */
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+.footer-image {
+    width: 200px;
+    height: auto;
+    max-width: 200px;
+    display: block;
 }
   </style>
   
