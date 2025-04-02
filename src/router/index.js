@@ -1,19 +1,14 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import Login from '../components/Login.vue'
-import SignUp from '../components/SignUp.vue'
-import Info from '../components/Info.vue'
-import InfoChange from '../components/InfoChange.vue'
-import StoreInfoChange from '../components/StoreInfoChange.vue'
-import MainHall from '../components/MainHall.vue'
- 
+import { createRouter, createWebHistory } from "vue-router";
+import Content from "../components/MyMap.vue";
+
 const routes = createRouter({
   history: createWebHistory(), //createWebHistory(), -> for browser history
-    routes: [
+  routes: [
     {
-      path: '/',
-      component: MainHallq,
-      name: 'main'
-    }
+      path: "/",
+      component: Content,
+      name: "main",
+    },
   ],
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
@@ -23,8 +18,7 @@ const routes = createRouter({
       // 항상 맨 위로 이동
       return { top: 0 };
     }
-  }
+  },
 });
- 
- 
-export default routes
+
+export default routes;
