@@ -1,80 +1,144 @@
 <script setup>
-import SvgIcon from "@jamescoyle/vue-icon";
-import { mdiMenu } from "@mdi/js";
-import { mdiDotsVertical } from "@mdi/js";
-import { mdiBell } from "@mdi/js";
+import { ref } from "vue";
+import RightPanel from "./RightPanel.vue";  // 오른쪽 패널 컴포넌트 임포트
+import LeftPanel from "./LeftPanel.vue";  // 왼쪽패널 컴포넌트 임포트
 
-const path1 = mdiMenu;
-const path2 = mdiBell;
-const path3 = mdiDotsVertical;
+const isPanelOpen = ref(false);
+const isLeftPanelOpen = ref(false);
+const isBellDropdownOpen = ref(false);
+const alarmToggle = ref(true);  
+const menuHidden = ref(true);
+const homeHidden = ref(true);
+
+const togglePanel = () => {
+  isPanelOpen.value = true;
+};
+
+const closePanel = () => {
+  isPanelOpen.value = false;
+};
+
+const toggleLeftPanel = () => {
+  isLeftPanelOpen.value = true;
+};
+
+const closeLeftPanel = () => {
+  isLeftPanelOpen.value = false;
+};
+
+const toggleBellDropdown = () => {
+  isBellDropdownOpen.value = !isBellDropdownOpen.value;
+};
+
+const closeBellDropdown = () => {
+  isBellDropdownOpen.value = false;
+};  
 </script>
 
 <template>
   <div class="total_header">
     <div class="header_up">
-      <img src="../../img/logo.png" alt="로고 이미지" class="header_left_image" />
-      <div class="header_up_write">홈 화면</div>
+      <v-icon v-if="!menuHidden" class="header-icon" icon="mdi-menu" @click="toggleLeftPanel"></v-icon>
+      <v-icon v-if="!homeHidden" class="header-icon" icon="mdi-home"></v-icon>
+
+      
       <div class="header_right_icon">
-        <svg-icon type="mdi" :path="path2" class="icon_style"></svg-icon>
-        <svg-icon type="mdi" :path="path3" class="icon_style"></svg-icon>
+        <div class="bell-container">
+          <v-icon class="header-icon" icon="mdi-bell" @click="toggleBellDropdown"></v-icon>
+          <v-icon v-if="alarmToggle" class="alarm-icon" icon="mdi-exclamation-thick"></v-icon>
+        </div>
+
+        <div v-if="isBellDropdownOpen" class="dropdown">
+          <p>알림이 없습니다.</p>
+          <button class="close-btn" @click="closeBellDropdown">닫기 ✖</button>
+        </div>
+
+        <v-icon v-if="menuHidden && homeHidden" class="header-icon" icon="mdi-dots-vertical" @click="togglePanel"></v-icon>
       </div>
     </div>
-    <div class="header_down">
-      <div class="header_down_write">메인페이지</div>
-    </div>
   </div>
+
+  <!-- ✅ 오른쪽 패널을 컴포넌트로 사용 -->
+  <RightPanel :isPanelOpen="isPanelOpen" :closePanel="closePanel" />
+  <LeftPanel :isPanelOpen="isLeftPanelOpen" :closePanel="closeLeftPanel" />
 </template>
 
 <style scoped>
 .total_header {
   width: 100vw;
-  height: 13vh;
+  height: 17vh;
 }
+
 .header_up {
   width: 100%;
   height: 50%;
-  background-color: #666666;
+  background-color: #4D826C;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-}
-.header_left_image {
-  width: 5%;
-  height: 95%;
-  margin-left: 1.25rem;
+  position: relative;
+  padding: 0 1.5rem;
 }
 
 .header_up_write {
   font-size: 1.25rem;
   color: rgb(221, 224, 227);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .header_right_icon {
   display: flex;
   gap: 1.25rem;
-  margin-right: 1.875rem;
+  margin-left: auto;
+  position: relative;
 }
 
-.header_down {
-  width: 100%;
-  height: 50%;
-  background-color: #eeeeee;
+.bell-container {
+  position: relative;
 }
 
-.header_down_write {
-  font-size: 1.125rem;
-  font-weight: 900;
-  display: flex;
-  width: 15%;
-  height: 100%;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 0.25rem solid black;
-}
-
-.icon_style {
+.header-icon {
   color: white;
   width: 1.5rem;
   height: 1.5rem;
+  cursor: pointer;
+}
+
+.alarm-icon {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  color: red;
+  width: 0.8rem;
+  height: 0.8rem;
+  animation: shake 1s infinite alternate;
+}
+
+@keyframes shake {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
+}
+
+.dropdown {
+  position: absolute;
+  top: 2rem;
+  right: 0;
+  background-color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  border-radius: 8px;
+  min-width: 150px;
+  text-align: center;
+  z-index: 10;
+}
+
+.dropdown .close-btn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  color: black;
 }
 </style>

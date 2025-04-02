@@ -1,12 +1,13 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Content from "../components/MyMap.vue";
+import Header from "../components/Header.vue";
 
 const routes = createRouter({
   history: createWebHistory(), //createWebHistory(), -> for browser history
   routes: [
     {
       path: "/",
-      component: Content,
+      component: Header,
       name: "main",
     },
   ],
