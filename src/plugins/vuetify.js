@@ -13,13 +13,19 @@ const vuetify = createVuetify({
     themes: {
       light: {
         colors: {
-          primary: '#B1D5C2',
-          secondary: '#8BC34A', // 추가적인 색상 설정
+          primary: '#B1D5C2',   // 버튼 기본 색상
+          chip: '#A7C779',     // 칩 색상
+          layer: 'D1D5C2',  // 레이어 색상
+          maintheme: '4D826C', // 메인 테마 색상
+          background: 'FFFEFB', // 배경 색상
           accent: '#FFEB3B',
           error: '#F44336',
           info: '#2196F3',
           success: '#4CAF50',
           warning: '#FFC107',
+        },
+        typography: {
+          fontFamily: 'Inter, sans-serif', // 폰트 설정
         },
       },
     },

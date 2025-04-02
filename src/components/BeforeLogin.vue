@@ -1,5 +1,14 @@
 <script setup>
-// 별도 로직 없음
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+const goToSignUp = () => {
+  router.push('signup');
+};
+const goToLogin = () => {
+  router.push('login');
+};
+
 </script>
 
 <template>
@@ -15,10 +24,10 @@
         <h1 class="right_letter right_letter_bold">다~ 되는 WMTHIS POS</h1>
       </div>
       <div>
-        <v-btn rounded="xl" class="btn_template btn_font" color="primary">회원가입</v-btn>
+        <v-btn rounded="xl" class="btn_template btn_font" color="primary" @Click = goToSignUp>회원가입</v-btn>
       </div>
       <div>
-        <v-btn rounded="xl" class="btn_template btn_font" color="primary">회원이에요</v-btn>
+        <v-btn rounded="xl" class="btn_template btn_font" color="primary" @Click = goToLogin>회원이에요</v-btn>
       </div>
     </div>
   </div>

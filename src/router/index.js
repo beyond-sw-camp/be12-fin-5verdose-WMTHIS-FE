@@ -1,8 +1,9 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Login from "../components/Login.vue";
 import BeforeLogin from "../components/BeforeLogin.vue";
-import Content from "../components/MyMap.vue";
-import Header from "../components/Header.vue";
+import FindID from "../components/FindID.vue";
+import SignUp from "../components/SignUp.vue";
+import FindPassword from "../components/FindPassword.vue";
 
 const routes = createRouter({
   history: createWebHistory(), //createWebHistory(), -> for browser history
@@ -12,6 +13,27 @@ const routes = createRouter({
       component: BeforeLogin,
       name: "main",
     },
+    {
+      path: "/signup",
+      component: SignUp,
+      name: "signup",
+    },
+    {
+      path: "/login",
+      component: Login,
+      name: "login",
+    },
+    {
+      path: "/findId",
+      component: FindID,
+      name: "findId",
+    },
+    {
+      path: "/findPwd",
+      component: FindPassword,
+      name: "findPassword",
+    }
+    
   ],
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
