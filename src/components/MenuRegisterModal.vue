@@ -45,7 +45,7 @@ const removeIngredient = (index) => {
         <div class="modal">
             <button class="close_btn" @click="emit('close')">✕</button>
 
-            <h2 class="modal_title">메뉴 상세</h2>
+            <h2 class="modal_title">메뉴 등록</h2>
 
             <p class="modal_desc">하나의 메뉴를 만드는 데 필요한 재고의 양과 메뉴명을 등록해 주세요.<br>
                 판매 시 재고가 자동으로 차감됩니다.</p>
@@ -99,7 +99,7 @@ const removeIngredient = (index) => {
                 </select>
             </div>
 
-            <button class="confirm_btn" @click="emit('close')">확인</button>
+            <button class="confirm_btn" @click="emit('close')">등록</button>
         </div>
     </div>
 </template>
