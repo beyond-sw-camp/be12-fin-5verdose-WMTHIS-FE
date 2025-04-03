@@ -1,5 +1,16 @@
 <script setup>
 import { ref, watch } from 'vue';
+import MenuModal from './MenuModal.vue';
+
+const isModalOpen = ref(false);
+
+const openModal = () => {
+    isModalOpen.value = true;
+};
+
+const closeModal = () => {
+    isModalOpen.value = false;
+};
 
 const menu_items = ref([
     { name: "알리오올리오", price: 9000, ingredient: "당근 50g 외 3개", selected: false },
@@ -71,7 +82,7 @@ const select_filter = (filter) => {
                     <td>{{ item.name }}</td>
                     <td>{{ item.price }}원</td>
                     <td>{{ item.ingredient }}</td>
-                    <td><button class="detail_btn">상세</button></td>
+                    <td><button @click="openModal" class="detail_btn">상세</button></td>
                 </tr>
             </tbody>
         </table>
@@ -82,6 +93,9 @@ const select_filter = (filter) => {
             <span class="page_number">1</span>
             <button class="next_btn">〉</button>
         </div>
+
+
+        <MenuModal :isOpen="isModalOpen" @close="closeModal" />
     </div>
 </template>
 
