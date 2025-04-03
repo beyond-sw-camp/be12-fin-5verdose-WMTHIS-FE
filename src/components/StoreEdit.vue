@@ -5,7 +5,6 @@ import MyMenu from './MyMenu.vue';
 
 <template>
   <div class="main">
-    <SideBar></SideBar>
     <div class="mymenu_container">
       <MyMenu></MyMenu>
     </div>
