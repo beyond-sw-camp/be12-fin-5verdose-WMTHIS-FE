@@ -4,40 +4,25 @@ import { defineProps, defineEmits, ref } from 'vue';
 const props = defineProps({
     isOpen: Boolean
 });
-
-const emit = defineEmits(['close']);
-
-const activeTab = ref('단일메뉴'); // 기본 선택된 탭
-const menuName = ref('');
-const ingredientName = ref('');
-const ingredientAmount = ref('');
-const ingredientUnit = ref('');
-const ingredients = ref([
-    { name: '고추장', amount: '50', unit: 'g' },
-    { name: '토마토', amount: '10', unit: 'g' },
-    { name: '삼겹살', amount: '50', unit: 'g' }
-]);
-const category = ref('');
-
-const ingredientOptions = ['고추장', '토마토', '삼겹살', '양파', '파'];
-const unitOptions = ['g', 'kg', 'ml', 'L', 'EA'];
-
-const addIngredient = () => {
-    if (ingredientName.value && ingredientAmount.value && ingredientUnit.value) {
-        ingredients.value.push({
-            name: ingredientName.value,
-            amount: ingredientAmount.value,
-            unit: ingredientUnit.value
-        });
-        ingredientName.value = '';
-        ingredientAmount.value = '';
-        ingredientUnit.value = '';
+const menu = ref([
+    {
+        name: '제육볶음',
+        price: 9900,
+        category: "볶음류",
+        ingredient: [
+            '돼지고기 200g',
+            '양파 1개',
+            '고추장 2T',
+            '간장 1T',
+            '설탕 1T',
+            '대파 50g'
+        ]
     }
-};
+]);
 
-const removeIngredient = (index) => {
-    ingredients.value.splice(index, 1);
-};
+const selectedMenu = ref(menu.value[0]); // 기본 선택 메뉴 설정
+const emit = defineEmits(['close']);
+const activeTab = ref('단일메뉴');
 </script>
 
 <template>
@@ -45,71 +30,100 @@ const removeIngredient = (index) => {
         <div class="modal">
             <button class="close_btn" @click="emit('close')">✕</button>
 
-            <h2 class="modal_title">메뉴 등록</h2>
-
-            <p class="modal_desc">하나의 메뉴를 만드는 데 필요한 재고의 양과 메뉴명을 등록해 주세요.<br>
-                판매 시 재고가 자동으로 차감됩니다.</p>
+            <h2 class="modal_title">메뉴 상세</h2>
+            <p class="modal_desc">이 메뉴의 상세 정보를 확인할 수 있습니다.</p>
 
             <div class="tab_menu">
-                <button :class="{ active: activeTab === '단일메뉴' }" @click="activeTab = '단일메뉴'">단일메뉴</button>
-                <button :class="{ active: activeTab === '세트메뉴' }" @click="activeTab = '세트메뉴'">세트메뉴</button>
+                <button :class="{ active: activeTab === '단일메뉴' }" disabled>단일메뉴</button>
+                <button :class="{ active: activeTab === '세트메뉴' }" disabled>세트메뉴</button>
             </div>
 
             <div class="input_group">
                 <div class="modal_title2">
                     <label>메뉴명</label>
-                    <p class="title_warn">(필수)</p>
                 </div>
-                <p class="sub_title"> 판매 시 사용되는 정확한 메뉴명을 입력해주세요.</p>
-                <input type="text" v-model="menuName" placeholder="판매 시 사용할 정확한 메뉴명을 입력해 주세요." />
+                <p class="sub_title">판매 시 사용되는 정확한 메뉴명입니다.</p>
+                <input type="text" :value="selectedMenu?.name" disabled />
             </div>
 
             <div class="input_group">
                 <label>가격(원)</label>
-                <input type="number" min="1" placeholder="(ex) 50000" />
+                <input type="number" v-model="ingredientAmount" :placeholder="selectedMenu?.price" disabled />
             </div>
 
             <div class="input_group">
                 <label>재고 소요량</label>
-                <p class="sub_title"> 메뉴를 만드는 데 필요한 재고의 종류와 양을 입력해 주세요.</p>
+                <p class="sub_title">메뉴를 만드는 데 필요한 재고의 종류와 양입니다.</p>
                 <div class="ingredient_inputs">
-                    <select v-model="ingredientName">
-                        <option value="" disabled selected>재료 선택</option>
-                        <option v-for="item in ingredientOptions" :key="item" :value="item">{{ item }}</option>
+                    <select disabled>
+                        <option value="" selected>재료 선택</option>
                     </select>
-                    <input type="number" v-model="ingredientAmount" min="1" placeholder="수량" />
-                    <select v-model="ingredientUnit">
-                        <option value="" disabled selected>단위 선택</option>
-                        <option v-for="unit in unitOptions" :key="unit" :value="unit">{{ unit }}</option>
+                    <input type="number" min="1" placeholder="수량" disabled />
+                    <select disabled>
+                        <option value="" selected>단위 선택</option>
                     </select>
-                    <button class="add_btn" @click="addIngredient">추가</button>
+                    <button class="add_btn disabled" disabled>추가</button>
                 </div>
             </div>
 
             <div class="tag_container">
-                <span v-for="(ingredient, index) in ingredients" :key="index" class="tag">
-                    {{ ingredient.name }} {{ ingredient.amount }}{{ ingredient.unit }}
-                    <button class="remove_btn" @click="removeIngredient(index)">✕</button>
+                <span v-for="(ingredient, index) in selectedMenu?.ingredient" :key="index" class="tag">
+                    {{ ingredient }}
+                    <button class="remove_btn disabled" disabled>✕</button>
                 </span>
             </div>
 
             <div class="input_group">
                 <label>카테고리</label>
-                <p class="sub_title"> 메뉴가 속한 카테고리를 입력해 주세요.</p>
-                <select v-model="category">
-                    <option value="">카테고리를 선택해 주세요.</option>
-                    <option value="5900원 메뉴">탕류</option>
-                    <option value="프리미엄 메뉴">사이드</option>
-                    <option value="프리미엄 메뉴">선택없음</option>
+                <p class="sub_title">이 메뉴가 속한 카테고리입니다.</p>
+                <select disabled>
+                    <option value="">{{ selectedMenu?.category || "카테고리 없음" }}</option>
                 </select>
             </div>
 
-            <button class="confirm_btn" @click="emit('close')">등록</button>
+            <button class="confirm_btn" @click="emit('close')">닫기</button>
         </div>
     </div>
 </template>
 
+
 <style scoped>
+.disabled {
+    background: #f0f0f0 !important;
+    cursor: not-allowed;
+    color: #666;
+    border: 1px solid #ccc;
+}
+
+/* 모든 input, select, button 비활성화 스타일 */
+input:disabled,
+select:disabled,
+button:disabled {
+    background: #f0f0f0;
+    color: #666;
+    border: 1px solid #ccc;
+    cursor: not-allowed;
+}
+
+/* 태그 버튼 비활성화 */
+.remove_btn.disabled {
+    background: none;
+    color: #999;
+    cursor: not-allowed;
+    border: none;
+    /* 테두리 제거 */
+    outline: none;
+    /* 포커스 시 테두리 제거 */
+    box-shadow: none;
+    /* 기본 그림자 제거 */
+}
+
+.add_btn.disabled {
+    background: #ddd;
+    color: #888;
+    cursor: not-allowed;
+}
+
 .modal_overlay {
     position: fixed;
     top: 0;

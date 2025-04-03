@@ -1,43 +1,71 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import MenuRegisterModal from './MenuRegisterModal.vue';
+import MenuDetailModal from './MenuDetailModal.vue';
+import DeleteConfirmModal from './DeleteConfirmModal.vue';
+import DeleteAlertModal from './DeleteAlertModal.vue';
 
 const isModalOpen = ref(false);
+const isDetailModalOpen = ref(false);
+const isDeleteConfirmOpen = ref(false);
+const isDeleteAlertOpen = ref(false); // 삭제 항목 선택 안내 모달
 
-const openModal = () => {
-    isModalOpen.value = true;
-};
+const openModal = () => { isModalOpen.value = true; };
+const closeModal = () => { isModalOpen.value = false; };
 
-const closeModal = () => {
-    isModalOpen.value = false;
-};
+const openDetailModal = () => { isDetailModalOpen.value = true; };
+const closeDetailModal = () => { isDetailModalOpen.value = false; };
 
 const menu_items = ref([
     { name: "알리오올리오", price: 9000, ingredient: "당근 50g 외 3개", selected: false },
     { name: "들깨 크림 뇨끼", price: 12000, ingredient: "당근 20g 외 1개", selected: false },
-    { name: "들깨 크림 뇨끼", price: 12000, ingredient: "당근 10g 외 3개", selected: false },
-    { name: "들깨 크림 뇨끼", price: 12000, ingredient: "당근 80g 외 5개", selected: false }
+    { name: "토마토 파스타", price: 11000, ingredient: "토마토 80g 외 2개", selected: false },
+    { name: "봉골레 파스타", price: 13000, ingredient: "조개 100g 외 3개", selected: false }
 ]);
 
 const select_all = ref(false);
-const active_filter = ref("전체");
+const isBlocked = computed(() => isDeleteConfirmOpen.value || isDeleteAlertOpen.value);
 
-// 전체 선택/해제 기능
+// 전체 선택 토글
 const toggle_select_all = () => {
-    menu_items.value.forEach(item => item.selected = select_all.value);
+    if (!isBlocked.value) {
+        menu_items.value.forEach(item => (item.selected = select_all.value));
+    }
 };
 
-// 개별 체크박스 변경 시 전체 선택 상태 업데이트
+// 개별 선택 체크 시 전체 선택 여부 감지
 watch(menu_items, (new_items) => {
     select_all.value = new_items.every(item => item.selected);
 }, { deep: true });
 
-// 필터 버튼 선택 기능
-const select_filter = (filter) => {
-    active_filter.value = filter;
+// 삭제 확인 모달 열기
+const openDeleteConfirm = () => {
+    if (!isBlocked.value) {
+        const selectedItems = menu_items.value.some(item => item.selected);
+        if (selectedItems) {
+            isDeleteConfirmOpen.value = true;
+        } else {
+            isDeleteAlertOpen.value = true;
+        }
+    }
+};
+
+// 삭제 확인 모달 닫기
+const closeDeleteConfirm = () => {
+    isDeleteConfirmOpen.value = false;
+};
+
+// 삭제 경고 모달 닫기
+const closeDeleteAlert = () => {
+    isDeleteAlertOpen.value = false;
+};
+
+// 삭제 실행
+const deleteSelectedItems = () => {
+    isDeleteConfirmOpen.value = false;
+    menu_items.value = menu_items.value.filter(item => !item.selected);
 };
 </script>
-
 <template>
     <div class="body">
         <h1 class="page_title">메뉴 관리</h1>
@@ -50,26 +78,18 @@ const select_filter = (filter) => {
             </div>
             <div class="action_buttons">
                 <button @click="openModal" class="register_btn">등록</button>
-                <button class="delete_btn">삭제</button>
+                <button @click="openDeleteConfirm" class="delete_btn">삭제</button>
             </div>
-        </div>
-
-        <!-- 필터 버튼 -->
-        <div class="filter_container">
-            <button class="filter_btn" :class="{ active: active_filter === '전체' }"
-                @click="select_filter('전체')">전체</button>
-            <button class="filter_btn" :class="{ active: active_filter === '파스타' }"
-                @click="select_filter('파스타')">파스타</button>
-            <button class="filter_btn" :class="{ active: active_filter === '뇨끼' }"
-                @click="select_filter('뇨끼')">뇨끼</button>
         </div>
 
         <!-- 상품 목록 -->
         <table class="menu_table">
             <thead>
                 <tr>
-                    <th><input type="checkbox" v-model="select_all" @change="toggle_select_all"
-                            class="checkbox_large" /></th>
+                    <th>
+                        <input type="checkbox" v-model="select_all" @change="toggle_select_all"
+                            class="checkbox_large" />
+                    </th>
                     <th>상품</th>
                     <th>가격</th>
                     <th>재고</th>
@@ -78,11 +98,15 @@ const select_filter = (filter) => {
             </thead>
             <tbody>
                 <tr v-for="(item, index) in menu_items" :key="index">
-                    <td><input type="checkbox" v-model="item.selected" class="checkbox_large" /></td>
+                    <td>
+                        <input type="checkbox" v-model="item.selected" class="checkbox_large" />
+                    </td>
                     <td>{{ item.name }}</td>
                     <td>{{ item.price }}원</td>
                     <td>{{ item.ingredient }}</td>
-                    <td><button class="detail_btn">상세</button></td>
+                    <td>
+                        <button class="detail_btn" @click="openDetailModal(item)">상세</button>
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -94,8 +118,11 @@ const select_filter = (filter) => {
             <button class="next_btn">〉</button>
         </div>
 
-
+        <!-- 모달 컴포넌트들 -->
         <MenuRegisterModal :isOpen="isModalOpen" @close="closeModal" />
+        <MenuDetailModal :isOpen="isDetailModalOpen" @close="closeDetailModal" />
+        <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
+        <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
     </div>
 </template>
 
