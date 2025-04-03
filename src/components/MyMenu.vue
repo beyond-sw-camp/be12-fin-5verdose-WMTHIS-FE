@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue';
-import MenuModal from './MenuModal.vue';
+import MenuRegisterModal from './MenuRegisterModal.vue';
 
 const isModalOpen = ref(false);
 
@@ -49,7 +49,7 @@ const select_filter = (filter) => {
                 <button class="search_btn">검색</button>
             </div>
             <div class="action_buttons">
-                <button class="register_btn">등록</button>
+                <button @click="openModal" class="register_btn">등록</button>
                 <button class="delete_btn">삭제</button>
             </div>
         </div>
@@ -82,7 +82,7 @@ const select_filter = (filter) => {
                     <td>{{ item.name }}</td>
                     <td>{{ item.price }}원</td>
                     <td>{{ item.ingredient }}</td>
-                    <td><button @click="openModal" class="detail_btn">상세</button></td>
+                    <td><button class="detail_btn">상세</button></td>
                 </tr>
             </tbody>
         </table>
@@ -95,7 +95,7 @@ const select_filter = (filter) => {
         </div>
 
 
-        <MenuModal :isOpen="isModalOpen" @close="closeModal" />
+        <MenuRegisterModal :isOpen="isModalOpen" @close="closeModal" />
     </div>
 </template>
 
