@@ -1,147 +1,341 @@
-<template>
-  <v-container>
-    <h1 class="text-h3 font-weight-black mb-4 mt-9">MY 재고</h1>
+<script setup>
+import { ref, watch, computed } from "vue";
+import MenuRegisterModal from "../MenuRegisterModal.vue";
+import MenuDetailModal from "../MenuDetailModal.vue";
+import DeleteConfirmModal from "../DeleteConfirmModal.vue";
+import DeleteAlertModal from "../DeleteAlertModal.vue";
 
-    <div class="d-flex justify-end">
-    <v-btn size="x-large" class="add-button" >추가</v-btn> </div>
-    <v-card>
-        <!-- ✅ 테이블 헤더 박스 -->
-        <v-sheet
-  class="pa-3 mb-1 d-flex justify-center align-center gap-5"
-  rounded="lg"
-  elevation="2"
-  color="#D1D5C2"
->
+const isModalOpen = ref(false);
+const isDetailModalOpen = ref(false);
+const isDeleteConfirmOpen = ref(false);
+const isDeleteAlertOpen = ref(false); // 삭제 항목 선택 안내 모달
 
-<div class="d-flex justify-space-between" style="width: 75%;">
-    <span class="text-h6 font-weight-bold">이름</span>
-   <span class="text-h6 font-weight-bold " >총 수량</span>
-  </div>
-</v-sheet>
+const openModal = () => {
+  isModalOpen.value = true;
+};
+const closeModal = () => {
+  isModalOpen.value = false;
+};
 
+const openDetailModal = () => {
+  isDetailModalOpen.value = true;
+};
+const closeDetailModal = () => {
+  isDetailModalOpen.value = false;
+};
 
-<v-data-table
-        :items="inventory"
-        :headers="headers"
-        item-value="name"
-        class="elevation-1"
-        hide-default-footer
-      >
-
-
-      
-
-        <template v-slot:expanded-row="{ item }">
-          <tr>
-            <td colspan="4">
-              <v-data-table
-                :items="item.details"
-                :headers="detailHeaders"
-                class="elevation-0"
-                hide-default-footer
-              >
-                <template v-slot:item.price="{ item }">
-                  <v-text-field v-if="item.edit" v-model="item.price" dense outlined hide-details></v-text-field>
-                  <span v-else>{{ item.price }}원</span>
-                </template>
-                <template v-slot:item.expiry="{ item }">
-                   <v-text-field v-if="item.edit" v-model="item.expiry" dense outlined hide-details></v-text-field>
-                  <span v-else>{{ item.expiry }}</span>
-                </template>
-                <template v-slot:item.amount="{ item }">
-                  <v-text-field v-if="item.edit" v-model="item.amount" dense outlined hide-details></v-text-field>
-                  <span v-else>{{ item.amount }}</span>
-                </template>
-                
-                <template v-slot:item.actions="{ item }">
-                  <v-icon @click="toggleEdit(item)">{{ item.edit ? 'mdi-check' : 'mdi-pencil' }}</v-icon>
-                </template>
-                
-              </v-data-table>
-            
-            </td>
-          </tr>
-        </template>
-       
-      </v-data-table>
-    </v-card>
-  </v-container>
-</template>
-
-<script>
-import { ref } from 'vue';
-
-export default {
-  setup() {
-    const inventory = ref([
-      {
-        name: '스파게티면',
-        quantity: '3kg',
-        details: [
-          { price: 2000, expiry: '2025-04-15', amount: '1kg', edit: false },
-          { price: 2500, expiry: '2025-04-20', amount: '2kg', edit: false }
-        ]
-      },
-      { name: '감자', quantity: '10kg', details: [] },
-      { name: '양파', quantity: '40kg', details: [] }
-    ]);
-
-    const headers = [
-      { text: '이름', value: 'name' },
-      { text: '총 수량', value: 'quantity' },
-      { text: '', value: 'data-table-expand' }
-    ];
-    
-    const detailHeaders = ref([
-  { title: '단가', key: 'price', sortable: false },
-  { title: '유통기한', key: 'expiry', sortable: false },
-  { title: '수량', key: 'amount', sortable: false },
-  { title: '수정', key: 'actions', align: 'center', sortable: false }
+const menu_items = ref([
+  {
+    name: "마늘",
+    unit: "1kg",
+    quantity: "700g",
+    Expirationdate: "2025-08-12",
+    selected: false,
+  },
+  {
+    name: "파슬리",
+    unit: "120g",
+    quantity: "90g",
+    Expirationdate: "2026-12-12",
+    selected: false,
+  },
+  {
+    name: "토마토",
+    unit: "1kg",
+    quantity: "800g",
+    Expirationdate: "2025-04-12",
+    selected: false,
+  },
+  {
+    name: "바지락",
+    unit: "13kg",
+    quantity: "11kg",
+    Expirationdate: "2025-04-09",
+    selected: false,
+  },
 ]);
 
+const select_all = ref(false);
+const isBlocked = computed(
+  () => isDeleteConfirmOpen.value || isDeleteAlertOpen.value
+);
 
-
-    
-    const addItem = () => {
-      inventory.value.push({ name: '새 품목', quantity: '1kg', details: [] });
-    };
-
-    const toggleEdit = (item) => {
-      item.edit = !item.edit;
-    };
-    
-    return { inventory, headers, detailHeaders, addItem, toggleEdit };
+// 전체 선택 토글
+const toggle_select_all = () => {
+  if (!isBlocked.value) {
+    menu_items.value.forEach((item) => (item.selected = select_all.value));
   }
 };
+
+// 개별 선택 체크 시 전체 선택 여부 감지
+watch(
+  menu_items,
+  (new_items) => {
+    select_all.value = new_items.every((item) => item.selected);
+  },
+  { deep: true }
+);
+
+// 삭제 확인 모달 열기
+const openDeleteConfirm = () => {
+  if (!isBlocked.value) {
+    const selectedItems = menu_items.value.some((item) => item.selected);
+    if (selectedItems) {
+      isDeleteConfirmOpen.value = true;
+    } else {
+      isDeleteAlertOpen.value = true;
+    }
+  }
+};
+
+// 삭제 확인 모달 닫기
+const closeDeleteConfirm = () => {
+  isDeleteConfirmOpen.value = false;
+};
+
+// 삭제 경고 모달 닫기
+const closeDeleteAlert = () => {
+  isDeleteAlertOpen.value = false;
+};
+
+// 삭제 실행
+const deleteSelectedItems = () => {
+  isDeleteConfirmOpen.value = false;
+  menu_items.value = menu_items.value.filter((item) => !item.selected);
+};
 </script>
+<template>
+  <div class="body">
+    <h1 class="page_title">재고 관리</h1>
 
-<style>
-.add-button {
-  margin-bottom: 20px; /* 버튼과 텍스트 간격 조정 */
-  font-weight: bold !important;
-  background-color: #B1D5C2 !important; /* 배경색 설정 */
-  color: rgb(0, 0, 0) !important; /* 글자색 설정 */
-  border-radius: 15px !important; /* 모서리 둥글게 설정 */
-  width: auto !important; /* 버튼 크기 자동 조정 */
-  min-width: 100px; /* 최소 너비 설정 */
+    <!-- 검색 바 및 등록/삭제 버튼 -->
+    <div class="search_container">
+      <div class="search_box">
+        <input type="text" class="search_input" placeholder="재고명 입력" />
+        <button class="search_btn">검색</button>
+      </div>
+      <div class="action_buttons">
+        <button @click="openModal" class="register_btn">등록</button>
+        <button @click="openDeleteConfirm" class="delete_btn">삭제</button>
+      </div>
+    </div>
+
+    <!-- 상품 목록 -->
+    <table class="menu_table">
+      <thead>
+        <tr>
+          <th>
+            <input
+              type="checkbox"
+              v-model="select_all"
+              @change="toggle_select_all"
+              class="checkbox_large"
+            />
+          </th>
+          <th>재고명</th>
+          <th>용량/단위</th>
+          <th>최소수량</th>
+          <th>유통기한</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(item, index) in menu_items" :key="index">
+          <td>
+            <input
+              type="checkbox"
+              v-model="item.selected"
+              class="checkbox_large"
+            />
+          </td>
+          <td>{{ item.name }}</td>
+          <td>{{ item.unit }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>{{ item.Expirationdate }}</td>
+          <td>
+            <button class="detail_btn" @click="openDetailModal(item)">
+              상세
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 페이지네이션 -->
+    <div class="pagination">
+      <button class="prev_btn">〈</button>
+      <span class="page_number">1</span>
+      <button class="next_btn">〉</button>
+    </div>
+
+    <!-- 모달 컴포넌트들 -->
+    <MenuRegisterModal :isOpen="isModalOpen" @close="closeModal" />
+    <MenuDetailModal :isOpen="isDetailModalOpen" @close="closeDetailModal" />
+    <DeleteConfirmModal
+      :isOpen="isDeleteConfirmOpen"
+      @confirm="deleteSelectedItems"
+      @cancel="closeDeleteConfirm"
+    />
+    <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
+  </div>
+</template>
+
+<style scoped>
+.body {
+  padding: 20px;
 }
 
-    .v-data-table {
-  width: 100%; /* 테이블 너비 고정 */
+/* 제목 */
+.page_title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 20px;
 }
 
-.v-data-table th {
-  text-align: center !important; /* 헤더 중앙 정렬 */
+/* 검색창 및 버튼 */
+.search_container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.v-data-table td {
-  text-align: center !important; /* 셀 중앙 정렬 */
+.search_box {
+  display: flex;
+  gap: 5px;
+  flex: 0.6;
 }
 
-.detail-table th {
-  text-align: center !important;
-  width: 33.33%;
+.search_input {
+  flex: 1;
+  max-width: 500px;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
 }
 
+.search_btn {
+  padding: 8px 12px;
+  background-color: #5e7955;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
 
+.search_btn:hover {
+  background-color: #4a5f45;
+}
+
+.detail_btn {
+  padding: 8px 12px;
+  background-color: #ffffff;
+  color: black;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.detail_btn:hover {
+  background-color: #f0f0f0;
+}
+
+.action_buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.register_btn,
+.delete_btn {
+  padding: 8px 12px;
+  background-color: #5e7955;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.register_btn:hover,
+.delete_btn:hover {
+  background-color: #4a5f45;
+}
+
+/* 필터 */
+.filter_container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.filter_btn {
+  padding: 8px 12px;
+  background-color: #d1d5c2;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.filter_btn.active,
+.filter_btn:hover {
+  background-color: #5e7955;
+  color: white;
+}
+
+/* 테이블 */
+.menu_table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.menu_table th,
+.menu_table td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+.menu_table th {
+  background-color: #d1d5c2;
+  font-size: 20px;
+}
+
+/* 체크박스 크기 조정 */
+.checkbox_large {
+  width: 20px;
+  height: 20px;
+}
+
+/* 페이지네이션 스타일 */
+.pagination {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.prev_btn,
+.next_btn {
+  padding: 8px 12px;
+  background-color: #5e7955;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.prev_btn:hover,
+.next_btn:hover {
+  background-color: #4a5f45;
+}
 </style>
