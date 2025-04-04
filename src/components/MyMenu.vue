@@ -90,7 +90,7 @@ const deleteSelectedItems = () => {
                 <tr>
                     <th>
                         <input type="checkbox" v-model="select_all" @change="toggle_select_all"
-                            class="checkbox_large" />
+                            class="circle_checkbox" />
                     </th>
                     <th>상품</th>
                     <th>카테고리</th>
@@ -101,7 +101,7 @@ const deleteSelectedItems = () => {
             <tbody>
                 <tr v-for="(item, index) in menu_items" :key="index" :class="{ 'selected-row': item.selected }">
                     <td>
-                        <input type="checkbox" v-model="item.selected" class="checkbox_large" />
+                        <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
                     </td>
                     <td class="bold-text">{{ item.name }}</td>
                     <td>{{ item.category }}</td>
@@ -270,9 +270,34 @@ const deleteSelectedItems = () => {
     font-size: 18px;
 }
 
-/* 체크박스 크기 조정 */
-.checkbox_large {
+.circle_checkbox {
+    appearance: none;
+    -webkit-appearance: none;
     width: 20px;
     height: 20px;
+    border: 2px solid #666;
+    border-radius: 50%;
+    /* 둥글게 */
+    background-color: white;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease-in-out;
+}
+
+.circle_checkbox:checked {
+    background-color: blue;
+    border-color: blue;
+    ;
+}
+
+.circle_checkbox:checked::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
 }
 </style>
