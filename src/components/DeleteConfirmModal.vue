@@ -57,7 +57,7 @@ defineEmits(["confirm", "cancel"]);
 
 /* 아니오 버튼 */
 .cancel_btn {
-    background: #D6D6D6;
+    background: #B8C0C8;
     color: #333;
     padding: 10px 20px;
     border: none;

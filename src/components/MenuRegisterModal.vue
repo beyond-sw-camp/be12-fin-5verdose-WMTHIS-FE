@@ -43,68 +43,73 @@ const removeIngredient = (index) => {
 <template>
     <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')">
         <div class="modal">
-            <button class="close_btn" @click="emit('close')">✕</button>
+            <div class="modal_content">
+                <button class="close_btn" @click="emit('close')">✕</button>
 
-            <h2 class="modal_title">메뉴 등록</h2>
+                <h2 class="modal_title">메뉴 등록</h2>
 
-            <p class="modal_desc">하나의 메뉴를 만드는 데 필요한 재고의 양과 메뉴명을 등록해 주세요.<br>
-                판매 시 재고가 자동으로 차감됩니다.</p>
+                <p class="modal_desc">하나의 메뉴를 만드는 데 필요한 재고의 양과 메뉴명을 등록해 주세요.<br>
+                    판매 시 재고가 자동으로 차감됩니다.</p>
 
-            <div class="tab_menu">
-                <button :class="{ active: activeTab === '단일메뉴' }" @click="activeTab = '단일메뉴'">단일메뉴</button>
-                <button :class="{ active: activeTab === '세트메뉴' }" @click="activeTab = '세트메뉴'">세트메뉴</button>
-            </div>
-
-            <div class="input_group">
-                <div class="modal_title2">
-                    <label>메뉴명</label>
-                    <p class="title_warn">(필수)</p>
+                <div class="tab_menu">
+                    <button :class="{ active: activeTab === '단일메뉴' }" @click="activeTab = '단일메뉴'">단일메뉴</button>
+                    <button :class="{ active: activeTab === '세트메뉴' }" @click="activeTab = '세트메뉴'">세트메뉴</button>
                 </div>
-                <p class="sub_title"> 판매 시 사용되는 정확한 메뉴명을 입력해주세요.</p>
-                <input type="text" v-model="menuName" placeholder="판매 시 사용할 정확한 메뉴명을 입력해 주세요." />
-            </div>
 
-            <div class="input_group">
-                <label>가격(원)</label>
-                <input type="number" min="1" placeholder="(ex) 50000" />
-            </div>
+                <div class="input_group">
+                    <div class="modal_title2">
+                        <label>메뉴명</label>
+                        <p class="title_warn">(필수)</p>
+                    </div>
+                    <p class="sub_title"> 판매 시 사용되는 정확한 메뉴명을 입력해주세요.</p>
+                    <input type="text" v-model="menuName" placeholder="판매 시 사용할 정확한 메뉴명을 입력해 주세요." />
+                </div>
 
-            <div class="input_group">
-                <label>재고 소요량</label>
-                <p class="sub_title"> 메뉴를 만드는 데 필요한 재고의 종류와 양을 입력해 주세요.</p>
-                <div class="ingredient_inputs">
-                    <select v-model="ingredientName">
-                        <option value="" disabled selected>재료 선택</option>
-                        <option v-for="item in ingredientOptions" :key="item" :value="item">{{ item }}</option>
+
+                <div class="input_group">
+                    <label>재고 소요량</label>
+                    <p class="sub_title"> 메뉴를 만드는 데 필요한 재고의 종류와 양을 입력해 주세요.</p>
+                    <div class="ingredient_inputs">
+                        <select v-model="ingredientName">
+                            <option value="" disabled selected>재료 선택</option>
+                            <option v-for="item in ingredientOptions" :key="item" :value="item">{{ item }}</option>
+                        </select>
+                        <input type="number" v-model="ingredientAmount" min="1" placeholder="수량" />
+                        <select v-model="ingredientUnit">
+                            <option value="" disabled selected>단위 선택</option>
+                            <option v-for="unit in unitOptions" :key="unit" :value="unit">{{ unit }}</option>
+                        </select>
+                        <button class="add_btn" @click="addIngredient">추가</button>
+                    </div>
+                </div>
+
+                <div class="tag_container">
+                    <span v-for="(ingredient, index) in ingredients" :key="index" class="tag">
+                        {{ ingredient.name }} {{ ingredient.amount }}{{ ingredient.unit }}
+                        <button class="remove_btn" @click="removeIngredient(index)">✕</button>
+                    </span>
+                </div>
+
+                <div class="input_group">
+                    <label>카테고리</label>
+                    <p class="sub_title"> 메뉴가 속한 카테고리를 입력해 주세요.</p>
+                    <select v-model="category">
+                        <option value="">카테고리를 선택해 주세요.</option>
+                        <option value="5900원 메뉴">탕류</option>
+                        <option value="프리미엄 메뉴">사이드</option>
+                        <option value="프리미엄 메뉴">선택없음</option>
                     </select>
-                    <input type="number" v-model="ingredientAmount" min="1" placeholder="수량" />
-                    <select v-model="ingredientUnit">
-                        <option value="" disabled selected>단위 선택</option>
-                        <option v-for="unit in unitOptions" :key="unit" :value="unit">{{ unit }}</option>
-                    </select>
-                    <button class="add_btn" @click="addIngredient">추가</button>
+                </div>
+
+                <div class="input_group">
+                    <label>가격</label>
+                    <p class="sub_title">메뉴에 가격을 입력해주세요.</p>
+                    <input type="number" min="1" placeholder="(ex) 50000" />
                 </div>
             </div>
-
-            <div class="tag_container">
-                <span v-for="(ingredient, index) in ingredients" :key="index" class="tag">
-                    {{ ingredient.name }} {{ ingredient.amount }}{{ ingredient.unit }}
-                    <button class="remove_btn" @click="removeIngredient(index)">✕</button>
-                </span>
+            <div class="modal_footer">
+                <button class="confirm_btn" @click="emit('close')">등록</button>
             </div>
-
-            <div class="input_group">
-                <label>카테고리</label>
-                <p class="sub_title"> 메뉴가 속한 카테고리를 입력해 주세요.</p>
-                <select v-model="category">
-                    <option value="">카테고리를 선택해 주세요.</option>
-                    <option value="5900원 메뉴">탕류</option>
-                    <option value="프리미엄 메뉴">사이드</option>
-                    <option value="프리미엄 메뉴">선택없음</option>
-                </select>
-            </div>
-
-            <button class="confirm_btn" @click="emit('close')">등록</button>
         </div>
     </div>
 </template>
@@ -131,12 +136,28 @@ const removeIngredient = (index) => {
     padding: 20px;
     border-left: 1px solid #ddd;
     box-shadow: -5px 0 10px rgba(0, 0, 0, 0.1);
+    justify-content: space-between;
+    /* 상단-하단 요소 분리 */
     position: relative;
     display: flex;
     flex-direction: column;
 
     transform: translateX(100%);
     animation: slideIn 0.3s forwards;
+}
+
+/* 모달 안의 스크롤 영역 */
+.modal_content {
+    position: relative;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* 등록 버튼 고정 영역 */
+.modal_footer {
+    padding: 16px 20px;
+    border-top: 1px solid #eee;
+    background-color: #fff;
 }
 
 /* 페이드인 효과 */
@@ -161,6 +182,7 @@ const removeIngredient = (index) => {
     }
 }
 
+
 .modal_title2 {
     display: flex;
     align-items: center;
@@ -181,6 +203,7 @@ const removeIngredient = (index) => {
     border: none;
     font-size: 18px;
     cursor: pointer;
+    z-index: 10;
 }
 
 .modal_title {
@@ -204,24 +227,40 @@ const removeIngredient = (index) => {
 
 .tab_menu {
     display: flex;
-    border-bottom: 2px solid #ddd;
+    border-bottom: none;
     margin-bottom: 15px;
+    gap: 10px;
+    justify-content: center;
+    width: 100%;
 }
 
 .tab_menu button {
     flex: 1;
-    padding: 10px;
-    background: none;
-    border: none;
-    font-size: 16px;
+    /* 버튼을 가로로 균등하게 배치 */
+    padding: 6px 30px;
+    /* 높이를 줄이고 가로 길이를 늘림 */
+    background-color: #B8C0C8;
+    /* 기본 색 */
+    border: 2px solid #B8C0C8;
+    border-radius: 30px;
+    /* 더 길쭉한 느낌 */
+    font-size: 14px;
+    /* 폰트 크기도 살짝 줄임 */
     cursor: pointer;
-    color: #888;
+    color: black;
+    font-weight: bold;
+    transition: background-color 0.3s, color 0.3s, transform 0.2s;
+    text-align: center;
+}
+
+.tab_menu button:hover {
+    background-color: #9FA6AD;
 }
 
 .tab_menu button.active {
-    border-bottom: 2px solid #5e7955;
-    color: #5e7955;
-    font-weight: bold;
+    background-color: #858B91;
+    color: white;
+    border-color: #858B91;
 }
 
 .ingredient_inputs {
@@ -244,10 +283,10 @@ const removeIngredient = (index) => {
 .add_btn {
     flex-shrink: 0;
     padding: 10px 14px;
-    background: #B1D5C2;
+    background: #C8C8C8;
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 18px;
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
@@ -255,27 +294,29 @@ const removeIngredient = (index) => {
 }
 
 .add_btn:hover {
-    background: #8CBFA4;
+    background: #9FA6AD;
 }
 
 /* 추가된 재료 리스트 스타일 */
 .tag_container {
+    margin-top: 5px;
+    margin-bottom: 30px;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 18px;
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
-    margin-top: 5px;
-
+    gap: 8px;
 }
 
 .tag {
-    background: #E8E8E8;
-    color: black;
-    padding: 8px 12px;
+    display: inline-flex;
+    align-items: center;
+    background-color: #dbe2ea;
+    padding: 6px 10px;
     border-radius: 20px;
     font-size: 14px;
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
+    color: #333;
 }
 
 .remove_btn {
@@ -291,7 +332,7 @@ const removeIngredient = (index) => {
 .input_group select {
     padding: 10px;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 18px;
     font-size: 14px;
 }
 
