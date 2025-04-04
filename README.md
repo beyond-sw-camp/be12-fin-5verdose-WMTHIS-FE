@@ -28,10 +28,10 @@
       <th>김유진</th>
     </tr>
     <tr>
-      <td><img src="https://i.namu.wiki/i/-O6vKMj1KgBKoyBC5WRLPsoSomgG-Rfd6JaVtah1iwTgiwS_BienbQB26n4LuOwqKxWjXqgMXc27Ilq3S6bHdg.webp" width="100" height="100"/></td>
-      <td><img src="https://i.namu.wiki/i/BGJZXXrFw6t2G9tmIsVe_dq709injDrnLNeMdRkjdzS0Y5gl-c_IvBD0iJ6Auy_3CgkEHL5ayeLSOxOrpstgNA.webp" width="100" height="100"/></td>
-      <td><img src="https://i.namu.wiki/i/w9KlAIaMhkg2PZteKS-dMFWgyvvvfTYooBAUqxKoY7iI-tjmMBNsu4wj02m8yj72zxancysOPJunY-FLc6tmJQ.webp" width="100" height="100"/></td>
-      <td><img src="https://i.namu.wiki/i/f2MEmVZ2TO6XJqNwrVhCB7RXfPH32C9cWWDOm80KvKCQ1dHwdfcFa4ZXmlfws7OagSiqzW8xPcwCwNnYijM9ZQ.webp" width="100" height="100"/></td>
+      <td><img src="./src/assets/image/no.webp" width="100" height="100"/></td>
+      <td><img src="./src/assets/image/honoka.webp" width="100" height="100"/></td>
+      <td><img src="./src/assets/image/ni.webp" width="100" height="100"/></td>
+      <td><img src="./src/assets/image/eri.webp" width="100" height="100"/></td>
     </tr>
     <tr>
       <td><a href="https://github.com/chan0o0seo">@chan0o0seo</a></td>
