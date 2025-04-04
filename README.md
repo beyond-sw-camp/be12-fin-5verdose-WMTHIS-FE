@@ -16,7 +16,8 @@
 --
 ---
 -->
-# ✌️ 팀원 구성 ✌️
+
+# <img src="https://i.namu.wiki/i/pUSVyUCiN_NvwLXMZIvgzvr9XCAGZSzDzPm1_ypZRXSKaMEQ2_L9lYT-m2d-d8LF7cOUVPc1PLK5U37qLyNgUeWJ8OL70GyWxx4bQfGDZTrQbasowkpjGTbHdCi5gY3V3KO47CvdI9oK1q4QPZDh5Q.svg" alt="logo" width="30"> 팀원 구성
 
 <div align="center">
   <table>
@@ -27,10 +28,10 @@
       <th>김유진</th>
     </tr>
     <tr>
-      <td><img src="https://avatars.githubusercontent.com/u/69503955?v=4" width="100" height="100"/></td>
-      <td><img src="https://avatars.githubusercontent.com/u/86238720?v=4" width="100" height="100"/></td>
-      <td><img src="https://avatars.githubusercontent.com/u/77095330?v=4" width="100" height="100"/></td>
-      <td><img src="https://avatars.githubusercontent.com/u/101664417?v=4" width="100" height="100"/></td>
+      <td><img src="https://i.namu.wiki/i/-O6vKMj1KgBKoyBC5WRLPsoSomgG-Rfd6JaVtah1iwTgiwS_BienbQB26n4LuOwqKxWjXqgMXc27Ilq3S6bHdg.webp" width="100" height="100"/></td>
+      <td><img src="https://i.namu.wiki/i/BGJZXXrFw6t2G9tmIsVe_dq709injDrnLNeMdRkjdzS0Y5gl-c_IvBD0iJ6Auy_3CgkEHL5ayeLSOxOrpstgNA.webp" width="100" height="100"/></td>
+      <td><img src="https://i.namu.wiki/i/w9KlAIaMhkg2PZteKS-dMFWgyvvvfTYooBAUqxKoY7iI-tjmMBNsu4wj02m8yj72zxancysOPJunY-FLc6tmJQ.webp" width="100" height="100"/></td>
+      <td><img src="https://i.namu.wiki/i/f2MEmVZ2TO6XJqNwrVhCB7RXfPH32C9cWWDOm80KvKCQ1dHwdfcFa4ZXmlfws7OagSiqzW8xPcwCwNnYijM9ZQ.webp" width="100" height="100"/></td>
     </tr>
     <tr>
       <td><a href="https://github.com/chan0o0seo">@chan0o0seo</a></td>
@@ -122,24 +123,44 @@
 #### 해결책: 새로운 재고 관리 솔루션
 
 기존 방식에서는  
-✅ 불필요한 **발주**로 인해 재료가 과잉 남거나  
-✅ 필요한 **재료를 신속히 구하지 못해** 영업에 차질이 발생했습니다.
+불필요한 **발주**로 인해 재료가 과잉 남거나  
+필요한 **재료를 신속히 구하지 못해** 영업에 차질이 발생했습니다.
 
 이를 해결하기 위해,
 
-**✅ 기존 POS 시스템과 연동하면서,** <br>
-**✅ 주변 매장과 재료를 공유 및 거래**할 수 있는  
+**기존 POS 시스템과 연동하면서,** <br>
+**주변 매장과 재료를 공유 및 거래**할 수 있는  
 새로운 형태의 **재고 관리 솔루션**을 개발하게 되었습니다.
 
 # 🔮 프로젝트 소개
 
-<br>
+### **WMTHIS: 효율적인 재고 및 영업 관리 솔루션**
 
-`WHTHIS` 솔루션은 매출 데이터 기반의 영업 관리와 체계적인 재고 관리를 제공하며, 남는 재료를 인근 매장과 쉽게 공유해 폐기율을 낮추고 원가 절감 효과를 기대할 수 있습니다.
+**WMTHIS** 솔루션은  
+📊 **매출 데이터 기반의 영업 관리**와  
+📦 **체계적인 재고 관리**를 제공합니다.
 
-메뉴 판매 시 레시피에 명시된 정량에 따라 재료 소비량을 측정해서 남은 재료를 자동으로 업데이트 하여 재료를 체계적으로 관리할 수 있습니다.
+이를 통해 **남는 재료를 인근 매장과 쉽게 공유**하여  
+✅ **폐기율을 낮추고**  
+✅ **원가 절감 효과**를 기대할 수 있습니다.
 
-또한, 이 서비스를 통해 남는 재료를 다른 매장과 공유하고 판매할 수 있어, 재료가 남는 매장은 남은 재료를 폐기하지 않고 해결할 수 있고 재료가 부족한 매장은 필요한 재료를 빠르게 구매할 수 있습니다.
+---
+
+#### **자동 재고 관리 시스템**
+
+- 메뉴 판매 시 **레시피에 명시된 정량**에 따라 **재료 소비량을 자동 측정**
+- **남은 재료를 실시간 업데이트**하여 **체계적으로 관리 가능**
+
+> 📌 **수작업 없이도 재료 관리가 더욱 정확하고 효율적!**
+
+---
+
+#### **재료 공유 및 거래 시스템**
+
+✅ **재료가 남는 매장** → 남은 재료를 **폐기 없이 판매 가능**  
+✅ **재료가 부족한 매장** → 필요한 재료를 **빠르게 구매 가능**
+
+이 서비스를 통해 **불필요한 폐기물을 줄이고, 재료 수급을 최적화**할 수 있습니다.
 
 <br>
 
