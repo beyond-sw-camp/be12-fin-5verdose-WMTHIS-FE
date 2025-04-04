@@ -170,7 +170,7 @@ const deleteSelectedItems = () => {
 }
 
 .selected-row {
-    background-color: #E6EEF5;
+    background-color: rgba(206, 222, 239, 0.42);
 }
 
 .circle_checkbox {
