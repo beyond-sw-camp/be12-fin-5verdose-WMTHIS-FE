@@ -52,7 +52,7 @@ defineEmits(["close"]);
 
 /* 확인 버튼 */
 .confirm_btn {
-    background: #B1D5C2;
+    background: #B8C0C8;
     color: black;
     padding: 10px 20px;
     border: none;

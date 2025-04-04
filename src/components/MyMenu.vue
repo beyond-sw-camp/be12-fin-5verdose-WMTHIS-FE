@@ -17,10 +17,10 @@ const openDetailModal = () => { isDetailModalOpen.value = true; };
 const closeDetailModal = () => { isDetailModalOpen.value = false; };
 
 const menu_items = ref([
-    { name: "알리오올리오", price: 9000, ingredient: "당근 50g 외 3개", selected: false },
-    { name: "들깨 크림 뇨끼", price: 12000, ingredient: "당근 20g 외 1개", selected: false },
-    { name: "토마토 파스타", price: 11000, ingredient: "토마토 80g 외 2개", selected: false },
-    { name: "봉골레 파스타", price: 13000, ingredient: "조개 100g 외 3개", selected: false }
+    { name: "알리오올리오", category: '파스타', ingredient: "당근 50g 외 3개", selected: false },
+    { name: "들깨 크림 뇨끼", category: '파스타', ingredient: "당근 20g 외 1개", selected: false },
+    { name: "토마토 파스타", category: '파스타', ingredient: "토마토 80g 외 2개", selected: false },
+    { name: "봉골레 파스타", category: '파스타', ingredient: "조개 100g 외 3개", selected: false }
 ]);
 
 const select_all = ref(false);
@@ -73,8 +73,10 @@ const deleteSelectedItems = () => {
         <!-- 검색 바 및 등록/삭제 버튼 -->
         <div class="search_container">
             <div class="search_box">
-                <input type="text" class="search_input" placeholder="메뉴명 입력" />
-                <button class="search_btn">검색</button>
+                <input type="text" class="search_input" placeholder="메뉴명 검색" />
+                <button class="search_btn">
+                    <img src="../assets/search_button.png" class="search_icon">
+                </button>
             </div>
             <div class="action_buttons">
                 <button @click="openModal" class="register_btn">등록</button>
@@ -91,18 +93,18 @@ const deleteSelectedItems = () => {
                             class="checkbox_large" />
                     </th>
                     <th>상품</th>
-                    <th>가격</th>
+                    <th>카테고리</th>
                     <th>재고</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(item, index) in menu_items" :key="index">
+                <tr v-for="(item, index) in menu_items" :key="index" :class="{ 'selected-row': item.selected }">
                     <td>
                         <input type="checkbox" v-model="item.selected" class="checkbox_large" />
                     </td>
-                    <td>{{ item.name }}</td>
-                    <td>{{ item.price }}원</td>
+                    <td class="bold-text">{{ item.name }}</td>
+                    <td>{{ item.category }}</td>
                     <td>{{ item.ingredient }}</td>
                     <td>
                         <button class="detail_btn" @click="openDetailModal(item)">상세</button>
@@ -110,13 +112,6 @@ const deleteSelectedItems = () => {
                 </tr>
             </tbody>
         </table>
-
-        <!-- 페이지네이션 -->
-        <div class="pagination">
-            <button class="prev_btn">〈</button>
-            <span class="page_number">1</span>
-            <button class="next_btn">〉</button>
-        </div>
 
         <!-- 모달 컴포넌트들 -->
         <MenuRegisterModal :isOpen="isModalOpen" @close="closeModal" />
@@ -131,11 +126,16 @@ const deleteSelectedItems = () => {
     padding: 20px;
 }
 
+.bold-text {
+    font-weight: bold;
+}
+
 /* 제목 */
 .page_title {
     font-size: 28px;
     font-weight: bold;
-    margin-bottom: 20px;
+    margin-top: 10px;
+    margin-bottom: 30px;
 }
 
 /* 검색창 및 버튼 */
@@ -157,36 +157,53 @@ const deleteSelectedItems = () => {
     flex: 1;
     max-width: 500px;
     padding: 6px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    border-bottom: 1px solid #ccc;
+}
+
+.selected-row {
+    background-color: #E6EEF5;
+    /* 연한 초록색 */
 }
 
 .search_btn {
-    padding: 8px 12px;
-    background-color: #5e7955;
-    color: white;
+    padding: 8px;
+    background-color: transparent;
     border: none;
-    border-radius: 5px;
     cursor: pointer;
-    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
 }
 
 .search_btn:hover {
-    background-color: #4a5f45;
+    background-color: #e0e0e0;
+    /* 살짝 회색 배경 */
+}
+
+/* 이미지 크기 조정 */
+.search_icon {
+    width: 24px;
+    height: 24px;
 }
 
 .detail_btn {
     padding: 8px 12px;
-    background-color: #FFFFFF;
+    background-color: #B8C0C8;
     color: black;
+    width: 80px;
     border: 1px solid #ccc;
-    border-radius: 5px;
-    cursor: pointer;
+    font-size: 14px;
+    border-radius: 20px;
     font-weight: bold;
+    cursor: pointer;
 }
 
 .detail_btn:hover {
-    background-color: #f0f0f0;
+    background-color: #98A8B8;
 }
 
 .action_buttons {
@@ -197,40 +214,17 @@ const deleteSelectedItems = () => {
 .register_btn,
 .delete_btn {
     padding: 8px 12px;
-    background-color: #5e7955;
-    color: white;
+    background-color: #B8C0C8;
     border: none;
-    border-radius: 5px;
+    border-radius: 20px;
+    width: 80px;
     cursor: pointer;
     font-weight: bold;
 }
 
 .register_btn:hover,
 .delete_btn:hover {
-    background-color: #4a5f45;
-}
-
-/* 필터 */
-.filter_container {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    align-items: center;
-}
-
-.filter_btn {
-    padding: 8px 12px;
-    background-color: #d1d5c2;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.filter_btn.active,
-.filter_btn:hover {
-    background-color: #5e7955;
-    color: white;
+    background-color: #98A8B8;
 }
 
 /* 테이블 */
@@ -244,44 +238,41 @@ const deleteSelectedItems = () => {
 .menu_table td {
     padding: 12px;
     text-align: center;
-    border-bottom: 1px solid #ddd;
+}
+
+
+.menu_table td {
+    border-bottom: #d1d5c2 solid 1px;
+}
+
+/* 상단 왼쪽 */
+.menu_table thead tr:first-child th:first-child {
+    border-top-left-radius: 20px;
+}
+
+/* 상단 오른쪽 */
+.menu_table thead tr:first-child th:last-child {
+    border-top-right-radius: 20px;
+}
+
+/* 왼쪽 아래 둥글게 */
+.menu_table thead tr:first-child th:first-child {
+    border-bottom-left-radius: 20px;
+}
+
+/* 오른쪽 아래 둥글게 */
+.menu_table thead tr:first-child th:last-child {
+    border-bottom-right-radius: 20px;
 }
 
 .menu_table th {
-    background-color: #d1d5c2;
-    font-size: 20px;
+    background-color: #B8C0C8;
+    font-size: 18px;
 }
 
 /* 체크박스 크기 조정 */
 .checkbox_large {
     width: 20px;
     height: 20px;
-}
-
-/* 페이지네이션 스타일 */
-.pagination {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    justify-content: center;
-    margin-top: 20px;
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.prev_btn,
-.next_btn {
-    padding: 8px 12px;
-    background-color: #5e7955;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.prev_btn:hover,
-.next_btn:hover {
-    background-color: #4a5f45;
 }
 </style>

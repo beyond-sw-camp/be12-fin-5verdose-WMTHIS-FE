@@ -28,102 +28,81 @@ const activeTab = ref('단일메뉴');
 <template>
     <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')">
         <div class="modal">
-            <button class="close_btn" @click="emit('close')">✕</button>
+            <div class="modal_content">
+                <button class="close_btn" @click="emit('close')">✕</button>
 
-            <h2 class="modal_title">메뉴 상세</h2>
-            <p class="modal_desc">이 메뉴의 상세 정보를 확인할 수 있습니다.</p>
+                <h2 class="modal_title">메뉴 상세</h2>
+                <p class="modal_desc">이 메뉴의 상세 정보를 확인할 수 있습니다.</p>
 
-            <div class="tab_menu">
-                <button :class="{ active: activeTab === '단일메뉴' }" disabled>단일메뉴</button>
-                <button :class="{ active: activeTab === '세트메뉴' }" disabled>세트메뉴</button>
-            </div>
-
-            <div class="input_group">
-                <div class="modal_title2">
-                    <label>메뉴명</label>
+                <div class="tab_menu">
+                    <button :class="{ active: activeTab === '단일메뉴' }" disabled>단일메뉴</button>
+                    <button :class="{ active: activeTab === '세트메뉴' }" disabled>세트메뉴</button>
                 </div>
-                <p class="sub_title">판매 시 사용되는 정확한 메뉴명입니다.</p>
-                <input type="text" :value="selectedMenu?.name" disabled />
-            </div>
 
-            <div class="input_group">
-                <label>가격(원)</label>
-                <input type="number" v-model="ingredientAmount" :placeholder="selectedMenu?.price" disabled />
-            </div>
+                <div class="input_group">
+                    <div class="modal_title2">
+                        <label>메뉴명</label>
+                    </div>
+                    <p class="sub_title">판매 시 사용되는 정확한 메뉴명입니다.</p>
+                    <input type="text" :value="selectedMenu?.name" disabled />
+                </div>
 
-            <div class="input_group">
-                <label>재고 소요량</label>
-                <p class="sub_title">메뉴를 만드는 데 필요한 재고의 종류와 양입니다.</p>
-                <div class="ingredient_inputs">
+                <div class="input_group">
+                    <label>재고 소요량</label>
+                    <p class="sub_title">메뉴를 만드는 데 필요한 재고의 종류와 양입니다.</p>
+                    <div class="ingredient_inputs">
+                        <select disabled>
+                            <option value="" selected>재료 선택</option>
+                        </select>
+                        <input type="number" min="1" placeholder="수량" disabled />
+                        <select disabled>
+                            <option value="" selected>단위 선택</option>
+                        </select>
+                        <button class="add_btn disabled" disabled>추가</button>
+                    </div>
+                </div>
+
+                <div class="tag_container">
+                    <span v-for="(ingredient, index) in selectedMenu?.ingredient" :key="index" class="tag">
+                        {{ ingredient }}
+                        <button class="remove_btn disabled" disabled>✕</button>
+                    </span>
+                </div>
+
+                <div class="input_group">
+                    <label>카테고리</label>
+                    <p class="sub_title">이 메뉴가 속한 카테고리입니다.</p>
                     <select disabled>
-                        <option value="" selected>재료 선택</option>
+                        <option value="">{{ selectedMenu?.category || "카테고리 없음" }}</option>
                     </select>
-                    <input type="number" min="1" placeholder="수량" disabled />
-                    <select disabled>
-                        <option value="" selected>단위 선택</option>
-                    </select>
-                    <button class="add_btn disabled" disabled>추가</button>
+                </div>
+
+                <div class="input_group">
+                    <label>가격</label>
+                    <p class="sub_title">메뉴에 가격을 입력해주세요.</p>
+                    <input type="number" v-model="ingredientAmount" :placeholder="selectedMenu?.price" disabled />
                 </div>
             </div>
-
-            <div class="tag_container">
-                <span v-for="(ingredient, index) in selectedMenu?.ingredient" :key="index" class="tag">
-                    {{ ingredient }}
-                    <button class="remove_btn disabled" disabled>✕</button>
-                </span>
+            <div class="modal_footer">
+                <button class="confirm_btn" @click="emit('close')">닫기</button>
             </div>
-
-            <div class="input_group">
-                <label>카테고리</label>
-                <p class="sub_title">이 메뉴가 속한 카테고리입니다.</p>
-                <select disabled>
-                    <option value="">{{ selectedMenu?.category || "카테고리 없음" }}</option>
-                </select>
-            </div>
-
-            <button class="confirm_btn" @click="emit('close')">닫기</button>
         </div>
     </div>
 </template>
 
-
 <style scoped>
-.disabled {
-    background: #f0f0f0 !important;
-    cursor: not-allowed;
-    color: #666;
-    border: 1px solid #ccc;
-}
-
-/* 모든 input, select, button 비활성화 스타일 */
+/* 비활성화 스타일 */
+.disabled,
 input:disabled,
 select:disabled,
 button:disabled {
-    background: #f0f0f0;
-    color: #666;
-    border: 1px solid #ccc;
-    cursor: not-allowed;
+    background: #e0e0e0 !important;
+    color: #999 !important;
+    cursor: not-allowed !important;
+    border: 1px solid #ccc !important;
 }
 
-/* 태그 버튼 비활성화 */
-.remove_btn.disabled {
-    background: none;
-    color: #999;
-    cursor: not-allowed;
-    border: none;
-    /* 테두리 제거 */
-    outline: none;
-    /* 포커스 시 테두리 제거 */
-    box-shadow: none;
-    /* 기본 그림자 제거 */
-}
-
-.add_btn.disabled {
-    background: #ddd;
-    color: #888;
-    cursor: not-allowed;
-}
-
+/* 애니메이션 및 기본 레이아웃 */
 .modal_overlay {
     position: fixed;
     top: 0;
@@ -137,23 +116,6 @@ button:disabled {
     animation: fadeIn 0.3s forwards;
 }
 
-/* 모달 슬라이드 애니메이션 */
-.modal {
-    width: 33.33%;
-    height: 100vh;
-    background: white;
-    padding: 20px;
-    border-left: 1px solid #ddd;
-    box-shadow: -5px 0 10px rgba(0, 0, 0, 0.1);
-    position: relative;
-    display: flex;
-    flex-direction: column;
-
-    transform: translateX(100%);
-    animation: slideIn 0.3s forwards;
-}
-
-/* 페이드인 효과 */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -164,7 +126,20 @@ button:disabled {
     }
 }
 
-/* 오른쪽에서 왼쪽으로 슬라이드 */
+.modal {
+    width: 33.33%;
+    height: 100vh;
+    background: white;
+    padding: 20px;
+    border-left: 1px solid #ddd;
+    box-shadow: -5px 0 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    animation: slideIn 0.3s forwards;
+}
+
 @keyframes slideIn {
     from {
         transform: translateX(100%);
@@ -175,6 +150,21 @@ button:disabled {
     }
 }
 
+/* 모달 안의 스크롤 영역 */
+.modal_content {
+    position: relative;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* 등록 버튼 고정 영역 */
+.modal_footer {
+    padding: 16px 20px;
+    border-top: 1px solid #eee;
+    background-color: #fff;
+}
+
+/* 제목 */
 .modal_title2 {
     display: flex;
     align-items: center;
@@ -187,16 +177,6 @@ button:disabled {
     font-weight: bold;
 }
 
-.close_btn {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-}
-
 .modal_title {
     font-size: 22px;
     font-weight: bold;
@@ -207,7 +187,7 @@ button:disabled {
     font-size: 12px;
     margin-top: 10px;
     margin-bottom: 10px;
-    color: #666
+    color: #666;
 }
 
 .modal_desc {
@@ -216,28 +196,71 @@ button:disabled {
     margin-bottom: 20px;
 }
 
+/* 닫기 버튼 */
+.close_btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+/* 탭 메뉴 */
 .tab_menu {
     display: flex;
-    border-bottom: 2px solid #ddd;
+    gap: 10px;
+    justify-content: center;
+    width: 100%;
     margin-bottom: 15px;
 }
 
 .tab_menu button {
     flex: 1;
-    padding: 10px;
-    background: none;
+    padding: 8px 16px;
+    background-color: #B1D5C2;
     border: none;
-    font-size: 16px;
+    border-radius: 30px;
+    font-size: 14px;
+    color: black;
+    font-weight: bold;
     cursor: pointer;
-    color: #888;
+    transition: all 0.3s ease;
+}
+
+.tab_menu button:hover {
+    background-color: #8CBFA4;
 }
 
 .tab_menu button.active {
-    border-bottom: 2px solid #5e7955;
-    color: #5e7955;
-    font-weight: bold;
+    background-color: #5E9F83;
+    color: white;
 }
 
+/* 입력 그룹 */
+.input_group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.input_group label {
+    font-size: 16px;
+    color: #222;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+.input_group input,
+.input_group select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 18px;
+    font-size: 14px;
+}
+
+/* 재료 입력 */
 .ingredient_inputs {
     display: flex;
     gap: 8px;
@@ -245,51 +268,61 @@ button:disabled {
     width: 100%;
 }
 
-.ingredient_inputs select,
-.ingredient_inputs input {
+.ingredient_inputs input,
+.ingredient_inputs select {
     flex: 1;
     min-width: 0;
     padding: 10px;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 18px;
     font-size: 14px;
 }
 
+/* 추가 버튼 */
 .add_btn {
     flex-shrink: 0;
-    padding: 10px 14px;
+    padding: 10px 16px;
     background: #B1D5C2;
-    color: white;
+    color: black;
     border: none;
-    border-radius: 5px;
+    border-radius: 30px;
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
     white-space: nowrap;
+    transition: background-color 0.3s ease;
 }
 
 .add_btn:hover {
     background: #8CBFA4;
 }
 
+.add_btn.disabled {
+    background: #e0e0e0;
+    color: #999;
+    cursor: not-allowed;
+}
+
 /* 추가된 재료 리스트 스타일 */
 .tag_container {
+    margin-top: 5px;
+    margin-bottom: 30px;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 18px;
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
-    margin-top: 5px;
-
+    gap: 8px;
 }
 
 .tag {
-    background: #E8E8E8;
-    color: black;
-    padding: 8px 12px;
+    display: inline-flex;
+    align-items: center;
+    background-color: #dbe2ea;
+    padding: 6px 10px;
     border-radius: 20px;
     font-size: 14px;
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
+    color: #333;
 }
 
 .remove_btn {
@@ -299,44 +332,36 @@ button:disabled {
     margin-left: 8px;
     cursor: pointer;
     font-weight: bold;
-}
-
-.input_group input,
-.input_group select {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
     font-size: 14px;
 }
 
-.input_group label {
-    font-size: 16px;
-    color: #222;
-    font-weight: bold;
-    letter-spacing: 0.5px;
+.remove_btn.disabled {
+    color: #999;
+    cursor: not-allowed;
 }
 
-
-.input_group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 15px;
-}
-
+/* 확인 버튼 */
 .confirm_btn {
     margin-top: auto;
-    padding: 10px;
+    padding: 12px;
     background: #B1D5C2;
     color: black;
     border: none;
-    border-radius: 5px;
+    border-radius: 30px;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
     width: 100%;
+    transition: background-color 0.3s ease;
 }
 
 .confirm_btn:hover {
     background: #8CBFA4;
+}
+
+.confirm_btn:disabled {
+    background: #e0e0e0;
+    color: #999;
+    cursor: not-allowed;
 }
 </style>
