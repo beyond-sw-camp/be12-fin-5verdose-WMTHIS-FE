@@ -1,3 +1,14 @@
+  
+  <script setup>
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+const goToNext = () => {
+  router.push({ name: 'start' });
+}
+</script>
+
 <template>
     <v-container class="store-info-container">
       <v-row justify="center">
@@ -11,7 +22,7 @@
               <v-text-field label="주소" variant="solo" class="store-input" rounded></v-text-field>
             </v-col>
             <v-col cols="4">
-              <v-btn class="postal-code-button" rounded>우편번호 검색</v-btn>
+              <v-btn class="postal-code-button" color="primary" rounded>우편번호 검색</v-btn>
             </v-col>
           </v-row>
   
@@ -21,20 +32,14 @@
   
           <v-row justify="center">
             <v-col cols="auto">
-              <v-btn class="next-button mt-8">다음</v-btn>
+              <v-btn class="next-button mt-8" color="primary" @Click = goToNext>다음</v-btn>
             </v-col>
           </v-row>
         </v-col>
       </v-row>
     </v-container>
   </template>
-  
-  <script>
-  export default {
-    name: 'StoreInfoForm',
-  };
-  </script>
-  
+
   <style scoped>
   .store-info-container {
     height: 100vh; /* 화면 전체 높이로 설정 */
@@ -44,18 +49,17 @@
   
   
   .postal-code-button {
-    background-color: #e0e0e0; /* 연한 회색 버튼 배경색 */
     color: black;
     font-weight: bold;
+    
+    height: 3.5rem !important;
   }
   
   .next-button {
-    background-color: #808080; /* 회색 버튼 배경색 */
-    color: white;
     font-weight: bold;
     border-radius: 20px;
     width: 200px;
-    height: 50px;
+    height: 50px !important;
     font-size: 16px;
   }
   
