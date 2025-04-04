@@ -1,42 +1,40 @@
 <script setup>
-import { ref, watch, computed } from 'vue';
-import MenuRegisterModal from './MenuRegisterModal.vue';
-import MenuDetailModal from './MenuDetailModal.vue';
+import { ref, computed, watch } from 'vue';
+import CategoryRegisterModal from './CategoryRegisterModal.vue';
 import DeleteConfirmModal from './DeleteConfirmModal.vue';
 import DeleteAlertModal from './DeleteAlertModal.vue';
+import CategoryEditModal from './CategoryEditModal.vue';
 
-const isModalOpen = ref(false);
-const isDetailModalOpen = ref(false);
+const isRegisterModalOpen = ref(false);
+const isEditModalOpen = ref(false);
 const isDeleteConfirmOpen = ref(false);
 const isDeleteAlertOpen = ref(false); // 삭제 항목 선택 안내 모달
+const openRegisterModal = () => { isRegisterModalOpen.value = true; };
+const closeRegisterModal = () => { isRegisterModalOpen.value = false; };
 
-const openModal = () => { isModalOpen.value = true; };
-const closeModal = () => { isModalOpen.value = false; };
-
-const openDetailModal = () => { isDetailModalOpen.value = true; };
-const closeDetailModal = () => { isDetailModalOpen.value = false; };
+const openEditModal = () => { isEditModalOpen.value = true; };
+const closeEditModal = () => { isEditModalOpen.value = false; };
 
 const menu_items = ref([
-    { name: "알리오올리오", category: '파스타', ingredient: "당근 50g 외 3개", selected: false },
-    { name: "들깨 크림 뇨끼", category: '파스타', ingredient: "당근 20g 외 1개", selected: false },
-    { name: "토마토 파스타", category: '파스타', ingredient: "토마토 80g 외 2개", selected: false },
-    { name: "봉골레 파스타", category: '파스타', ingredient: "조개 100g 외 3개", selected: false }
+    { name: "알리오올리오", category: '파스타', selected: false },
+    { name: "들깨 크림 뇨끼", category: '파스타', selected: false },
+    { name: "토마토 파스타", category: '파스타', selected: false },
+    { name: "봉골레 파스타", category: '파스타', selected: false }
 ]);
 
 const select_all = ref(false);
-const isBlocked = computed(() => isDeleteConfirmOpen.value || isDeleteAlertOpen.value);
+const isBlocked = computed(() => false);
 
-// 전체 선택 토글
 const toggle_select_all = () => {
     if (!isBlocked.value) {
         menu_items.value.forEach(item => (item.selected = select_all.value));
     }
 };
 
-// 개별 선택 체크 시 전체 선택 여부 감지
 watch(menu_items, (new_items) => {
     select_all.value = new_items.every(item => item.selected);
 }, { deep: true });
+
 
 // 삭제 확인 모달 열기
 const openDeleteConfirm = () => {
@@ -66,25 +64,26 @@ const deleteSelectedItems = () => {
     menu_items.value = menu_items.value.filter(item => !item.selected);
 };
 </script>
+
+
+
+
 <template>
     <div class="body">
-        <h1 class="page_title">메뉴 관리</h1>
-
-        <!-- 검색 바 및 등록/삭제 버튼 -->
+        <h1 class="page_title">카테고리 관리</h1>
         <div class="search_container">
             <div class="search_box">
-                <input type="text" class="search_input" placeholder="메뉴명 검색" />
+                <input type="text" class="search_input" placeholder="카테고리 검색" />
                 <button class="search_btn">
                     <img src="../assets/search_button.png" class="search_icon">
                 </button>
             </div>
+
             <div class="action_buttons">
-                <button @click="openModal" class="register_btn">등록</button>
+                <button @click="openRegisterModal" class="register_btn">등록</button>
                 <button @click="openDeleteConfirm" class="delete_btn">삭제</button>
             </div>
         </div>
-
-        <!-- 상품 목록 -->
         <table class="menu_table">
             <thead>
                 <tr>
@@ -92,9 +91,7 @@ const deleteSelectedItems = () => {
                         <input type="checkbox" v-model="select_all" @change="toggle_select_all"
                             class="circle_checkbox" />
                     </th>
-                    <th>상품</th>
-                    <th>카테고리</th>
-                    <th>재고</th>
+                    <th>카테고리 명</th>
                     <th></th>
                 </tr>
             </thead>
@@ -103,19 +100,16 @@ const deleteSelectedItems = () => {
                     <td>
                         <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
                     </td>
-                    <td class="bold-text">{{ item.name }}</td>
                     <td>{{ item.category }}</td>
-                    <td>{{ item.ingredient }}</td>
                     <td>
-                        <button class="detail_btn" @click="openDetailModal(item)">상세</button>
+                        <button class="detail_btn" @click="openEditModal">수정</button>
                     </td>
                 </tr>
             </tbody>
         </table>
 
-        <!-- 모달 컴포넌트들 -->
-        <MenuRegisterModal :isOpen="isModalOpen" @close="closeModal" />
-        <MenuDetailModal :isOpen="isDetailModalOpen" @close="closeDetailModal" />
+        <CategoryRegisterModal :isOpen="isRegisterModalOpen" @close="closeRegisterModal" />
+        <CategoryEditModal :isOpen="isEditModalOpen" @close="closeEditModal" />
         <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
         <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
     </div>
@@ -126,11 +120,6 @@ const deleteSelectedItems = () => {
     padding: 20px;
 }
 
-.bold-text {
-    font-weight: bold;
-}
-
-/* 제목 */
 .page_title {
     font-size: 28px;
     font-weight: bold;
@@ -138,96 +127,6 @@ const deleteSelectedItems = () => {
     margin-bottom: 30px;
 }
 
-/* 검색창 및 버튼 */
-.search_container {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.search_box {
-    display: flex;
-    gap: 5px;
-    flex: 0.6;
-}
-
-.search_input {
-    flex: 1;
-    max-width: 500px;
-    padding: 6px;
-    border-bottom: 1px solid #ccc;
-}
-
-.selected-row {
-    background-color: #E6EEF5;
-    /* 연한 초록색 */
-}
-
-.search_btn {
-    padding: 8px;
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-}
-
-.search_btn:hover {
-    background-color: #e0e0e0;
-    /* 살짝 회색 배경 */
-}
-
-/* 이미지 크기 조정 */
-.search_icon {
-    width: 24px;
-    height: 24px;
-}
-
-.detail_btn {
-    padding: 8px 12px;
-    background-color: #B8C0C8;
-    color: black;
-    width: 80px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-    border-radius: 20px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.detail_btn:hover {
-    background-color: #98A8B8;
-}
-
-.action_buttons {
-    display: flex;
-    gap: 10px;
-}
-
-.register_btn,
-.delete_btn {
-    padding: 8px 12px;
-    background-color: #B8C0C8;
-    border: none;
-    border-radius: 20px;
-    width: 80px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.register_btn:hover,
-.delete_btn:hover {
-    background-color: #98A8B8;
-}
-
-/* 테이블 */
 .menu_table {
     width: 100%;
     border-collapse: collapse;
@@ -238,8 +137,8 @@ const deleteSelectedItems = () => {
 .menu_table td {
     padding: 12px;
     text-align: center;
+    border-bottom: #d1d5c2 solid 1px;
 }
-
 
 .menu_table td {
     border-bottom: #d1d5c2 solid 1px;
@@ -270,6 +169,10 @@ const deleteSelectedItems = () => {
     font-size: 18px;
 }
 
+.selected-row {
+    background-color: #E6EEF5;
+}
+
 .circle_checkbox {
     appearance: none;
     -webkit-appearance: none;
@@ -277,7 +180,6 @@ const deleteSelectedItems = () => {
     height: 20px;
     border: 2px solid #666;
     border-radius: 50%;
-    /* 둥글게 */
     background-color: white;
     cursor: pointer;
     position: relative;
@@ -287,7 +189,6 @@ const deleteSelectedItems = () => {
 .circle_checkbox:checked {
     background-color: blue;
     border-color: blue;
-    ;
 }
 
 .circle_checkbox:checked::after {
@@ -299,5 +200,88 @@ const deleteSelectedItems = () => {
     height: 8px;
     background: white;
     border-radius: 50%;
+}
+
+.detail_btn {
+    padding: 8px 12px;
+    background-color: #B8C0C8;
+    color: black;
+    width: 80px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.detail_btn:hover {
+    background-color: #98A8B8;
+}
+
+.search_input {
+    flex: 1;
+    max-width: 500px;
+    padding: 6px;
+    border-bottom: 1px solid #ccc;
+}
+
+.search_btn {
+    padding: 8px;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.search_btn:hover {
+    background-color: #e0e0e0;
+    /* 살짝 회색 배경 */
+}
+
+/* 이미지 크기 조정 */
+.search_icon {
+    width: 24px;
+    height: 24px;
+}
+
+.search_container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.search_box {
+    display: flex;
+    gap: 5px;
+    flex: 0.6;
+}
+
+.action_buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.register_btn,
+.delete_btn {
+    padding: 8px 12px;
+    background-color: #B8C0C8;
+    border: none;
+    border-radius: 20px;
+    width: 80px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.register_btn:hover,
+.delete_btn:hover {
+    background-color: #98A8B8;
 }
 </style>
