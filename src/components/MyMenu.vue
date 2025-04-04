@@ -161,8 +161,7 @@ const deleteSelectedItems = () => {
 }
 
 .selected-row {
-    background-color: #E6EEF5;
-    /* 연한 초록색 */
+    background-color: rgba(206, 222, 239, 0.42);
 }
 
 .search_btn {
