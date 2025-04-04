@@ -1,6 +1,9 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Login from "../components/Login.vue";
-import BeforeLogin from "../components/BeforeLogin.vue";
+import MyStore from "../components/MyStore.vue";
+import MyMenu from "../components/MyMenu.vue";
+import MyOption from "../components/MyOption.vue";
+import MyCategory from "../components/MyCategory.vue";
 import Content from "../components/MyMap.vue";
 import Header from "../components/Header.vue";
 
@@ -9,7 +12,7 @@ const routes = createRouter({
   routes: [
     {
       path: "/",
-      component: BeforeLogin,
+      component: MyOption,
       name: "main",
     },
   ],
