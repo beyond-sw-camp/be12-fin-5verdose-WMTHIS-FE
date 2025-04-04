@@ -8,7 +8,7 @@ defineEmits(["confirm", "cancel"]);
 <template>
     <div v-if="isOpen" class="modal_overlay">
         <div class="modal">
-            <p class="modal_message">현재 메뉴를 삭제하시겠습니까?</p>
+            <p class="modal_message">현재 항목을 삭제하시겠습니까?</p>
             <div class="modal_buttons">
                 <button class="confirm_btn" @click="$emit('confirm')">예</button>
                 <button class="cancel_btn" @click="$emit('cancel')">아니오</button>

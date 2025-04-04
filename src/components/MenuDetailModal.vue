@@ -29,16 +29,17 @@ const activeTab = ref('단일메뉴');
     <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')">
         <div class="modal">
             <div class="modal_content">
-                <button class="close_btn" @click="emit('close')">✕</button>
+                <div class="modal_header">
+                    <button class="close_btn" @click="emit('close')">✕</button>
 
-                <h2 class="modal_title">메뉴 상세</h2>
-                <p class="modal_desc">이 메뉴의 상세 정보를 확인할 수 있습니다.</p>
+                    <h2 class="modal_title">메뉴 상세</h2>
+                    <p class="modal_desc">이 메뉴의 상세 정보를 확인할 수 있습니다.</p>
 
-                <div class="tab_menu">
-                    <button :class="{ active: activeTab === '단일메뉴' }" disabled>단일메뉴</button>
-                    <button :class="{ active: activeTab === '세트메뉴' }" disabled>세트메뉴</button>
+                    <div class="tab_menu">
+                        <button :class="{ active: activeTab === '단일메뉴' }" disabled>단일메뉴</button>
+                        <button :class="{ active: activeTab === '세트메뉴' }" disabled>세트메뉴</button>
+                    </div>
                 </div>
-
                 <div class="input_group">
                     <div class="modal_title2">
                         <label>메뉴명</label>
@@ -91,6 +92,11 @@ const activeTab = ref('단일메뉴');
 </template>
 
 <style scoped>
+.modal_header {
+    border-bottom: #ccc solid 1px;
+    margin-bottom: 10px;
+}
+
 /* 비활성화 스타일 */
 .disabled,
 input:disabled,
@@ -193,7 +199,7 @@ button:disabled {
 .modal_desc {
     font-size: 14px;
     color: #666;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 /* 닫기 버튼 */
