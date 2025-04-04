@@ -6,23 +6,45 @@ import SignUp from "../components/SignUp.vue";
 import FindPassword from "../components/FindPassword.vue";
 import UserMain from "../components/UserMain.vue";
 import StoreRegister from "../components/StoreRegister.vue";
+import Info from "../components/Info.vue";
+import Start from "../components/Start.vue";
+import SalesStatus from "../components/SalesStatus.vue";
+import Dashboard from "../components/Dashboard.vue";
+import BestMenuChart from "../components/BestMenuChart.vue";
 
 const routes = createRouter({
   history: createWebHistory(), //createWebHistory(), -> for browser history
   routes: [
     {
-      path: "/", component: UserMain, name: "main",
-      children: [ // children 속성 추가
-        { path: "/", component: BeforeLogin, name: "beforeLogin" },
-        { path: "/signup", component: SignUp, name: "signup", },
-        { path: "/login", component: Login, name: "login", },
-        { path: "/findId", component: FindID, name: "findId", },
-        { path: "/findPwd", component: FindPassword, name: "findPassword", },
-        { path: "/registore", component: StoreRegister, name: "storeRegister", },
+      path: "/",
+      component: UserMain,
+      name: "main",
+      children: [
+        // children 속성 추가
+        { path: "/", component: Login, name: "login" },
+        { path: "/signup", component: SignUp, name: "signup" },
+        { path: "/findId", component: FindID, name: "findId" },
+        { path: "/findPwd", component: FindPassword, name: "findPassword" },
+        { path: "/registore", component: StoreRegister, name: "storeRegister" },
+        { path: "/info", component: Info, name: "info" },
+        { path: "/start", component: Start, name: "start" },
       ],
     },
-
-
+    {
+      path: "/salesStatus",
+      component: SalesStatus,
+      name: "salesStatus",
+    },
+    {
+      path: "/best",
+      component: BestMenuChart,
+      name: "bestMenuChart",
+    },
+    {
+      path: "/dashboard",
+      component: Dashboard,
+      name: "dashboard",
+    },
   ],
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {

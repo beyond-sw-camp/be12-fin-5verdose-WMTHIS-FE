@@ -4,6 +4,10 @@ import { ref } from 'vue';
 
 const router = useRouter();
 
+const goToRegister = () => {
+  router.push({ name: 'info' });
+}
+
 </script>
 
 <template>
@@ -13,7 +17,7 @@ const router = useRouter();
         <h1 class="mb-5">설정을 시작할게요!</h1>
 
         <v-col cols="auto">
-          <v-btn class="next-button" color="primary" rounded>다음</v-btn>
+          <v-btn class="next-button" color="primary" @Click=goToRegister rounded>다음</v-btn>
         </v-col>
       </v-col>
     </v-row>

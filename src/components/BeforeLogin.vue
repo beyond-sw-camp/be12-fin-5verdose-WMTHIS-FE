@@ -34,23 +34,13 @@ const downButtonClick = () => {
         <h1 class="right_letter right_letter_bold">다~ 되는 WMTHIS POS</h1>
       </div>
       <div>
-        <v-btn
-          rounded="xl"
-          class="btn_template btn_font"
-          color="primary"
-          @click="upButtonClick"
-        >
-          {{ !isSignup ? '회원가입' : '내 가게 POS' }}
+        <v-btn rounded="xl" class="btn_template btn_font" color="primary" @click="upButtonClick">
+          로그인
         </v-btn>
       </div>
       <div>
-        <v-btn
-          rounded="xl"
-          class="btn_template btn_font"
-          color="primary"
-          @click="downButtonClick"
-        >
-          {{ !isSignup ? '회원이에요' : '장터' }}
+        <v-btn rounded="xl" class="btn_template btn_font" color="primary" @click="downButtonClick">
+          회원가입
         </v-btn>
       </div>
     </div>
@@ -63,9 +53,11 @@ const downButtonClick = () => {
   height: 100vh;
   display: flex;
 }
+
 .left_picture {
   width: 30%;
 }
+
 .background_img {
   width: 100%;
   height: 100%;
@@ -99,6 +91,7 @@ const downButtonClick = () => {
   color: white;
   width: 280px;
 }
+
 .btn_template {
   display: flex;
   align-items: center;
