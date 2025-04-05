@@ -169,10 +169,12 @@ const decreaseQuantity = (index) => {
             <!-- 주문 버튼 & 결제 버튼 -->
             <div class="order_actions">
                 <button class="order_btn">주문</button>
-                <button class="cart_btn">
-                    <span class="cart_icon">{{ total_quantity }}</span>
-                    {{ total_price.toLocaleString() }}원 결제
-                </button>
+                <router-link :to="{ path: '/pay', query: { orders: JSON.stringify(orderList) } }">
+                    <button class="cart_btn">
+                        <span class="cart_icon">{{ total_quantity }}</span>
+                        {{ total_price.toLocaleString() }}원 결제
+                    </button>
+                </router-link>
             </div>
         </div>
 
