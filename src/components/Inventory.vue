@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, computed } from "vue";
-import MenuRegisterModal from "./MenuRegisterModal.vue";
+import InventoryRegisterModal from "../components/InventoryRegisterModal.vue";
 import MenuDetailModal from "./MenuDetailModal.vue";
 import DeleteConfirmModal from "./DeleteConfirmModal.vue";
 import DeleteAlertModal from "./DeleteAlertModal.vue";
@@ -27,7 +27,6 @@ const closeDetailModal = () => {
 const menu_items = ref([
   {
     name: "마늘",
-    category: "향신채",
     unit: "2kg",
     quantity: "1개",
     Expirationdate: "입고일로부터 1일",
@@ -35,7 +34,6 @@ const menu_items = ref([
   },
   {
     name: "앞다리살",
-    category: "정육 / 수산 / 계란",
     unit: "300g",
     quantity: "1개",
     Expirationdate: "입고일로부터 3일",
@@ -43,7 +41,6 @@ const menu_items = ref([
   },
   {
     name: "토마토",
-    category: "과일 / 채소 / 샐러드",
     unit: "1kg",
     quantity: "1개",
     Expirationdate: "입고일로부터 5일",
@@ -51,7 +48,6 @@ const menu_items = ref([
   },
   {
     name: "양배추",
-    category: "과일 / 채소 / 샐러드",
     unit: "2kg",
     quantity: "1개",
     Expirationdate: "입고일로부터 1일",
@@ -59,7 +55,6 @@ const menu_items = ref([
   },
   {
     name: "우유",
-    category: "우유 / 유제품",
     unit: "1L",
     quantity: "1개",
     Expirationdate: "입고일로부터 3일",
@@ -67,7 +62,6 @@ const menu_items = ref([
   },
   {
     name: "올리브유",
-    category: "양념 / 장류 / 오일",
     unit: "1L",
     quantity: "1개",
     Expirationdate: "입고일로부터 5일",
@@ -75,7 +69,6 @@ const menu_items = ref([
   },
   {
     name: "새우",
-    category: "해산물",
     unit: "500g",
     quantity: "1개",
     Expirationdate: "입고일로부터 1일",
@@ -163,7 +156,6 @@ const deleteSelectedItems = () => {
             />
           </th>
           <th>재고명</th>
-          <th>카테고리</th>
           <th>용량/단위</th>
           <th>최소수량</th>
           <th>소비기한</th>
@@ -184,7 +176,6 @@ const deleteSelectedItems = () => {
             />
           </td>
           <td class="bold-text">{{ item.name }}</td>
-          <td>{{ item.category }}</td>
           <td>{{ item.unit }}</td>
           <td>{{ item.quantity }}</td>
           <td>{{ item.Expirationdate }}</td>
@@ -198,8 +189,11 @@ const deleteSelectedItems = () => {
     </table>
 
     <!-- 모달 컴포넌트들 -->
-    <MenuRegisterModal :isOpen="isModalOpen" @close="closeModal" />
-    <MenuDetailModal :isOpen="isDetailModalOpen" @close="closeDetailModal" />
+    <InventoryRegisterModal :isOpen="isModalOpen" @close="closeModal" />
+    <InventoryRegisterModal
+      :isOpen="isDetailModalOpen"
+      @close="closeDetailModal"
+    />
     <DeleteConfirmModal
       :isOpen="isDeleteConfirmOpen"
       @confirm="deleteSelectedItems"

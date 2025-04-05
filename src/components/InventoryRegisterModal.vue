@@ -85,23 +85,23 @@ const removeIngredient = (index) => {
         </div>
 
         <div class="input_group">
-          <div class="modal_title2">
-            <label>용량/단위</label>
-
-            <p class="title_warn">(필수)</p>
-
+          <div class="input-row">
+            <div class="input-label-group">
+              <label>용량/단위</label>
+              <p class="title_warn">(필수)</p>
+            </div>
             <div class="unit-container">
               <input
                 type="text"
-                v-model="nuitName"
-                placeholder="20"
-                class="unit-input"
+                v-model="Minimumquantity"
+                placeholder="5"
+                class="min-qty-input"
               />
               <select v-model="category" class="unit-select">
-                <option value="재고단위">Kg</option>
-                <option value="재고단위">g</option>
-                <option value="재고단위">L</option>
-                <option value="재고단위">ml</option>
+                <option value="Kg">Kg</option>
+                <option value="g">g</option>
+                <option value="L">L</option>
+                <option value="ml">ml</option>
               </select>
             </div>
           </div>
@@ -109,9 +109,14 @@ const removeIngredient = (index) => {
         </div>
 
         <div class="input_group">
-          <div class="modal_title2">
+          <div class="modal_title2 between">
             <label>최소수량</label>
-            <input type="text" v-model="Minimumquantity" placeholder="5" />
+            <input
+              type="text"
+              v-model="Minimumquantity"
+              placeholder="5"
+              class="min-qty-input"
+            />
           </div>
           <p class="sub_title">
             최소 보유하고 있어야하는 재고의 수를 입력해 주세요.
@@ -235,13 +240,29 @@ const removeIngredient = (index) => {
     transform: translateX(0);
   }
 }
-
+.modal_header {
+  border-bottom: #ccc solid 1px;
+  padding-bottom: 5px; /* 👈 선 위 아래 여백 */
+  margin-bottom: 45px; /* 👈 선 아래 전체 여백 (원하시는 만큼 늘리세요) */
+}
 .modal_title2 {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-
+.modal_title2.between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.min-qty-input {
+  width: 80px;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 18px;
+  font-size: 14px;
+  text-align: right;
+}
 .title_warn {
   font-size: 14px;
   color: red;
@@ -267,8 +288,8 @@ const removeIngredient = (index) => {
 
 .sub_title {
   font-size: 12px;
-  margin-top: 10px;
-  margin-bottom: 10px;
+  margin-top: 4px;
+  margin-bottom: 4px;
   color: #666;
   justify-content: flex-end; /* 🌟 오른쪽 정렬 */
 }
@@ -459,6 +480,7 @@ const removeIngredient = (index) => {
 .button-group {
   display: flex;
   align-items: center;
+  justify-content: center; /* 🌟 가운데 정렬 */
   gap: 8px;
 }
 
@@ -484,5 +506,26 @@ const removeIngredient = (index) => {
 .fixed-text {
   margin-left: 8px;
   font-size: 14px;
+}
+.input-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.input-label-group {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* label과 (필수) 사이 간격 조절 */
+}
+
+.min-qty-input {
+  width: 80px;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 18px;
+  font-size: 14px;
+  text-align: right;
 }
 </style>
