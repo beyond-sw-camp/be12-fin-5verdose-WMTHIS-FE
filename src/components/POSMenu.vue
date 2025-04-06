@@ -1,37 +1,123 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import POSOption from './POSOption.vue';
+
+const route = useRoute();
+const router = useRouter();
+
+// 주문 정보 (테이블 또는 배달)
+const orderInfo = ref({
+    type: '',
+    tableId: null,
+    deliveryService: ''
+});
+
+// 주문 완료 모달
+const showOrderCompleteModal = ref(false);
+
+// 결제 완료 모달
+const showPaymentCompleteModal = ref(false);
+
+// 주문 목록
+const orderList = ref([]);
+
+// 컴포넌트 마운트 시 주문 정보 로드
+onMounted(() => {
+    loadOrderInfo();
+    loadExistingOrders();
+});
+
+// 라우트 변경 감지
+watch(() => route.query, () => {
+    loadOrderInfo();
+    loadExistingOrders();
+}, { deep: true });
+
+// 주문 정보 로드
+const loadOrderInfo = () => {
+    // URL 쿼리 파라미터 또는 로컬 스토리지에서 주문 정보 가져오기
+    const orderType = localStorage.getItem('order_type');
+
+    if (orderType === 'table') {
+        const tableId = route.query.table || localStorage.getItem('selected_table_id');
+        orderInfo.value = {
+            type: 'table',
+            tableId: tableId,
+            deliveryService: ''
+        };
+    } else if (orderType === 'delivery') {
+        const service = route.query.delivery || localStorage.getItem('delivery_service');
+        orderInfo.value = {
+            type: 'delivery',
+            tableId: null,
+            deliveryService: service
+        };
+    }
+};
+
+// 기존 주문 불러오기
+const loadExistingOrders = () => {
+    if (orderInfo.value.type === 'table') {
+        const tables = JSON.parse(localStorage.getItem('restaurant_tables') || '[]');
+        const table = tables.find(t => t.id == orderInfo.value.tableId);
+
+        if (table && table.orders && table.orders.length > 0) {
+            orderList.value = JSON.parse(JSON.stringify(table.orders)); // 깊은 복사
+        } else {
+            orderList.value = [];
+        }
+    } else if (orderInfo.value.type === 'delivery') {
+        const deliveryOrders = JSON.parse(localStorage.getItem('delivery_orders') || '{}');
+        const service = orderInfo.value.deliveryService;
+
+        if (deliveryOrders[service] && deliveryOrders[service].length > 0) {
+            orderList.value = JSON.parse(JSON.stringify(deliveryOrders[service])); // 깊은 복사
+        } else {
+            orderList.value = [];
+        }
+    }
+};
+
+// 주문 정보 표시 텍스트
+const orderInfoText = computed(() => {
+    if (orderInfo.value.type === 'table') {
+        return `테이블 ${orderInfo.value.tableId} 주문`;
+    } else if (orderInfo.value.type === 'delivery') {
+        const serviceName = getDeliveryServiceName(orderInfo.value.deliveryService);
+        return `${serviceName} 배달 주문`;
+    }
+    return '주문 정보 없음';
+});
+
+// 배달 서비스 이름 가져오기
+const getDeliveryServiceName = (serviceCode) => {
+    switch (serviceCode) {
+        case 'baemin': return '배민';
+        case 'yogiyo': return '요기요';
+        case 'coupang': return '쿠팡이츠';
+        default: return serviceCode;
+    }
+};
 
 const menu_items = ref([
     { id: 1, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 2, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 3, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 4, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 5, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 6, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 7, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 8, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 9, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 10, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 11, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 12, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 13, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 14, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 15, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 16, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 17, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 18, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 19, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 20, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 21, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 22, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 23, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 24, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 25, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 26, name: '알리오올리오', price: 10000, quantity: 1 },
+    { id: 2, name: '토마토 파스타', price: 11000, quantity: 1 },
+    { id: 3, name: '크림 파스타', price: 12000, quantity: 1 },
+    { id: 4, name: '봉골레 파스타', price: 13000, quantity: 1 },
+    { id: 5, name: '까르보나라', price: 12000, quantity: 1 },
+    { id: 6, name: '해산물 파스타', price: 15000, quantity: 1 },
+    { id: 7, name: '마르게리타 피자', price: 15000, quantity: 1 },
+    { id: 8, name: '페퍼로니 피자', price: 16000, quantity: 1 },
+    { id: 9, name: '하와이안 피자', price: 16000, quantity: 1 },
+    { id: 10, name: '콤비네이션 피자', price: 17000, quantity: 1 },
+    { id: 11, name: '고르곤졸라 피자', price: 18000, quantity: 1 },
+    { id: 12, name: '시저 샐러드', price: 8000, quantity: 1 },
+    { id: 13, name: '그린 샐러드', price: 7000, quantity: 1 },
+    { id: 14, name: '콜라', price: 2000, quantity: 1 },
+    { id: 15, name: '사이다', price: 2000, quantity: 1 },
+    { id: 16, name: '에이드', price: 4000, quantity: 1 },
 ]);
-
-const orderList = ref([]);
 
 const currentPage = ref(1); // 현재 페이지
 const itemsPerPage = 16; // 한 페이지에 표시할 아이템 개수
@@ -58,7 +144,10 @@ const total_quantity = computed(() => {
 });
 
 const total_price = computed(() => {
-    return orderList.value.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    return orderList.value.reduce((sum, item) => {
+        const optionsPrice = item.options ? item.options.reduce((optSum, opt) => optSum + opt.price, 0) : 0;
+        return sum + ((item.price + optionsPrice) * item.quantity);
+    }, 0);
 });
 
 const showModal = ref(false);
@@ -90,6 +179,27 @@ const addOrder = (newOrder) => {
     } else {
         orderList.value.push(newOrder);
     }
+
+    // 주문 목록이 변경될 때마다 로컬 스토리지 업데이트
+    saveOrdersToLocalStorage();
+};
+
+// 주문 목록을 로컬 스토리지에 저장
+const saveOrdersToLocalStorage = () => {
+    if (orderInfo.value.type === 'table') {
+        const tables = JSON.parse(localStorage.getItem('restaurant_tables') || '[]');
+        const tableIndex = tables.findIndex(t => t.id == orderInfo.value.tableId);
+
+        if (tableIndex !== -1) {
+            tables[tableIndex].orders = [...orderList.value];
+            tables[tableIndex].status = orderList.value.length > 0 ? 'occupied' : 'empty';
+            localStorage.setItem('restaurant_tables', JSON.stringify(tables));
+        }
+    } else if (orderInfo.value.type === 'delivery') {
+        const deliveryOrders = JSON.parse(localStorage.getItem('delivery_orders') || '{}');
+        deliveryOrders[orderInfo.value.deliveryService] = [...orderList.value];
+        localStorage.setItem('delivery_orders', JSON.stringify(deliveryOrders));
+    }
 };
 
 // 이전 페이지로 이동
@@ -105,6 +215,7 @@ const nextPage = () => {
 // 수량 증가/감소 함수
 const increaseQuantity = (index) => {
     orderList.value[index].quantity += 1;
+    saveOrdersToLocalStorage();
 };
 
 const decreaseQuantity = (index) => {
@@ -113,6 +224,51 @@ const decreaseQuantity = (index) => {
     } else {
         orderList.value.splice(index, 1);
     }
+    saveOrdersToLocalStorage();
+};
+
+// 테이블 선택 화면으로 돌아가기
+const goBack = () => {
+    // 주문 목록 저장 후 이동
+    saveOrdersToLocalStorage();
+    router.push('/pos');
+};
+
+// 주문 처리
+const processOrder = () => {
+    if (orderList.value.length === 0) {
+        alert('주문할 메뉴를 선택해주세요.');
+        return;
+    }
+
+    // 주문 목록 저장
+    saveOrdersToLocalStorage();
+
+    // 주문 완료 모달 표시
+    showOrderCompleteModal.value = true;
+};
+
+// 주문 완료 후 테이블 선택 화면으로 이동
+const completeOrder = () => {
+    showOrderCompleteModal.value = false;
+    router.push('/');
+};
+
+// 결제 처리 - 결제 페이지로 이동
+const processPayment = () => {
+    if (orderList.value.length === 0) {
+        alert('결제할 메뉴가 없습니다.');
+        return;
+    }
+
+    // 주문 목록 저장
+    saveOrdersToLocalStorage();
+
+    // 결제 페이지로 이동 (주문 목록 전달)
+    router.push({
+        path: '/payment',
+        query: { orders: JSON.stringify(orderList.value) }
+    });
 };
 </script>
 
@@ -120,6 +276,11 @@ const decreaseQuantity = (index) => {
     <div class="menu_container">
         <!-- 메뉴 목록 -->
         <div class="menu_section">
+            <div class="menu_header">
+                <button class="back_btn" @click="goBack">← 뒤로가기</button>
+                <h2 class="order_info">{{ orderInfoText }}</h2>
+            </div>
+
             <div class="menu_grid">
                 <div v-for="(item, index) in paginatedMenuItems" :key="index" class="menu_item" @click="openModal(item)"
                     :class="{ 'empty-item': !item }">
@@ -168,9 +329,9 @@ const decreaseQuantity = (index) => {
 
             <!-- 주문 버튼 & 결제 버튼 -->
             <div class="order_actions">
-                <button class="order_btn">주문</button>
+                <button class="order_btn" @click="processOrder">주문</button>
                 <router-link :to="{ path: '/pay', query: { orders: JSON.stringify(orderList) } }">
-                    <button class="cart_btn">
+                    <button class="cart_btn" :disabled="orderList.length === 0">
                         <span class="cart_icon">{{ total_quantity }}</span>
                         {{ total_price.toLocaleString() }}원 결제
                     </button>
@@ -178,11 +339,27 @@ const decreaseQuantity = (index) => {
             </div>
         </div>
 
+        <!-- 메뉴 옵션 모달 -->
         <POSOption v-if="showModal" :selectedItem="selectedItem" @close="closeModal" @addOrder="addOrder" />
+
+        <!-- 주문 완료 모달 -->
+        <div v-if="showOrderCompleteModal" class="modal_overlay">
+            <div class="modal_content order_complete_modal">
+                <h2>주문이 완료되었습니다</h2>
+                <p>{{ orderInfoText }}이(가) 성공적으로 등록되었습니다.</p>
+                <button class="confirm_btn" @click="completeOrder">확인</button>
+            </div>
+        </div>
     </div>
 </template>
 
 <style scoped>
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
 .menu_container {
     display: flex;
     flex-direction: row;
@@ -201,6 +378,38 @@ const decreaseQuantity = (index) => {
     width: 80%;
 }
 
+/* 메뉴 헤더 (뒤로가기 버튼 및 주문 정보) */
+.menu_header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 20px;
+}
+
+.back_btn {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.back_btn:hover {
+    background-color: #5a6268;
+}
+
+.order_info {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+    flex-grow: 1;
+}
+
 /* 메뉴 목록 */
 .menu_grid {
     display: grid;
@@ -208,9 +417,7 @@ const decreaseQuantity = (index) => {
     grid-template-rows: repeat(4, minmax(100px, 1fr));
     gap: 10px;
     flex-grow: 1;
-    /* 메뉴 목록이 최대한 공간을 차지하도록 설정 */
 }
-
 
 .menu_item {
     background-color: #a9b0bc;
@@ -428,13 +635,66 @@ const decreaseQuantity = (index) => {
     font-weight: bold;
 }
 
+/* 모달 스타일 */
+.modal_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal_content {
+    background-color: white;
+    border-radius: 10px;
+    padding: 30px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.order_complete_modal {
+    text-align: center;
+}
+
+.order_complete_modal h2 {
+    color: blue;
+    margin-bottom: 15px;
+}
+
+.order_complete_modal p {
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.confirm_btn {
+    background-color: #B8C0C8;
+    color: black;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.confirm_btn:hover {
+    background-color: #9ea7b0;
+}
+
 /* 반응형 디자인 */
 @media (max-width: 1200px) {
     .menu_container {
         flex-direction: column;
     }
 
-    .menu_grid {
+    .menu_section {
         width: 100%;
     }
 
@@ -456,6 +716,12 @@ const decreaseQuantity = (index) => {
     .menu_grid {
         grid-template-columns: 1fr;
         grid-template-rows: repeat(16, minmax(100px, 1fr));
+    }
+
+    .menu_header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
     }
 }
 </style>
