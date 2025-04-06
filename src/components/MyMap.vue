@@ -51,7 +51,7 @@ function initMap() {
       "../../img/redPing.png",
       new kakao.maps.Size(50, 50) // 클릭 시 크게!
     );
-
+    /*
     // 1. 내 위치 마커
     // const myMarker = new kakao.maps.Marker({
     //   position: new kakao.maps.LatLng(lat, lng),
@@ -80,34 +80,34 @@ function initMap() {
     //     myOpen = true;
     //   }
     // });
-
+*/
     // 2. 주소 리스트
     const addressList = [
       {
         label: "국사봉",
         address: "서울 동작구 국사봉2길 22",
         boardList: [
-          { boardTitle: "마늘 팔아요", boardGoods: "마늘", boardDate: "2024-03-24" },
-          { boardTitle: "양파 팔아요", boardGoods: "양파", boardDate: "2024-03-25" },
-          { boardTitle: "고추 팔아요", boardGoods: "고추", boardDate: "2024-03-26" },
+          { name: "마늘", quantity: "500g", expire: "D - 3", price: "4000원", date: "오늘", store: "가게1" },
+          { name: "양파", quantity: "1kg", expire: "D - 2", price: "3000원", date: "1일전", store: "가게1" },
+          { name: "우유", quantity: "2L", expire: "D - 1", price: "8000원", date: "2일전", store: "가게1" },
         ],
       },
       {
         label: "여의대방로",
         address: "서울 동작구 여의대방로22길 138",
         boardList: [
-          { boardTitle: "김치 팔아요!!! 팔아요 팔아요 싸게", boardGoods: "김치", boardDate: "2024-03-27" },
-          { boardTitle: "당근 팔아요", boardGoods: "당근", boardDate: "2024-03-28" },
+          { name: "김치", quantity: "300g", expire: "D - 5", price: "7000원", date: "어제", store: "가게2" },
+          { name: "당근", quantity: "5kg", expire: "D - 7", price: "3000원", date: "4일전", store: "가게2" },
         ],
       },
       {
         label: "보라매로",
         address: "서울 동작구 보라매로 96-1",
         boardList: [
-          { boardTitle: "감자 팔아요", boardGoods: "감자", boardDate: "2024-03-29" },
-          { boardTitle: "가지 팔아요", boardGoods: "가지", boardDate: "2024-03-30" },
-          { boardTitle: "피클 팔아요", boardGoods: "피클", boardDate: "2024-03-31" },
-          { boardTitle: "콜라 팔아요", boardGoods: "콜라", boardDate: "2024-04-01" },
+          { name: "감자", quantity: "900g", expire: "D - 5", price: "6000원", date: "오늘", store: "가게3" },
+          { name: "가지", quantity: "5kg", expire: "D - 10", price: "9000원", date: "오늘", store: "가게3" },
+          { name: "피클", quantity: "40kg", expire: "D - 9", price: "5000원", date: "4일전", store: "가게3" },
+          { name: "콜라", quantity: "10L", expire: "D - 8", price: "1000원", date: "7일전", store: "가게3" },
         ],
       },
     ];
@@ -128,21 +128,40 @@ function initMap() {
           markerList.push(marker);
 
           // 📦 고정 영역에 넣을 HTML 구성
-          let boardHtml = `<h3 class="custom_overlay_header"> 게시글 </h3> <br/>`;
-          boardList.forEach(({ boardTitle, boardGoods, boardDate }) => {
+          let boardHtml = `
+            <table class="custom_board_table">
+              <thead>
+                <tr>
+                  <th>판매 물품</th>
+                  <th>수량</th>
+                  <th>유통기한</th>
+                  <th>희망가격</th>
+                  <th>등록날짜</th>
+                  <th>가게명</th>
+                  <th></th>
+                </tr>
+            </thead>
+            <tbody>`;
+          boardList.forEach(({ name, quantity, expire, price, date, store }) => {
             boardHtml += `
-          <div class="custom_overlay">
-            <a class="custom_overlay_board_title custom_overlay_rule">${boardTitle}</a>
-            <span class="custom_overlay_board_goods">${boardGoods}, </span>
-            <span class="custom_overlay_board_date">(${boardDate})</span>
-          </div>
-          <hr/>
-        `;
+              <tr>
+                <td>${name}</td>
+                <td>${quantity}</td>
+                <td>${expire}</td>
+                <td>${price}</td>
+                <td>${date}</td>
+                <td>${store}</td>
+                <td><button class="btn">상세보기</button></td>
+              </tr>
+            `;
           });
 
+          boardHtml += `
+    </tbody>
+  </table>
+`;
           // 🎯 마커 클릭 시 내용 고정 패널에 출력
           const fixedPanelContent = document.querySelector("#fixedPanelContent");
-
           kakao.maps.event.addListener(marker, "click", () => {
             fixedPanelContent.innerHTML = boardHtml; // ✅ 버튼은 덮지 않음
             fixedPanelWrapper.classList.remove("hidden");
@@ -159,7 +178,7 @@ function initMap() {
 <template>
   <div>
     <Header></Header>
-    <div id="map" style="width: 100%; height: 90vh; margin"></div>
+    <div id="map" style="width: 100%; height: 65vh; margin"></div>
     <div class="fixed_panel_wrapper hidden">
       <div id="fixedPanel" class="fixed_panel">
         <button class="close_btn" @click="handleClosePanel"><img src="../../img/xMark.png" class="panel_button" /></button>
@@ -203,7 +222,7 @@ function initMap() {
 
 .fixed_panel_wrapper {
   position: fixed; /* 화면에 고정 */
-  bottom: 0px;
+  bottom: 5vh;
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
@@ -211,8 +230,8 @@ function initMap() {
 
 .fixed_panel {
   position: relative;
-  width: 270px;
-  height: 180px;
+  width: 50vw;
+  height: 11.25rem;
   overflow-y: auto;
   background-color: #fffefb;
   border: 1px solid #ccc;
@@ -236,5 +255,52 @@ function initMap() {
 .panel_button {
   width: 20px;
   height: 20px;
+}
+
+:deep(.custom_board_table) {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: center;
+  overflow: hidden;
+  margin-top: 15px;
+}
+
+:deep(.custom_board_table thead th) {
+  background-color: #b8c0c8;
+  font-weight: bold;
+  color: #333;
+}
+:deep(.custom_board_table thead th:first-child) {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+:deep(.custom_board_table thead th:last-child) {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+:deep(.custom_board_table th, .custom_board_table td) {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+:deep(.custom_board_table td) {
+  padding: 10px;
+}
+
+:deep(.btn) {
+  padding: 4px 10px;
+  font-size: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+:deep(.btn:hover) {
+  background-color: #f0f0f0;
 }
 </style>
