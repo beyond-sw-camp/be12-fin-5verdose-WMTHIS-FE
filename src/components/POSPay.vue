@@ -5,17 +5,33 @@ import { useRoute, useRouter } from 'vue-router';
 const route = useRoute();
 const router = useRouter();
 const orderList = ref([]);
+const orderInfo = ref({
+    type: '',
+    tableId: null,
+    deliveryService: ''
+});
 
 onMounted(() => {
     try {
+        // 주문 정보 가져오기
         if (route.query.orders) {
             orderList.value = JSON.parse(route.query.orders);
-        } else {
-            // 테스트용 더미 데이터 (실제 사용 시 제거)
-            orderList.value = [
-                { id: 1, name: '알리오올리오', price: 10000, quantity: 2, options: [] },
-                { id: 2, name: '토마토 파스타', price: 11000, quantity: 1, options: [{ label: '매운맛', price: 1000 }] },
-            ];
+        }
+
+        // 주문 타입 정보 가져오기 (테이블 또는 배달)
+        const orderType = localStorage.getItem('order_type');
+        if (orderType === 'table') {
+            orderInfo.value = {
+                type: 'table',
+                tableId: localStorage.getItem('selected_table_id'),
+                deliveryService: ''
+            };
+        } else if (orderType === 'delivery') {
+            orderInfo.value = {
+                type: 'delivery',
+                tableId: null,
+                deliveryService: localStorage.getItem('delivery_service')
+            };
         }
     } catch (error) {
         console.error('주문 데이터 파싱 오류:', error);
@@ -51,12 +67,44 @@ const processPayment = () => {
         return;
     }
 
+    // 결제 완료 후 테이블 초기화
+    if (orderInfo.value.type === 'table') {
+        clearTableOrders(orderInfo.value.tableId);
+    } else if (orderInfo.value.type === 'delivery') {
+        clearDeliveryOrders(orderInfo.value.deliveryService);
+    }
+
     alert(`${selectedPayment.value} 방식으로 ${total_price.value.toLocaleString()}원 결제가 완료되었습니다.`);
     router.push('/pos');
 };
 
-// 수량 증가/감소 함수는 사용하지 않음
-const isEditable = ref(false);
+// 테이블 주문 초기화
+const clearTableOrders = (tableId) => {
+    const tables = JSON.parse(localStorage.getItem('restaurant_tables') || '[]');
+    const tableIndex = tables.findIndex(t => t.id == tableId);
+
+    if (tableIndex !== -1) {
+        // 테이블 상태 초기화
+        tables[tableIndex].status = 'empty';
+        tables[tableIndex].orders = [];
+        localStorage.setItem('restaurant_tables', JSON.stringify(tables));
+    }
+};
+
+// 배달 주문 초기화
+const clearDeliveryOrders = (service) => {
+    const deliveryOrders = JSON.parse(localStorage.getItem('delivery_orders') || '{}');
+
+    if (deliveryOrders[service]) {
+        deliveryOrders[service] = [];
+        localStorage.setItem('delivery_orders', JSON.stringify(deliveryOrders));
+    }
+};
+
+// 뒤로가기
+const goBack = () => {
+    router.back();
+};
 </script>
 
 <template>
@@ -64,17 +112,23 @@ const isEditable = ref(false);
         <!-- 결제 섹션 -->
         <div class="payment_section">
             <div class="payment_header">
+                <button class="back_btn" @click="goBack">← 뒤로가기</button>
                 <h2>총 결제금액</h2>
                 <p class="payment_amount">{{ total_price.toLocaleString() }}원을 결제할게요</p>
             </div>
 
-            <!-- 결제 방법 컨테이너 추가 -->
+            <!-- 결제 방법 컨테이너 -->
             <div class="payment_methods">
                 <!-- 카드 결제 -->
                 <div class="payment_method" :class="{ 'selected': selectedPayment === '카드' }"
                     @click="selectPayment('카드')">
                     <div class="payment_icon">
-                        <img src="../assets/creditpay.png" alt="카드 결제" width="32" height="32" />
+                        <!-- SVG 아이콘으로 대체 (이미지 경로 문제 해결) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="5" width="20" height="14" rx="2" />
+                            <line x1="2" y1="10" x2="22" y2="10" />
+                        </svg>
                     </div>
                     <p>카드 결제</p>
                 </div>
@@ -83,7 +137,11 @@ const isEditable = ref(false);
                 <div class="payment_method" :class="{ 'selected': selectedPayment === '현금' }"
                     @click="selectPayment('현금')">
                     <div class="payment_icon">
-                        <img src="../assets/cashpay.png" alt="현금 결제" width="32" height="32" />
+                        <!-- SVG 아이콘으로 대체 (이미지 경로 문제 해결) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                        </svg>
                     </div>
                     <p>현금 결제</p>
                 </div>
@@ -92,7 +150,14 @@ const isEditable = ref(false);
                 <div class="payment_method" :class="{ 'selected': selectedPayment === 'QR' }"
                     @click="selectPayment('QR')">
                     <div class="payment_icon">
-                        <img src="../assets/qrpay.png" alt="QR 결제" width="32" height="32" />
+                        <!-- SVG 아이콘으로 대체 (이미지 경로 문제 해결) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7" />
+                            <rect x="14" y="3" width="7" height="7" />
+                            <rect x="3" y="14" width="7" height="7" />
+                            <rect x="14" y="14" width="7" height="7" />
+                        </svg>
                     </div>
                     <p>QR 결제</p>
                 </div>
@@ -150,6 +215,23 @@ const isEditable = ref(false);
     margin-bottom: 30px;
 }
 
+.back_btn {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-bottom: 15px;
+}
+
+.back_btn:hover {
+    background-color: #5a6268;
+}
+
 .payment_header h2 {
     font-size: 24px;
     font-weight: bold;
@@ -170,7 +252,6 @@ const isEditable = ref(false);
 .payment_methods {
     display: flex;
     flex-direction: row;
-    /* 가로 정렬 */
     justify-content: space-between;
     gap: 20px;
     margin-bottom: 40px;
@@ -305,7 +386,6 @@ const isEditable = ref(false);
     .payment_methods {
         flex-direction: row;
         flex-wrap: wrap;
-        /* 필요시 줄바꿈 */
     }
 
     /* 모바일에서 결제 방법 카드 크기 조정 */
