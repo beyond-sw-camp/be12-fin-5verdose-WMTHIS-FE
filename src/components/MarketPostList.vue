@@ -115,11 +115,11 @@ const menu_items = ref([
             </div>
             <div class="date_filter_box">
                 <label>
-                    시작일:
+                    시작일
                     <input type="date" v-model="startDate" />
                 </label>
                 <label>
-                    종료일:
+                    종료일
                     <input type="date" v-model="endDate" />
                 </label>
             </div>

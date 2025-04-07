@@ -251,7 +251,7 @@ const processOrder = () => {
 // 주문 완료 후 테이블 선택 화면으로 이동
 const completeOrder = () => {
     showOrderCompleteModal.value = false;
-    router.push('/');
+    router.push('/pos');
 };
 
 // 결제 처리 - 결제 페이지로 이동

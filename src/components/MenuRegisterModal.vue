@@ -358,15 +358,16 @@ const removeIngredient = (index) => {
 
 .confirm_btn {
     margin-top: auto;
-    padding: 10px;
+    padding: 12px;
     background: #B1D5C2;
     color: black;
     border: none;
-    border-radius: 5px;
+    border-radius: 30px;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
     width: 100%;
+    transition: background-color 0.3s ease;
 }
 
 .confirm_btn:hover {
