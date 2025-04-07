@@ -134,7 +134,7 @@ const menu_items = ref([
                     <th>유통기한</th>
                     <th>희망가격</th>
                     <th>
-                        <div class="sortable-header" @click="toggleSortOrder">
+                        <div class="sortable_header" @click="toggleSortOrder">
                             등록날짜
                             <span v-if="sortOrder === 'asc'">🔼</span>
                             <span v-else>🔽</span>
@@ -146,8 +146,8 @@ const menu_items = ref([
             </thead>
             <tbody>
                 <tr v-for="(item, index) in filteredItems" :key="index">
-                    <td class="bold-text">{{ item.product }}</td>
-                    <td class="bold-text">{{ item.quantity }}개</td>
+                    <td class="bold_text">{{ item.product }}</td>
+                    <td class="bold_text">{{ item.quantity }}개</td>
                     <td>{{ getDday(item.expiration) }}</td>
                     <td>{{ item.price.toLocaleString() }}원</td>
                     <td>{{ getRelativeDate(item.date) }}</td>
@@ -169,11 +169,11 @@ const menu_items = ref([
     padding: 20px;
 }
 
-.bold-text {
+.bold_text {
     font-weight: bold;
 }
 
-.sortable-header {
+.sortable_header {
     display: flex;
     justify-content: center;
     align-items: center;
