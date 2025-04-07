@@ -1,4 +1,3 @@
-
 <script setup>
 import { ref } from "vue";
 import RightPanel from "./RightPanel.vue"; // 오른쪽 패널 컴포넌트 임포트
@@ -59,7 +58,7 @@ const closePanels = () => {
           <button class="close-btn" @click="closeBellDropdown">닫기 ✖</button>
         </div>
 
-        <v-icon v-if="(menuHidden && homeHidden) && dotHidden" class="header-icon" icon="mdi-dots-vertical" @click="togglePanel"></v-icon>
+        <v-icon v-if="menuHidden && homeHidden && dotHidden" class="header-icon" icon="mdi-dots-vertical" @click="togglePanel"></v-icon>
       </div>
     </div>
   </div>
@@ -70,7 +69,6 @@ const closePanels = () => {
     <div class="overlay-content"></div>
   </v-overlay>
 </template>
-
 
 <style scoped>
 .total_header {
@@ -168,7 +166,8 @@ const closePanels = () => {
 }
 
 /* ✅ 패널 스타일 */
-.side-panel { /* RightPanel 및 LeftPanel 컴포넌트의 최상위 요소에 적용된 클래스 */
+.side-panel {
+  /* RightPanel 및 LeftPanel 컴포넌트의 최상위 요소에 적용된 클래스 */
   position: fixed;
   /* ... 기존 스타일 ... */
   z-index: 100; /* 오버레이보다 높은 z-index */
