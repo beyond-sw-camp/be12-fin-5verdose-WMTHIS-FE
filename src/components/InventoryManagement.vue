@@ -1,3 +1,165 @@
+<script setup>
+import { ref, watch, computed } from "vue";
+import InventoryCorrectionModal from "../components/InventoryCorrectionModal.vue";
+import InventoryStoreModal from "../components/InventoryStoreModal.vue";
+import DeleteConfirmModal from "./DeleteConfirmModal.vue";
+import DeleteAlertModal from "./DeleteAlertModal.vue";
+
+const tab = ref("exp");
+const selectedFilter = ref("만료");
+const stockStatus = ref("필요");
+const isModalOpen = ref(false);
+const isDetailModalOpen = ref(false);
+const isDeleteConfirmOpen = ref(false);
+const isDeleteAlertOpen = ref(false);
+const modalType = ref("");
+
+const openStoreModal = () => {
+  modalType.value = "store";
+  isModalOpen.value = true;
+};
+
+const openCorrectionModal = () => {
+  modalType.value = "correction";
+  isModalOpen.value = true;
+};
+
+const closeModal = () => (isModalOpen.value = false);
+const openDetailModal = () => (isDetailModalOpen.value = true);
+const closeDetailModal = () => (isDetailModalOpen.value = false);
+watch(selectedFilter, (newVal) => {
+  stockStatus.value = newVal;
+});
+const filteredItems = computed(() => {
+  let items = menu_items.value;
+
+  // 탭 필터 처리
+  if (tab.value === "exp") {
+    if (selectedFilter.value !== "전체") {
+      items = items.filter((item) => item.status === selectedFilter.value);
+    }
+  } else if (tab.value === "order") {
+    if (selectedFilter.value === "필요") {
+      items = items.filter((item) => item.orderNeed !== "-");
+    } else if (selectedFilter.value === "충분") {
+      items = items.filter((item) => item.orderNeed === "-");
+    }
+  }
+
+  // 검색 필터 처리
+  if (searchKeyword.value.trim() !== "") {
+    const keyword = searchKeyword.value.trim().toLowerCase();
+    items = items.filter((item) => item.name.toLowerCase().includes(keyword));
+  }
+
+  return items;
+});
+
+const searchKeyword = ref("");
+const menu_items = ref([
+  {
+    name: "마늘",
+    quantity: "1개",
+    totalquantity: "3개",
+    status: "만료",
+    orderNeed: "1",
+    selected: false,
+  },
+  {
+    name: "토마토",
+    quantity: "3개",
+    totalquantity: "7개",
+    status: "유효",
+    orderNeed: "2",
+    selected: false,
+  },
+  {
+    name: "양배추",
+    quantity: "1개",
+    totalquantity: "1개",
+    status: "만료",
+    orderNeed: "1",
+    selected: false,
+  },
+  {
+    name: "우유",
+    quantity: "3개",
+    totalquantity: "9개",
+    status: "임박",
+    orderNeed: "-",
+    selected: false,
+  },
+  {
+    name: "올리브유",
+    quantity: "1개",
+    totalquantity: "3개",
+    status: "만료",
+    orderNeed: "1",
+    selected: false,
+  },
+  {
+    name: "새우",
+    quantity: "5개",
+    totalquantity: "5개",
+    status: "유효",
+    orderNeed: "-",
+    selected: false,
+  },
+  {
+    name: "방울토마토",
+    quantity: "2개",
+    totalquantity: "3개",
+    status: "임박",
+    orderNeed: "2",
+    selected: false,
+  },
+  {
+    name: "닭가슴살",
+    quantity: "5개",
+    totalquantity: "15개",
+    status: "만료",
+    orderNeed: "13",
+    selected: false,
+  },
+]);
+
+const select_all = ref(false);
+const isBlocked = computed(
+  () => isDeleteConfirmOpen.value || isDeleteAlertOpen.value
+);
+const toggle_select_all = () => {
+  if (!isBlocked.value)
+    menu_items.value.forEach((item) => (item.selected = select_all.value));
+};
+
+watch(
+  menu_items,
+  (new_items) => {
+    select_all.value = new_items.every((item) => item.selected);
+  },
+  { deep: true }
+);
+
+const openDeleteConfirm = () => {
+  if (!isBlocked.value) {
+    const selectedItems = menu_items.value.some((item) => item.selected);
+    if (selectedItems) isDeleteConfirmOpen.value = true;
+    else isDeleteAlertOpen.value = true;
+  }
+};
+
+const closeDeleteConfirm = () => (isDeleteConfirmOpen.value = false);
+const closeDeleteAlert = () => (isDeleteAlertOpen.value = false);
+const deleteSelectedItems = () => {
+  isDeleteConfirmOpen.value = false;
+  menu_items.value = menu_items.value.filter((item) => !item.selected);
+};
+
+const setFilter = (status) => {
+  filterStatus.value = status;
+};
+</script>
+
 <template>
   <v-container>
     <!-- 왼쪽: 유통기한 / 발주 필요 재고 -->
@@ -159,8 +321,12 @@
                 </button>
               </div>
               <div class="action_buttons">
-                <button @click="openModal" class="register_btn">입고</button>
-                <button @click="openModal" class="delete_btn">수정</button>
+                <button @click="openStoreModal" class="register_btn">
+                  입고
+                </button>
+                <button @click="openCorrectionModal" class="delete_btn">
+                  보정
+                </button>
                 <button @click="openModal" class="delete_btn">판매</button>
               </div>
             </div>
@@ -220,8 +386,17 @@
                 </tr>
               </tbody>
             </table>
+            <InventoryStoreModal
+              v-if="modalType === 'store'"
+              :isOpen="isModalOpen"
+              @close="closeModal"
+            />
+            <InventoryCorrectionModal
+              v-if="modalType === 'correction'"
+              :isOpen="isModalOpen"
+              @close="closeModal"
+            />
 
-            <InventoryRegisterModal :isOpen="isModalOpen" @close="closeModal" />
             <MenuDetailModal
               :isOpen="isDetailModalOpen"
               @close="closeDetailModal"
@@ -241,158 +416,6 @@
     </v-row>
   </v-container>
 </template>
-
-<script setup>
-import { ref, watch, computed } from "vue";
-import InventoryRegisterModal from "../components/InventoryRegisterModal.vue";
-import MenuDetailModal from "./MenuDetailModal.vue";
-import DeleteConfirmModal from "./DeleteConfirmModal.vue";
-import DeleteAlertModal from "./DeleteAlertModal.vue";
-
-const tab = ref("exp");
-const selectedFilter = ref("만료");
-const stockStatus = ref("필요");
-const isModalOpen = ref(false);
-const isDetailModalOpen = ref(false);
-const isDeleteConfirmOpen = ref(false);
-const isDeleteAlertOpen = ref(false);
-
-const openModal = () => (isModalOpen.value = true);
-const closeModal = () => (isModalOpen.value = false);
-const openDetailModal = () => (isDetailModalOpen.value = true);
-const closeDetailModal = () => (isDetailModalOpen.value = false);
-watch(selectedFilter, (newVal) => {
-  stockStatus.value = newVal;
-});
-const filteredItems = computed(() => {
-  let items = menu_items.value;
-
-  // 탭 필터 처리
-  if (tab.value === "exp") {
-    if (selectedFilter.value !== "전체") {
-      items = items.filter((item) => item.status === selectedFilter.value);
-    }
-  } else if (tab.value === "order") {
-    if (selectedFilter.value === "필요") {
-      items = items.filter((item) => item.orderNeed !== "-");
-    } else if (selectedFilter.value === "충분") {
-      items = items.filter((item) => item.orderNeed === "-");
-    }
-  }
-
-  // 검색 필터 처리
-  if (searchKeyword.value.trim() !== "") {
-    const keyword = searchKeyword.value.trim().toLowerCase();
-    items = items.filter((item) => item.name.toLowerCase().includes(keyword));
-  }
-
-  return items;
-});
-
-const searchKeyword = ref("");
-const menu_items = ref([
-  {
-    name: "마늘",
-    quantity: "1개",
-    totalquantity: "3개",
-    status: "만료",
-    orderNeed: "1",
-    selected: false,
-  },
-  {
-    name: "토마토",
-    quantity: "3개",
-    totalquantity: "7개",
-    status: "유효",
-    orderNeed: "2",
-    selected: false,
-  },
-  {
-    name: "양배추",
-    quantity: "1개",
-    totalquantity: "1개",
-    status: "만료",
-    orderNeed: "1",
-    selected: false,
-  },
-  {
-    name: "우유",
-    quantity: "3개",
-    totalquantity: "9개",
-    status: "임박",
-    orderNeed: "-",
-    selected: false,
-  },
-  {
-    name: "올리브유",
-    quantity: "1개",
-    totalquantity: "3개",
-    status: "만료",
-    orderNeed: "1",
-    selected: false,
-  },
-  {
-    name: "새우",
-    quantity: "5개",
-    totalquantity: "5개",
-    status: "유효",
-    orderNeed: "-",
-    selected: false,
-  },
-  {
-    name: "방울토마토",
-    quantity: "2개",
-    totalquantity: "3개",
-    status: "임박",
-    orderNeed: "2",
-    selected: false,
-  },
-  {
-    name: "닭가슴살",
-    quantity: "5개",
-    totalquantity: "15개",
-    status: "만료",
-    orderNeed: "13",
-    selected: false,
-  },
-]);
-
-const select_all = ref(false);
-const isBlocked = computed(
-  () => isDeleteConfirmOpen.value || isDeleteAlertOpen.value
-);
-const toggle_select_all = () => {
-  if (!isBlocked.value)
-    menu_items.value.forEach((item) => (item.selected = select_all.value));
-};
-
-watch(
-  menu_items,
-  (new_items) => {
-    select_all.value = new_items.every((item) => item.selected);
-  },
-  { deep: true }
-);
-
-const openDeleteConfirm = () => {
-  if (!isBlocked.value) {
-    const selectedItems = menu_items.value.some((item) => item.selected);
-    if (selectedItems) isDeleteConfirmOpen.value = true;
-    else isDeleteAlertOpen.value = true;
-  }
-};
-
-const closeDeleteConfirm = () => (isDeleteConfirmOpen.value = false);
-const closeDeleteAlert = () => (isDeleteAlertOpen.value = false);
-const deleteSelectedItems = () => {
-  isDeleteConfirmOpen.value = false;
-  menu_items.value = menu_items.value.filter((item) => !item.selected);
-};
-
-const setFilter = (status) => {
-  filterStatus.value = status;
-};
-</script>
 
 <style scoped>
 .label {
