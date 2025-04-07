@@ -4,6 +4,9 @@ import InventoryCorrectionModal from "../components/InventoryCorrectionModal.vue
 import InventoryStoreModal from "../components/InventoryStoreModal.vue";
 import DeleteConfirmModal from "./DeleteConfirmModal.vue";
 import DeleteAlertModal from "./DeleteAlertModal.vue";
+import InventoryParticularModal from "../components/InventoryParticularModal.vue";
+
+import InventorySaleModal from "../components/InventorySaleModal.vue";
 
 const tab = ref("exp");
 const selectedFilter = ref("만료");
@@ -14,18 +17,31 @@ const isDeleteConfirmOpen = ref(false);
 const isDeleteAlertOpen = ref(false);
 const modalType = ref("");
 
+const openParticularModal = () => {
+  modalType.value = "particular";
+  isModalOpen.value = true;
+};
+
 const openStoreModal = () => {
   modalType.value = "store";
   isModalOpen.value = true;
 };
 
-const openCorrectionModal = () => {
-  modalType.value = "correction";
+const openSaleModal = () => {
+  modalType.value = "sale";
   isModalOpen.value = true;
 };
 
+const openDetailModal = () => {
+  modalType.value = "detail";
+  isModalOpen.value = true;
+};
+const setFilter = (status) => {
+  selectedFilter.value = status;
+  filterStatus.value = status; // 둘 다 필요할 경우
+};
 const closeModal = () => (isModalOpen.value = false);
-const openDetailModal = () => (isDetailModalOpen.value = true);
+
 const closeDetailModal = () => (isDetailModalOpen.value = false);
 watch(selectedFilter, (newVal) => {
   stockStatus.value = newVal;
@@ -154,33 +170,39 @@ const deleteSelectedItems = () => {
   isDeleteConfirmOpen.value = false;
   menu_items.value = menu_items.value.filter((item) => !item.selected);
 };
-
-const setFilter = (status) => {
-  filterStatus.value = status;
-};
 </script>
 
 <template>
-  <v-container>
+  <v-container fluid>
     <!-- 왼쪽: 유통기한 / 발주 필요 재고 -->
     <v-row class="flex-nowrap" no-gutters>
-      <v-col cols="4">
+      <v-col cols="3" class="left-panel">
         <!-- 전체 좌측 UI를 감싸는 카드 (배경 역할) -->
         <v-card
           class="pa-4"
           elevation="1"
-          style="background-color: #ffffff; border-radius: 12px"
+          style="background-color: #ffffff; border-radius: 12px; height: 750px"
         >
           <!-- 상단: 만료 임박 / 발주 필요 재고 -->
-          <v-row class="mb-6">
-            <v-col cols="12" md="6" class="text-center">
+          <v-row class="mb-6" justify="center">
+            <!-- 만료 임박 -->
+            <v-col cols="12" md="5" class="text-center">
               <div class="label">만료 임박</div>
               <div class="warning-text">마늘</div>
               <div class="warning-text">D-8</div>
             </v-col>
-            <div class="divider"></div>
+
+            <!-- 세로 구분선 -->
+            <v-col cols="12" md="1" class="d-flex justify-center">
+              <div
+                class="divider"
+                style="width: 2px; background-color: #ccc; height: 100%"
+              ></div>
+            </v-col>
+
+            <!-- 발주 필요 재고 -->
             <v-col cols="12" md="6" class="text-center">
-              <div class="label">발주 필요 재고</div>
+              <div class="label">발주 필요재고</div>
               <div class="warning-text" v-if="stockStatus === '필요'">6개</div>
               <div class="warning-text" v-else>0</div>
             </v-col>
@@ -299,11 +321,11 @@ const setFilter = (status) => {
       </v-col>
 
       <!-- 오른쪽: 재고 테이블 -->
-      <v-col cols="12" md="9">
+      <v-col cols="3" md="9" style="max-width: 1200px">
         <v-card
           class="pa-4"
           elevation="1"
-          style="background-color: #ffffff; border-radius: 12px"
+          style="background-color: #ffffff; border-radius: 12px; height: 750px"
         >
           <div class="body">
             <h1 class="page_title">전체재고</h1>
@@ -324,10 +346,8 @@ const setFilter = (status) => {
                 <button @click="openStoreModal" class="register_btn">
                   입고
                 </button>
-                <button @click="openCorrectionModal" class="delete_btn">
-                  보정
-                </button>
-                <button @click="openModal" class="delete_btn">판매</button>
+
+                <button @click="openSaleModal" class="delete_btn">판매</button>
               </div>
             </div>
 
@@ -379,7 +399,7 @@ const setFilter = (status) => {
                   </td>
 
                   <td>
-                    <button class="detail_btn" @click="openDetailModal(item)">
+                    <button @click="openParticularModal" class="delete_btn">
                       상세
                     </button>
                   </td>
@@ -396,11 +416,17 @@ const setFilter = (status) => {
               :isOpen="isModalOpen"
               @close="closeModal"
             />
-
-            <MenuDetailModal
-              :isOpen="isDetailModalOpen"
-              @close="closeDetailModal"
+            <InventorySaleModal
+              v-if="modalType === 'sale'"
+              :isOpen="isModalOpen"
+              @close="closeModal"
             />
+            <InventoryParticularModal
+              v-if="modalType === 'particular'"
+              :isOpen="isModalOpen"
+              @close="closeModal"
+            />
+
             <DeleteConfirmModal
               :isOpen="isDeleteConfirmOpen"
               @confirm="deleteSelectedItems"
@@ -619,5 +645,8 @@ const setFilter = (status) => {
 .divider {
   width: 2px;
   background-color: #e5e7eb;
+}
+.left-panel {
+  margin-right: 65px;
 }
 </style>
