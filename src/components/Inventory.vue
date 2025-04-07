@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, computed } from "vue";
 import InventoryRegisterModal from "../components/InventoryRegisterModal.vue";
-import MenuDetailModal from "./MenuDetailModal.vue";
+import InventoryModifyModal from "../components/InventoryModifyModal.vue";
 import DeleteConfirmModal from "./DeleteConfirmModal.vue";
 import DeleteAlertModal from "./DeleteAlertModal.vue";
 
@@ -9,17 +9,23 @@ const isModalOpen = ref(false);
 const isDetailModalOpen = ref(false);
 const isDeleteConfirmOpen = ref(false);
 const isDeleteAlertOpen = ref(false); // 삭제 항목 선택 안내 모달
+const selectedItem = ref(null);
 
 const openModal = () => {
+  modalType.value = "register"; // 이 줄 추가
   isModalOpen.value = true;
 };
+const openDetailModal = (item) => {
+  selectedItem.value = item;
+  modalType.value = "modify";
+  isModalOpen.value = true;
+};
+
+const modalType = ref("register");
 const closeModal = () => {
   isModalOpen.value = false;
 };
 
-const openDetailModal = () => {
-  isDetailModalOpen.value = true;
-};
 const closeDetailModal = () => {
   isDetailModalOpen.value = false;
 };
@@ -189,11 +195,19 @@ const deleteSelectedItems = () => {
     </table>
 
     <!-- 모달 컴포넌트들 -->
-    <InventoryRegisterModal :isOpen="isModalOpen" @close="closeModal" />
     <InventoryRegisterModal
-      :isOpen="isDetailModalOpen"
-      @close="closeDetailModal"
+      v-if="modalType === 'register'"
+      :isOpen="isModalOpen"
+      @close="closeModal"
     />
+
+    <InventoryModifyModal
+      v-if="modalType === 'modify'"
+      :isOpen="isModalOpen"
+      :item="selectedItem"
+      @close="closeModal"
+    />
+
     <DeleteConfirmModal
       :isOpen="isDeleteConfirmOpen"
       @confirm="deleteSelectedItems"
