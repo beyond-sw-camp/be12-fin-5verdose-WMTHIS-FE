@@ -123,12 +123,7 @@ const goBack = () => {
                 <div class="payment_method" :class="{ 'selected': selectedPayment === '카드' }"
                     @click="selectPayment('카드')">
                     <div class="payment_icon">
-                        <!-- SVG 아이콘으로 대체 (이미지 경로 문제 해결) -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="2" y="5" width="20" height="14" rx="2" />
-                            <line x1="2" y1="10" x2="22" y2="10" />
-                        </svg>
+                        <img src="../assets/creditpay.png" alt="카드 결제 아이콘" />
                     </div>
                     <p>카드 결제</p>
                 </div>
@@ -137,11 +132,7 @@ const goBack = () => {
                 <div class="payment_method" :class="{ 'selected': selectedPayment === '현금' }"
                     @click="selectPayment('현금')">
                     <div class="payment_icon">
-                        <!-- SVG 아이콘으로 대체 (이미지 경로 문제 해결) -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                        </svg>
+                        <img src="../assets/cashpay.png" alt="현금 결제 아이콘" />
                     </div>
                     <p>현금 결제</p>
                 </div>
@@ -151,13 +142,9 @@ const goBack = () => {
                     @click="selectPayment('QR')">
                     <div class="payment_icon">
                         <!-- SVG 아이콘으로 대체 (이미지 경로 문제 해결) -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="7" height="7" />
-                            <rect x="14" y="3" width="7" height="7" />
-                            <rect x="3" y="14" width="7" height="7" />
-                            <rect x="14" y="14" width="7" height="7" />
-                        </svg>
+                        <div class="payment_icon">
+                            <img src="../assets/qrpay.png" alt="QR 결제 아이콘" />
+                        </div>
                     </div>
                     <p>QR 결제</p>
                 </div>
@@ -281,14 +268,12 @@ const goBack = () => {
     background-color: #f0e8ff;
 }
 
-.payment_icon {
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 15px;
-    color: #6c3ce9;
+
+
+.payment_icon img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
 }
 
 .payment_method p {
