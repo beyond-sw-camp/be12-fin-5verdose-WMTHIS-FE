@@ -1,6 +1,8 @@
 <script setup>
 import { onMounted } from "vue";
 import Header from "./Header.vue";
+import Detail from "./MyMapDetailModal.vue";
+import { ref } from "vue";
 
 onMounted(() => {
   if (window.kakao && window.kakao.maps) {
@@ -20,6 +22,8 @@ onMounted(() => {
 const markerList = [];
 let normalImage = null;
 let largeImage = null;
+const selectedBoard = ref(null);
+const showModal = ref(false);
 
 const handleClosePanel = () => {
   const panel = document.querySelector(".fixed_panel_wrapper");
@@ -28,6 +32,13 @@ const handleClosePanel = () => {
     markerList.forEach((m) => m.setImage(normalImage)); // 모두 작게
   }
 };
+
+const handelOpenDetail = (item) => {
+  selectedBoard.value = item;
+  showModal.value = true;
+  console.log(item);
+};
+window.handelOpenDetail = handelOpenDetail;
 
 function initMap() {
   const geocoder = new kakao.maps.services.Geocoder();
@@ -87,27 +98,171 @@ function initMap() {
         label: "국사봉",
         address: "서울 동작구 국사봉2길 22",
         boardList: [
-          { name: "마늘", quantity: "500g", expire: "D - 3", price: "4000원", date: "오늘", store: "가게1" },
-          { name: "양파", quantity: "1kg", expire: "D - 2", price: "3000원", date: "1일전", store: "가게1" },
-          { name: "우유", quantity: "2L", expire: "D - 1", price: "8000원", date: "2일전", store: "가게1" },
+          {
+            name: "마늘",
+            quantity: "500",
+            unit: "g",
+            expire: "D - 3",
+            expireDate: "2025-04-07",
+            regDate: "2025-04-04",
+            price: "4000원",
+            date: "오늘",
+            store: "가게1",
+            description: "국내산 마늘로 향이 강하고 알이 굵어요.",
+            images: [
+              "https://via.placeholder.com/300x200?text=Garlic+1",
+              "https://via.placeholder.com/300x200?text=Garlic+2",
+              "https://via.placeholder.com/300x200?text=Garlic+3",
+            ],
+          },
+          {
+            name: "양파",
+            quantity: "1",
+            unit: "kg",
+            expire: "D - 2",
+            expireDate: "2025-04-06",
+            regDate: "2025-04-03",
+            price: "3000원",
+            date: "1일전",
+            store: "가게1",
+            description: "신선한 양파입니다. 카레나 볶음용으로 적당해요.",
+            images: [
+              "https://via.placeholder.com/300x200?text=Onion+1",
+              "https://via.placeholder.com/300x200?text=Onion+2",
+              "https://via.placeholder.com/300x200?text=Onion+3",
+            ],
+          },
+          {
+            name: "우유",
+            quantity: "2",
+            unit: "L",
+            expire: "D - 1",
+            expireDate: "2025-04-05",
+            regDate: "2025-04-02",
+            price: "8000원",
+            date: "2일전",
+            store: "가게1",
+            description: "무항생제 목장 우유로 고소하고 진합니다.",
+            images: [
+              "https://via.placeholder.com/300x200?text=Milk+1",
+              "https://via.placeholder.com/300x200?text=Milk+2",
+              "https://via.placeholder.com/300x200?text=Milk+3",
+            ],
+          },
         ],
       },
       {
         label: "여의대방로",
         address: "서울 동작구 여의대방로22길 138",
         boardList: [
-          { name: "김치", quantity: "300g", expire: "D - 5", price: "7000원", date: "어제", store: "가게2" },
-          { name: "당근", quantity: "5kg", expire: "D - 7", price: "3000원", date: "4일전", store: "가게2" },
+          {
+            name: "김치",
+            quantity: "300",
+            unit: "g",
+            expire: "D - 5",
+            expireDate: "2025-04-09",
+            regDate: "2025-04-06",
+            price: "7000원",
+            date: "어제",
+            store: "가게2",
+            description: "갓 담근 신선한 배추김치입니다.",
+            images: [
+              "https://via.placeholder.com/300x200?text=Kimchi+1",
+              "https://via.placeholder.com/300x200?text=Kimchi+2",
+              "https://via.placeholder.com/300x200?text=Kimchi+3",
+            ],
+          },
+          {
+            name: "당근",
+            quantity: "5",
+            unit: "kg",
+            expire: "D - 7",
+            expireDate: "2025-04-11",
+            regDate: "2025-04-03",
+            price: "3000원",
+            date: "4일전",
+            store: "가게2",
+            description: "아삭한 국내산 당근이에요. 건강 간식용으로 좋아요.",
+            images: [
+              "https://via.placeholder.com/300x200?text=Carrot+1",
+              "https://via.placeholder.com/300x200?text=Carrot+2",
+              "https://via.placeholder.com/300x200?text=Carrot+3",
+            ],
+          },
         ],
       },
       {
         label: "보라매로",
         address: "서울 동작구 보라매로 96-1",
         boardList: [
-          { name: "감자", quantity: "900g", expire: "D - 5", price: "6000원", date: "오늘", store: "가게3" },
-          { name: "가지", quantity: "5kg", expire: "D - 10", price: "9000원", date: "오늘", store: "가게3" },
-          { name: "피클", quantity: "40kg", expire: "D - 9", price: "5000원", date: "4일전", store: "가게3" },
-          { name: "콜라", quantity: "10L", expire: "D - 8", price: "1000원", date: "7일전", store: "가게3" },
+          {
+            name: "감자",
+            quantity: "900",
+            unit: "g",
+            expire: "D - 5",
+            expireDate: "2025-04-09",
+            regDate: "2025-04-07",
+            price: "6000원",
+            date: "오늘",
+            store: "가게3",
+            description: "강원도에서 올라온 포슬포슬한 감자입니다.",
+            images: [
+              "https://via.placeholder.com/300x200?text=Potato+1",
+              "https://via.placeholder.com/300x200?text=Potato+2",
+              "https://via.placeholder.com/300x200?text=Potato+3",
+            ],
+          },
+          {
+            name: "가지",
+            quantity: "5",
+            unit: "kg",
+            expire: "D - 10",
+            expireDate: "2025-04-14",
+            regDate: "2025-04-07",
+            price: "9000원",
+            date: "오늘",
+            store: "가게3",
+            description: "탱글탱글한 가지로, 구이나 볶음에 좋아요.",
+            images: [
+              "https://via.placeholder.com/300x200?text=Eggplant+1",
+              "https://via.placeholder.com/300x200?text=Eggplant+2",
+              "https://via.placeholder.com/300x200?text=Eggplant+3",
+            ],
+          },
+          {
+            name: "피클",
+            quantity: "40",
+            unit: "kg",
+            expire: "D - 9",
+            expireDate: "2025-04-13",
+            regDate: "2025-04-03",
+            price: "5000원",
+            date: "4일전",
+            store: "가게3",
+            description: "새콤달콤한 수제 오이피클입니다.",
+            images: [
+              "https://via.placeholder.com/300x200?text=Pickle+1",
+              "https://via.placeholder.com/300x200?text=Pickle+2",
+              "https://via.placeholder.com/300x200?text=Pickle+3",
+            ],
+          },
+          {
+            name: "콜라",
+            quantity: "10",
+            unit: "L",
+            expire: "D - 8",
+            expireDate: "2025-04-12",
+            regDate: "2025-03-31",
+            price: "1000원",
+            date: "7일전",
+            store: "가게3",
+            description: "시원한 탄산 콜라! 파티나 행사에 좋아요.",
+            images: [
+              "https://via.placeholder.com/300x200?text=Cola+1",
+              "https://via.placeholder.com/300x200?text=Cola+2",
+              "https://via.placeholder.com/300x200?text=Cola+3",
+            ],
+          },
         ],
       },
     ];
@@ -142,8 +297,9 @@ function initMap() {
                 </tr>
             </thead>
             <tbody>`;
-          boardList.forEach(({ name, quantity, expire, price, date, store }) => {
-            boardHtml += `
+          boardList.forEach((item) => {
+            const { name, quantity, expire, price, date, store } = item;
+            boardHtml += `  
               <tr>
                 <td>${name}</td>
                 <td>${quantity}</td>
@@ -151,7 +307,9 @@ function initMap() {
                 <td>${price}</td>
                 <td>${date}</td>
                 <td>${store}</td>
-                <td><button class="btn">상세보기</button></td>
+                <td>
+                  <button class="btn" onclick='handelOpenDetail(${JSON.stringify(item).replace(/'/g, "\\'")})'>상세보기</button>
+                </td>
               </tr>
             `;
           });
@@ -177,7 +335,6 @@ function initMap() {
 
 <template>
   <div>
-    <Header></Header>
     <div id="map" style="width: 100%; height: 65vh; margin"></div>
     <div class="fixed_panel_wrapper hidden">
       <div id="fixedPanel" class="fixed_panel">
@@ -185,6 +342,7 @@ function initMap() {
         <div id="fixedPanelContent"></div>
       </div>
     </div>
+    <Detail class="detail_modal" v-if="showModal" :item="selectedBoard" @close="showModal = false" />
   </div>
 </template>
 
@@ -239,6 +397,13 @@ function initMap() {
   padding: 16px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   z-index: 9999;
+}
+
+.detail_modal {
+  position: fixed;
+  top: 90px;
+  right: 0px;
+  z-index: 10001;
 }
 
 .hidden {
