@@ -66,6 +66,7 @@ const deleteSelectedItems = () => {
     menu_items.value = menu_items.value.filter(item => !item.selected);
 };
 </script>
+
 <template>
     <div class="body">
         <h1 class="page_title">메뉴 관리</h1>
