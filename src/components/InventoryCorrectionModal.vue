@@ -6,7 +6,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["close"]);
-
+const isExpirationDifferent = ref(false);
 const category = ref("");
 const activeTab = ref("단일메뉴"); // 기본 선택된 탭
 const menuName = ref("");
