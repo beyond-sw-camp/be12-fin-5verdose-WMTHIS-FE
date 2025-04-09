@@ -17,14 +17,19 @@ const ingredientUnit = ref("");
 const selectedDays = ref("1");
 const customDays = ref("");
 const isCustomInput = ref(false);
+const modalType = ref("");
+const isModalOpen = ref(false);
 
 const openCorrectionModal = (item) => {
   correctionItem.value = item;
-  isCorrectionModalOpen.value = true;
+  isCorrectionModalOpen.value = false;
+  modalType.value = "correction"; // 추가!
+  isModalOpen.value = true;
 };
 const closeCorrectionModal = () => {
   isCorrectionModalOpen.value = false;
 };
+
 const selectDay = (value) => {
   selectedDays.value = value;
   isCustomInput.value = false;
@@ -75,83 +80,92 @@ const removeIngredient = (index) => {
 </script>
 
 <template>
-  <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')">
-    <div class="modal">
-      <div class="modal_content">
-        <div class="modal_header">
-          <button class="close_btn" @click="emit('close')">✕</button>
+  <v-card>
+    <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')">
+      <div class="modal">
+        <div class="modal_content">
+          <div class="modal_header">
+            <button class="close_btn" @click="emit('close')">✕</button>
 
-          <h2 class="modal_title">재고 상세</h2>
-        </div>
-        <div class="input_group">
-          <div class="modal_title2">
-            <label>재고명</label>
+            <h2 class="modal_title">재고 상세</h2>
           </div>
-          <p class="sub_title">마늘</p>
-        </div>
-
-        <div class="input_group">
-          <div class="input-row">
-            <div class="input-label-group">
-              <label>총수량</label>
+          <div class="input_group">
+            <div class="modal_title2">
+              <label>재고명</label>
             </div>
+            <p class="sub_title">마늘</p>
           </div>
-          <p class="sub_title">2Kg</p>
-        </div>
 
-        <div class="input_group">
-          <div class="input-row">
-            <div class="input-label-group">
-              <label>총수량</label>
+          <div class="input_group">
+            <div class="input-row">
+              <div class="input-label-group">
+                <label>총수량</label>
+              </div>
             </div>
+            <p class="sub_title">2Kg</p>
           </div>
-          <p class="sub_title">2Kg</p>
-        </div>
 
-        <div class="input_group">
-          <div class="input-row">
-            <div class="input-label-group">
-              <label>사용메뉴</label>
+          <div class="input_group">
+            <div class="input-row">
+              <div class="input-label-group">
+                <label>수량</label>
+              </div>
             </div>
+            <p class="sub_title">2Kg</p>
           </div>
-          <p class="sub_title">알리오올리오,감바스</p>
-        </div>
 
-        <table class="menu_table">
-          <thead>
-            <tr>
-              <th>입고날짜</th>
-              <th>유통기한</th>
-              <th>수량</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(item, index) in menu_items" :key="index">
-              <td>{{ item.store }}</td>
-              <td>{{ item.totalquantity }}</td>
-              <td>
-                <span :class="'status ' + item.status">{{ item.status }}</span>
-              </td>
-              <td>
-                <button @click="openCorrectionModal(item)" class="delete_btn">
-                  보정
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <CorrectionModal
-          v-if="isCorrectionModalOpen"
-          :item="correctionItem"
-          @close="closeCorrectionModal"
-        />
-      </div>
-      <div class="modal_footer">
-        <button class="confirm_btn" @click="emit('close')">확인</button>
+          <div class="input_group">
+            <div class="input-row">
+              <div class="input-label-group">
+                <label>사용메뉴</label>
+              </div>
+            </div>
+            <p class="sub_title">알리오올리오,감바스</p>
+          </div>
+
+          <table class="menu_table">
+            <thead>
+              <tr>
+                <th>입고날짜</th>
+                <th>유통기한</th>
+                <th>수량</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, index) in menu_items" :key="index">
+                <td>{{ item.store }}</td>
+                <td>{{ item.totalquantity }}</td>
+                <td>
+                  <span :class="'status ' + item.status">{{
+                    item.status
+                  }}</span>
+                </td>
+                <td>
+                  <button @click="openCorrectionModal(item)" class="delete_btn">
+                    보정
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <InventoryParticularModal
+            v-if="modalType === 'particular'"
+            :isOpen="isModalOpen"
+            @close="closeModal"
+          />
+          <InventoryCorrectionModal
+            v-if="modalType === 'correction'"
+            :isOpen="isModalOpen"
+            @close="closeModal"
+          />
+        </div>
+        <div class="modal_footer">
+          <button class="confirm_btn" @click="emit('close')">확인</button>
+        </div>
       </div>
     </div>
-  </div>
+  </v-card>
 </template>
 
 <style scoped>
@@ -514,6 +528,16 @@ const removeIngredient = (index) => {
   justify-content: space-between;
   align-items: center;
   gap: 16px;
+}
+
+.delete_btn {
+  padding: 8px 12px;
+  background-color: #b8c0c8;
+  border: none;
+  border-radius: 20px;
+  width: 80px;
+  cursor: pointer;
+  font-weight: bold;
 }
 
 .input-label-group {
