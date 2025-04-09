@@ -7,6 +7,7 @@ import router from "./router";
 import { createPinia } from "pinia";
 import vuetify from "./plugins/vuetify";
 import VueKonva from "vue-konva";
+import VueApexCharts from "vue3-apexcharts";
 
 const pinia = createPinia();
 
