@@ -7,17 +7,9 @@ const props = defineProps({
 
 const emit = defineEmits(["close"]);
 
-const category = ref("");
-const activeTab = ref("단일메뉴"); // 기본 선택된 탭
-const menuName = ref("");
-const ingredientName = ref("");
-const ingredientAmount = ref("");
-const ingredientUnit = ref("");
-const ingredients = ref([
-  { name: "고추장", amount: "50", unit: "g" },
-  { name: "토마토", amount: "10", unit: "g" },
-  { name: "삼겹살", amount: "50", unit: "g" },
-]);
+const unitCategory = ref("");
+
+const invnetoryName = ref("");
 const selectedDays = ref("1");
 const customDays = ref("");
 const isCustomInput = ref(false);
@@ -45,29 +37,10 @@ const disableCustomInput = () => {
     selectedDays.value = "1"; // 기본값 1일로 설정
   }
 };
-const ingredientOptions = ["고추장", "토마토", "삼겹살", "양파", "파"];
-const unitOptions = ["g", "kg", "ml", "L", "EA"];
-
-const addIngredient = () => {
-  if (ingredientName.value && ingredientAmount.value && ingredientUnit.value) {
-    ingredients.value.push({
-      name: ingredientName.value,
-      amount: ingredientAmount.value,
-      unit: ingredientUnit.value,
-    });
-    ingredientName.value = "";
-    ingredientAmount.value = "";
-    ingredientUnit.value = "";
-  }
-};
-
-const removeIngredient = (index) => {
-  ingredients.value.splice(index, 1);
-};
 </script>
 
 <template>
-  <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')">
+  <div v-if="isOpen" class="modify_modal_container" @click.self="emit('close')">
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
@@ -81,23 +54,23 @@ const removeIngredient = (index) => {
             <p class="title_warn">(필수)</p>
           </div>
           <p class="sub_title">상품의 정확한 이름을 입력해 주세요.</p>
-          <input type="text" v-model="menuName" placeholder="마늘" />
+          <input type="text" v-model="invnetoryName" placeholder="마늘" />
         </div>
 
         <div class="input_group">
-          <div class="input-row">
-            <div class="input-label-group">
+          <div class="input_row">
+            <div class="input_label_group">
               <label>용량/단위</label>
               <p class="title_warn">(필수)</p>
             </div>
-            <div class="unit-container">
+            <div class="unit_container">
               <input
                 type="text"
                 v-model="Minimumquantity"
                 placeholder="5"
-                class="min-qty-input"
+                class="min_qty_input"
               />
-              <select v-model="category" class="unit-select">
+              <select v-model="unitCategory" class="unit_select">
                 <option value="Kg">Kg</option>
                 <option value="g">g</option>
                 <option value="L">L</option>
@@ -126,7 +99,7 @@ const removeIngredient = (index) => {
           <div class="modal_title2">
             <label>유통기한</label>
           </div>
-          <div class="button-group">
+          <div class="button_group">
             <v-btn
               v-for="day in days"
               :key="day.value"
@@ -150,14 +123,14 @@ const removeIngredient = (index) => {
             <v-text-field
               v-else
               v-model="customDays"
-              class="custom-input"
+              class="custom_input"
               variant="outlined"
               density="compact"
               hide-details
               @blur="disableCustomInput"
             ></v-text-field>
 
-            <span class="fixed-text">일 까지</span>
+            <span class="fixed_text">일 까지</span>
           </div>
         </div>
       </div>
@@ -169,7 +142,7 @@ const removeIngredient = (index) => {
 </template>
 
 <style scoped>
-.modal_overlay {
+.modify_modal_container {
   position: fixed;
   top: 0;
   left: 0;
@@ -255,7 +228,7 @@ const removeIngredient = (index) => {
   justify-content: space-between;
   align-items: center;
 }
-.min-qty-input {
+.min_qty_input {
   width: 80px;
   padding: 8px 10px;
   border: 1px solid #ccc;
@@ -440,21 +413,21 @@ const removeIngredient = (index) => {
 .confirm_btn:hover {
   background: #8cbfa4;
 }
-.custom-solid-autocomplete {
+.custom_solid_autocomplete {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 18px;
   font-size: 14px;
 }
 
-.unit-container {
+.unit_container {
   display: flex;
   align-items: center;
   gap: 8px; /* 입력 필드와 드롭다운 사이 간격 */
 }
 
-.unit-input,
-.unit-select {
+.unit_input,
+.unit_select {
   height: 45px; /* 동일한 높이 */
   border-radius: 20px; /* 둥근 모서리 */
   border: 1px solid #ccc;
@@ -465,11 +438,11 @@ const removeIngredient = (index) => {
   justify-content: flex-end;
 }
 
-.unit-input {
+.unit_input {
   width: 80px; /* 숫자 입력 필드 크기 */
 }
 
-.unit-select {
+.unit_select {
   width: 80px; /* 드롭다운 크기 */
   appearance: none; /* 기본 스타일 제거 */
   background: white
@@ -477,7 +450,7 @@ const removeIngredient = (index) => {
     no-repeat right 10px center;
   background-size: 16px;
 }
-.button-group {
+.button_group {
   display: flex;
   align-items: center;
   justify-content: center; /* 🌟 가운데 정렬 */
@@ -496,31 +469,31 @@ const removeIngredient = (index) => {
   font-weight: bold;
 }
 
-.custom-input {
+.custom_input {
   width: 10px !important; /* 직접입력 칸의 가로 크기 */
   height: 40px !important; /* 버튼과 동일한 높이 */
   text-align: center;
   font-size: 14px;
   padding: 0;
 }
-.fixed-text {
+.fixed_text {
   margin-left: 8px;
   font-size: 14px;
 }
-.input-row {
+.input_row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
 }
 
-.input-label-group {
+.input_label_group {
   display: flex;
   align-items: center;
   gap: 6px; /* label과 (필수) 사이 간격 조절 */
 }
 
-.min-qty-input {
+.min_qty_input {
   width: 80px;
   padding: 8px 10px;
   border: 1px solid #ccc;
