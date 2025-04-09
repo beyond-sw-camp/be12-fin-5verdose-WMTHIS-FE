@@ -15,7 +15,7 @@ const maxFileRule = (value) => {
 };
 const category = ref("");
 const activeTab = ref("단일메뉴"); // 기본 선택된 탭
-const menuName = ref("");
+const inventoryName = ref("");
 const ingredientName = ref("");
 const ingredientAmount = ref("");
 const ingredientUnit = ref("");
@@ -73,7 +73,7 @@ const removeIngredient = (index) => {
 </script>
 
 <template>
-  <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')">
+  <div v-if="isOpen" class="sale_modal_container" @click.self="emit('close')">
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
@@ -114,7 +114,7 @@ const removeIngredient = (index) => {
             <div class="unit-container">
               <input
                 type="text"
-                v-model="Minimumquantity"
+                v-model="minimumQuantity"
                 style="width: 200px"
                 placeholder="3000"
                 class="min-qty-input"
@@ -132,7 +132,7 @@ const removeIngredient = (index) => {
           <div class="input-with-unit">
             <input
               type="text"
-              v-model="Minimumquantity"
+              v-model="minimumQuantity"
               placeholder="3"
               class="min-qty-input"
               style="width: 200px"
@@ -179,7 +179,7 @@ const removeIngredient = (index) => {
 </template>
 
 <style scoped>
-.modal_overlay {
+.sale_modal_container {
   position: fixed;
   top: 0;
   left: 0;
@@ -310,7 +310,7 @@ const removeIngredient = (index) => {
   margin-bottom: 20px;
 }
 
-.tab_menu {
+.tab_inventory {
   display: flex;
   border-bottom: none;
   margin-bottom: 15px;
@@ -319,7 +319,7 @@ const removeIngredient = (index) => {
   width: 100%;
 }
 
-.tab_menu button {
+.tab_inventory button {
   flex: 1;
   /* 버튼을 가로로 균등하게 배치 */
   padding: 6px 30px;
@@ -338,7 +338,7 @@ const removeIngredient = (index) => {
   text-align: center;
 }
 
-.tab_menu button:hover {
+.tab_inventory button:hover {
   background-color: #9fa6ad;
 }
 .input_row {
@@ -347,7 +347,7 @@ const removeIngredient = (index) => {
   gap: 24px;
 }
 
-.tab_menu button.active {
+.tab_inventory button.active {
   background-color: #858b91;
   color: white;
   border-color: #858b91;
@@ -493,7 +493,7 @@ const removeIngredient = (index) => {
     no-repeat right 10px center;
   background-size: 16px;
 }
-.button-group {
+.button_group {
   display: flex;
   align-items: center;
   justify-content: center; /* 🌟 가운데 정렬 */
@@ -512,7 +512,7 @@ const removeIngredient = (index) => {
   font-weight: bold;
 }
 
-.custom-input {
+.custom_input {
   width: 10px !important; /* 직접입력 칸의 가로 크기 */
   height: 40px !important; /* 버튼과 동일한 높이 */
   text-align: center;
@@ -544,7 +544,7 @@ const removeIngredient = (index) => {
   font-size: 14px;
   text-align: right;
 }
-.input-with-unit {
+.input_with_unit {
   display: flex;
   justify-content: flex-end; /* 오른쪽 정렬 */
   align-items: center;

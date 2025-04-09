@@ -8,20 +8,11 @@ const props = defineProps({
 const emit = defineEmits(["close"]);
 const isExpirationDifferent = ref(false);
 const category = ref("");
-const activeTab = ref("단일메뉴"); // 기본 선택된 탭
-const menuName = ref("");
-const ingredientName = ref("");
-const ingredientAmount = ref("");
-const ingredientUnit = ref("");
-const ingredients = ref([
-  { name: "고추장", amount: "50", unit: "g" },
-  { name: "토마토", amount: "10", unit: "g" },
-  { name: "삼겹살", amount: "50", unit: "g" },
-]);
+const inventoryName = ref("");
+
 const selectedDays = ref("1");
 const customDays = ref("");
 const isCustomInput = ref(false);
-
 const days = [
   { label: "1일", value: "1" },
   { label: "3일", value: "3" },
@@ -45,23 +36,12 @@ const disableCustomInput = () => {
     selectedDays.value = "1"; // 기본값 1일로 설정
   }
 };
-const ingredientOptions = ["고추장", "토마토", "삼겹살", "양파", "파"];
-const unitOptions = ["g", "kg", "ml", "L", "EA"];
+
 const Minimumquantity = ref("");
 
-const addIngredient = () => {
-  if (ingredientName.value && ingredientAmount.value && ingredientUnit.value) {
-    ingredients.value.push({
-      name: ingredientName.value,
-      amount: ingredientAmount.value,
-      unit: ingredientUnit.value,
-    });
-    ingredientName.value = "";
-    ingredientAmount.value = "";
-    ingredientUnit.value = "";
-  }
+const closeParticularModal = () => {
+  isParticularModalOpen.value = false;
 };
-
 const removeIngredient = (index) => {
   ingredients.value.splice(index, 1);
 };
@@ -82,7 +62,7 @@ const removeIngredient = (index) => {
             <p class="title_warn">(필수)</p>
           </div>
           <p class="sub_title">상품의 정확한 이름을 입력해 주세요.</p>
-          <input type="text" v-model="menuName" placeholder="마늘" />
+          <input type="text" v-model="inventoryName" placeholder="마늘" />
         </div>
 
         <div class="input_group">
@@ -310,7 +290,7 @@ const removeIngredient = (index) => {
   margin-bottom: 20px;
 }
 
-.tab_menu {
+.tab_inventory {
   display: flex;
   border-bottom: none;
   margin-bottom: 15px;
@@ -319,7 +299,7 @@ const removeIngredient = (index) => {
   width: 100%;
 }
 
-.tab_menu button {
+.tab_inventory button {
   flex: 1;
   /* 버튼을 가로로 균등하게 배치 */
   padding: 6px 30px;
@@ -338,11 +318,11 @@ const removeIngredient = (index) => {
   text-align: center;
 }
 
-.tab_menu button:hover {
+.tab_inventory button:hover {
   background-color: #9fa6ad;
 }
 
-.tab_menu button.active {
+.tab_inventory button.active {
   background-color: #858b91;
   color: white;
   border-color: #858b91;
