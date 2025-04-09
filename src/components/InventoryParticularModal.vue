@@ -9,51 +9,26 @@ const props = defineProps({
 const emit = defineEmits(["close"]);
 const isCorrectionModalOpen = ref(false);
 const correctionItem = ref(null);
-const category = ref("");
-const menuName = ref("");
-const ingredientName = ref("");
-const ingredientAmount = ref("");
-const ingredientUnit = ref("");
+const isParticularModalOpen = ref(false);
 const selectedDays = ref("1");
 const customDays = ref("");
 const isCustomInput = ref(false);
 const modalType = ref("");
 const isModalOpen = ref(false);
-
+const closeModal = () => {
+  isModalOpen.value = false;
+};
+const openParticularModal = () => {
+  isParticularModalOpen.value = true;
+};
 const openCorrectionModal = (item) => {
   correctionItem.value = item;
   isCorrectionModalOpen.value = false;
   modalType.value = "correction"; // 추가!
   isModalOpen.value = true;
 };
-const closeCorrectionModal = () => {
-  isCorrectionModalOpen.value = false;
-};
 
-const selectDay = (value) => {
-  selectedDays.value = value;
-  isCustomInput.value = false;
-  customDays.value = "";
-};
-
-const enableCustomInput = () => {
-  selectedDays.value = "custom";
-  isCustomInput.value = true;
-};
-
-const addIngredient = () => {
-  if (ingredientName.value && ingredientAmount.value && ingredientUnit.value) {
-    ingredients.value.push({
-      name: ingredientName.value,
-      amount: ingredientAmount.value,
-      unit: ingredientUnit.value,
-    });
-    ingredientName.value = "";
-    ingredientAmount.value = "";
-    ingredientUnit.value = "";
-  }
-};
-const menu_items = ref([
+const inventory_items = ref([
   {
     store: "2025-04-05",
     totalquantity: "2025-04-08",
@@ -74,14 +49,15 @@ const menu_items = ref([
     selected: false,
   },
 ]);
-const removeIngredient = (index) => {
-  ingredients.value.splice(index, 1);
-};
 </script>
 
 <template>
   <v-card>
-    <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')">
+    <div
+      v-if="isOpen"
+      class="particular_modal_container"
+      @click.self="emit('close')"
+    >
       <div class="modal">
         <div class="modal_content">
           <div class="modal_header">
@@ -97,8 +73,8 @@ const removeIngredient = (index) => {
           </div>
 
           <div class="input_group">
-            <div class="input-row">
-              <div class="input-label-group">
+            <div class="input_row">
+              <div class="input_label_group">
                 <label>총수량</label>
               </div>
             </div>
@@ -106,8 +82,8 @@ const removeIngredient = (index) => {
           </div>
 
           <div class="input_group">
-            <div class="input-row">
-              <div class="input-label-group">
+            <div class="input_row">
+              <div class="input_label_group">
                 <label>수량</label>
               </div>
             </div>
@@ -115,15 +91,15 @@ const removeIngredient = (index) => {
           </div>
 
           <div class="input_group">
-            <div class="input-row">
-              <div class="input-label-group">
+            <div class="input_row">
+              <div class="input_label_group">
                 <label>사용메뉴</label>
               </div>
             </div>
             <p class="sub_title">알리오올리오,감바스</p>
           </div>
 
-          <table class="menu_table">
+          <table class="inventory_table">
             <thead>
               <tr>
                 <th>입고날짜</th>
@@ -133,7 +109,7 @@ const removeIngredient = (index) => {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(item, index) in menu_items" :key="index">
+              <tr v-for="(item, index) in inventory_items" :key="index">
                 <td>{{ item.store }}</td>
                 <td>{{ item.totalquantity }}</td>
                 <td>
@@ -149,27 +125,27 @@ const removeIngredient = (index) => {
               </tr>
             </tbody>
           </table>
-          <InventoryParticularModal
-            v-if="modalType === 'particular'"
-            :isOpen="isModalOpen"
-            @close="closeModal"
-          />
-          <InventoryCorrectionModal
-            v-if="modalType === 'correction'"
-            :isOpen="isModalOpen"
-            @close="closeModal"
-          />
         </div>
         <div class="modal_footer">
           <button class="confirm_btn" @click="emit('close')">확인</button>
         </div>
       </div>
+      <InventoryParticularModal
+        v-if="modalType === 'particular'"
+        :isOpen="isModalOpen"
+        @close="closeModal"
+      />
+      <InventoryCorrectionModal
+        v-if="modalType === 'correction'"
+        :isOpen="isModalOpen"
+        @close="closeModal"
+      />
     </div>
   </v-card>
 </template>
 
 <style scoped>
-.modal_overlay {
+.particular_modal_container {
   position: fixed;
   top: 0;
   left: 0;
@@ -255,7 +231,7 @@ const removeIngredient = (index) => {
   justify-content: space-between;
   align-items: center;
 }
-.min-qty-input {
+.min_qty_input {
   width: 80px;
   padding: 8px 10px;
   border: 1px solid #ccc;
@@ -300,7 +276,7 @@ const removeIngredient = (index) => {
   margin-bottom: 20px;
 }
 
-.tab_menu {
+.tab_inventory {
   display: flex;
   border-bottom: none;
   margin-bottom: 15px;
@@ -308,24 +284,24 @@ const removeIngredient = (index) => {
   justify-content: center;
   width: 100%;
 }
-.menu_table {
+.inventory_table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
 }
-.menu_table th,
-.menu_table td {
+.inventory_table th,
+.inventory_table td {
   padding: 12px;
   text-align: center;
 }
-.menu_table td {
+.inventory_table td {
   border-bottom: #d1d5c2 solid 1px;
 }
-.menu_table th {
+.inventory_table th {
   background-color: #b8c0c8;
   font-size: 18px;
 }
-.tab_menu button {
+.tab_inventory button {
   flex: 1;
   /* 버튼을 가로로 균등하게 배치 */
   padding: 6px 30px;
@@ -344,11 +320,11 @@ const removeIngredient = (index) => {
   text-align: center;
 }
 
-.tab_menu button:hover {
+.tab_inventory button:hover {
   background-color: #9fa6ad;
 }
 
-.tab_menu button.active {
+.tab_inventory button.active {
   background-color: #858b91;
   color: white;
   border-color: #858b91;
@@ -456,21 +432,21 @@ const removeIngredient = (index) => {
 .confirm_btn:hover {
   background: #8cbfa4;
 }
-.custom-solid-autocomplete {
+.custom_solid_autocomplete {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 18px;
   font-size: 14px;
 }
 
-.unit-container {
+.unit_container {
   display: flex;
   align-items: center;
   gap: 8px; /* 입력 필드와 드롭다운 사이 간격 */
 }
 
-.unit-input,
-.unit-select {
+.unit_input,
+.unit_select {
   height: 45px; /* 동일한 높이 */
   border-radius: 20px; /* 둥근 모서리 */
   border: 1px solid #ccc;
@@ -481,11 +457,11 @@ const removeIngredient = (index) => {
   justify-content: flex-end;
 }
 
-.unit-input {
+.unit_input {
   width: 80px; /* 숫자 입력 필드 크기 */
 }
 
-.unit-select {
+.unit_select {
   width: 80px; /* 드롭다운 크기 */
   appearance: none; /* 기본 스타일 제거 */
   background: white
@@ -493,7 +469,7 @@ const removeIngredient = (index) => {
     no-repeat right 10px center;
   background-size: 16px;
 }
-.button-group {
+.button_group {
   display: flex;
   align-items: center;
   justify-content: center; /* 🌟 가운데 정렬 */
@@ -507,23 +483,23 @@ const removeIngredient = (index) => {
   font-size: 14px;
 }
 
-.selected-btn {
+.selected_btn {
   background-color: #c8c8c8 !important;
   font-weight: bold;
 }
 
-.custom-input {
+.custom_input {
   width: 10px !important; /* 직접입력 칸의 가로 크기 */
   height: 40px !important; /* 버튼과 동일한 높이 */
   text-align: center;
   font-size: 14px;
   padding: 0;
 }
-.fixed-text {
+.fixed_text {
   margin-left: 8px;
   font-size: 14px;
 }
-.input-row {
+.input_row {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -540,13 +516,13 @@ const removeIngredient = (index) => {
   font-weight: bold;
 }
 
-.input-label-group {
+.input_label_group {
   display: flex;
   align-items: center;
   gap: 6px; /* label과 (필수) 사이 간격 조절 */
 }
 
-.min-qty-input {
+.min_qty_input {
   width: 80px;
   padding: 8px 10px;
   border: 1px solid #ccc;

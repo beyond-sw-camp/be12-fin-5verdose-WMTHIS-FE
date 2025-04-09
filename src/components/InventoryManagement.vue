@@ -47,7 +47,7 @@ watch(selectedFilter, (newVal) => {
   stockStatus.value = newVal;
 });
 const filteredItems = computed(() => {
-  let items = menu_items.value;
+  let items = inventory_items.value;
 
   // 탭 필터 처리
   if (tab.value === "exp") {
@@ -72,7 +72,7 @@ const filteredItems = computed(() => {
 });
 
 const searchKeyword = ref("");
-const menu_items = ref([
+const inventory_items = ref([
   {
     name: "마늘",
     quantity: "1개",
@@ -145,11 +145,11 @@ const isBlocked = computed(
 );
 const toggle_select_all = () => {
   if (!isBlocked.value)
-    menu_items.value.forEach((item) => (item.selected = select_all.value));
+    inventory_items.value.forEach((item) => (item.selected = select_all.value));
 };
 
 watch(
-  menu_items,
+  inventory_items,
   (new_items) => {
     select_all.value = new_items.every((item) => item.selected);
   },
@@ -158,7 +158,7 @@ watch(
 
 const openDeleteConfirm = () => {
   if (!isBlocked.value) {
-    const selectedItems = menu_items.value.some((item) => item.selected);
+    const selectedItems = inventory_items.value.some((item) => item.selected);
     if (selectedItems) isDeleteConfirmOpen.value = true;
     else isDeleteAlertOpen.value = true;
   }
@@ -168,7 +168,9 @@ const closeDeleteConfirm = () => (isDeleteConfirmOpen.value = false);
 const closeDeleteAlert = () => (isDeleteAlertOpen.value = false);
 const deleteSelectedItems = () => {
   isDeleteConfirmOpen.value = false;
-  menu_items.value = menu_items.value.filter((item) => !item.selected);
+  inventory_items.value = inventory_items.value.filter(
+    (item) => !item.selected
+  );
 };
 </script>
 
@@ -347,11 +349,13 @@ const deleteSelectedItems = () => {
                   입고
                 </button>
 
-                <button @click="openSaleModal" class="delete_btn">판매</button>
+                <button @click="openSaleModal" class="particular_btn">
+                  판매
+                </button>
               </div>
             </div>
 
-            <table class="menu_table">
+            <table class="inventory_table">
               <thead>
                 <tr>
                   <th>
@@ -399,7 +403,7 @@ const deleteSelectedItems = () => {
                   </td>
 
                   <td>
-                    <button @click="openParticularModal" class="delete_btn">
+                    <button @click="openParticularModal" class="particular_btn">
                       상세
                     </button>
                   </td>
@@ -449,6 +453,7 @@ const deleteSelectedItems = () => {
   color: #59595e;
   margin-bottom: 4px;
   font-weight: 900;
+  border-radius: 20px;
 }
 .warning-text {
   font-size: 18px;
@@ -565,7 +570,7 @@ const deleteSelectedItems = () => {
   gap: 10px;
 }
 .register_btn,
-.delete_btn {
+.particular_btn {
   padding: 8px 12px;
   background-color: #b8c0c8;
   border: none;
@@ -575,26 +580,51 @@ const deleteSelectedItems = () => {
   font-weight: bold;
 }
 .register_btn:hover,
-.delete_btn:hover {
+.particular_btn:hover {
   background-color: #98a8b8;
 }
-.menu_table {
+/* 테이블 */
+.inventory_table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
 }
-.menu_table th,
-.menu_table td {
+
+.inventory_table th,
+.inventory_table td {
   padding: 12px;
   text-align: center;
 }
-.menu_table td {
+
+.inventory_table td {
   border-bottom: #d1d5c2 solid 1px;
 }
-.menu_table th {
+
+/* 상단 왼쪽 */
+.inventory_table thead tr:first-child th:first-child {
+  border-top-left-radius: 20px;
+}
+
+/* 상단 오른쪽 */
+.inventory_table thead tr:first-child th:last-child {
+  border-top-right-radius: 20px;
+}
+
+/* 왼쪽 아래 둥글게 */
+.inventory_table thead tr:first-child th:first-child {
+  border-bottom-left-radius: 20px;
+}
+
+/* 오른쪽 아래 둥글게 */
+.inventory_table thead tr:first-child th:last-child {
+  border-bottom-right-radius: 20px;
+}
+
+.inventory_table th {
   background-color: #b8c0c8;
   font-size: 18px;
 }
+
 .circle_checkbox {
   appearance: none;
   -webkit-appearance: none;

@@ -278,7 +278,7 @@ const disableCustomInput = () => {
   margin-bottom: 20px;
 }
 
-.tab_menu {
+.tab_inventory {
   display: flex;
   border-bottom: none;
   margin-bottom: 15px;
@@ -287,7 +287,7 @@ const disableCustomInput = () => {
   width: 100%;
 }
 
-.tab_menu button {
+.tab_inventory button {
   flex: 1;
   /* 버튼을 가로로 균등하게 배치 */
   padding: 6px 30px;
@@ -306,11 +306,11 @@ const disableCustomInput = () => {
   text-align: center;
 }
 
-.tab_menu button:hover {
+.tab_inventory button:hover {
   background-color: #9fa6ad;
 }
 
-.tab_menu button.active {
+.tab_inventory button.active {
   background-color: #858b91;
   color: white;
   border-color: #858b91;
