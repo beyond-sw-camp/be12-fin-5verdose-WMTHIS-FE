@@ -17,11 +17,12 @@ const tables = ref([
     { id: 9, name: '테이블 09', status: 'empty', orders: [] },
 ]);
 
-// 컴포넌트 마운트 시 로컬 스토리지에서 테이블 데이터 로드
 onMounted(() => {
     const savedTables = localStorage.getItem('restaurant_tables');
     if (savedTables) {
         tables.value = JSON.parse(savedTables);
+    } else {
+        localStorage.setItem('restaurant_tables', JSON.stringify(tables.value)); // 💡 없을 때는 기본 테이블을 저장
     }
 });
 
