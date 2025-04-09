@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 
+const currentCarousel = ref(0);
 const series = ref([
     {
         name: '홀',
@@ -67,6 +68,14 @@ const summaries = [
         highlight2: "1,210,000원 ",
         line4: "기록했어요!",
     },
+    {
+        line1: "오늘은 평소보다 ",
+        highlight1: "배달 주문",
+        line2: "이 많았고,",
+        line3: "총 매출은 ",
+        highlight2: "3,250,000원 ",
+        line4: "기록했어요!",
+    },
 ];
 </script>
 
@@ -115,8 +124,9 @@ const summaries = [
 
             <v-container>
                 <v-row>
-                    <v-col cols="12" md="12">
-                        <v-carousel class="carousel-root" show-arrows="hover" cycle hide-delimiter-background>
+                    <v-col cols="12" md="9">
+                        <v-carousel class="carousel-root" show-arrows="hover" cycle hide-delimiter-background
+                            v-model="currentCarousel">
                             <v-carousel-item v-for="(text, i) in summaries" :key="i">
                                 <v-sheet class="carousel-sheet">
                                     <div class="carousel-content">
@@ -135,8 +145,26 @@ const summaries = [
                             </v-carousel-item>
                         </v-carousel>
                     </v-col>
+
+                    <v-col cols="12" md="3">
+                        <div class="best_menu_title">이번 주 메뉴 TOP 3</div>
+                        <div class="best_menu_item">
+                            <img src="../assets/1st.png" alt="만료임박 아이콘" class="best_menu_icon" />
+                            <div class="best_menu_list">토마토 파스타</div>
+                        </div>
+                        <div class="best_menu_item">
+                            <div class="best_menu_rank">2</div>
+                            <div class="best_menu_list">불고기 필라프</div>
+                        </div>
+                        <div class="best_menu_item">
+                            <div class="best_menu_rank">3</div>
+                            <div class="best_menu_list">로제 파스타</div>
+                        </div>
+                    </v-col>
                 </v-row>
             </v-container>
+
+
             <div class="status-wrapper">
                 <div class="status-item">
                     <span class="status-label">만료임박</span>
@@ -219,7 +247,7 @@ const summaries = [
 }
 
 .carousel-root {
-    height: 180px !important;
+    height: 100% !important;
     width: 100%;
 }
 
@@ -313,5 +341,56 @@ const summaries = [
     display: flex;
     gap: 10px;
     align-items: center;
+}
+
+.best_menu_title {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 15px 0 15px 0;
+    text-align: center;
+    color: black;
+}
+
+.best_menu_item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 10px;
+}
+
+.best_menu_icon {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+}
+
+.best_menu_rank {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #424242;
+}
+
+.best_menu_list {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    flex: 1;
+    text-align: left;
+}
+
+::v-deep(.v-carousel__controls .mdi-circle) {
+    color: gray !important;
+    /* 기본 회색 */
+    opacity: 1 !important;
+}
+
+::v-deep(.v-carousel__controls .v-btn--active .mdi-circle) {
+    color: black !important;
+    /* 현재 선택된 인덱스일 때 진하게 */
 }
 </style>
