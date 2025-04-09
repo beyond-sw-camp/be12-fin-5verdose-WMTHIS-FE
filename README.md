@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./src/assets/image/icon.png" alt="logo" width="150">
+  <img src="./src/assets/image/icon.png" alt="logo" width="550">
 </div>
 
 ---
@@ -184,7 +184,7 @@
 
 # 📜 프로젝트 설계
 
-[**🎨 화면설계서 바로가기**](https://www.figma.com/design/RHr92dX8HXnizNP1vGE1ty/Simkids?node-id=0-1&t=7v4DwQsb6o9BLGLc-1)
+[**🎨 화면설계서 바로가기**](https://www.figma.com/design/UhQdny2lyLYVBKfeSDM0ER/Untitled?node-id=0-1&p=f&t=BJpdqml8x7np3fWT-0)
 
 [**📃 API 명세서 바로가기**](http://www.cheeeze.kro.kr/swagger-ui/index.html)
 
