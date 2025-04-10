@@ -108,7 +108,7 @@ const routes = createRouter({
           path: "inventory",
           component: () =>
             import("@/components/inventory_management/Inventory.vue"),
-          name: "Inventory",
+          name: "InventoryMain",
         },
       ],
     },
