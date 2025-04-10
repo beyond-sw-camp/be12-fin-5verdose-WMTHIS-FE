@@ -1,9 +1,9 @@
 <script setup>
 import { ref, watch, computed } from "vue";
 import InventoryRegisterModal from "@/components/inventory_management/InventoryRegisterModal.vue";
-import InventoryModifyModal from "@/components/InventoryModifyModal.vue";
-import DeleteConfirmModal from "./DeleteConfirmModal.vue";
-import DeleteAlertModal from "./DeleteAlertModal.vue";
+import InventoryModifyModal from "@/components/inventory_management/InventoryModifyModal.vue";
+import DeleteConfirmModal from "@/components/alerts/DeleteConfirmModal.vue";
+import DeleteAlertModal from "@/components/alerts/DeleteAlertModal.vue";
 
 const isModalOpen = ref(false);
 const isDetailModalOpen = ref(false);
@@ -142,7 +142,7 @@ const deleteSelectedItems = () => {
       <div class="search_box">
         <input type="text" class="search_input" placeholder="재료명 검색" />
         <button class="search_btn">
-          <img src="../assets/search_button.png" class="search_icon" />
+          <img src="@/assets/image/search_button.png" class="search_icon" />
         </button>
       </div>
       <div class="action_buttons">
