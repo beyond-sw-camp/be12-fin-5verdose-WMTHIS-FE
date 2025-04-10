@@ -1,43 +1,71 @@
 <script setup>
-import { ref, computed } from 'vue';
-
-const selectedCategory = ref('all'); // 'all', 'hall', 'baemin', 'coupang', 'yogiyo'
-
-// 카테고리 맵을 정의하여 텍스트를 한국어로 매핑
-const categoryMap = {
-    all: '전체',
-    hall: '홀',
-    baemin: '배달의 민족',
-    coupang: '쿠팡',
-    yogiyo: '요기요',
-};
-
-const filteredHourlyData = computed(() => {
-    if (selectedCategory.value === 'all') {
-        return hourlyData.value;
-    }
-    return hourlyData.value.map(hour => ({
-        hour: hour.hour,
-        [selectedCategory.value]: hour[selectedCategory.value],
-    }));
-});
-// 추가: 날짜 범위에 따른 데이터 처리를 위한 props 수정
+import { ref, computed, watch } from 'vue';
 const props = defineProps({
-    selectedDate: {
-        type: Object, // Date 객체 또는 null/undefined를 허용
-        default: null,
-    },
     salesData: {
         type: Object,
         default: () => ({}),
     },
+    selectedDate: {
+        type: Object,
+        default: null,
+    },
+    selectedCategory: {
+        type: String,
+        default: 'all',
+    },
     selectedPeriod: {
         type: String,
-        default: 'today', // 'today', 'yesterday', 'week', 'month', 'specific' 중 하나
+        default: 'today', // 기본값을 설정하지 않으면 오류 발생 가능
+    },
+});
+watch(() => props.salesData, (newVal) => {
+    console.log('salesData:', newVal);
+});
+watch(() => props.selectedDate, (newVal) => {
+    console.log('selectedDate:', newVal);
+});
+watch(() => props.selectedPeriod, (newVal) => {
+    console.log('selectedPeriod:', newVal);
+});
+const chartSeries = computed(() => [
+    {
+        name: '홀',
+        data: hourlyData.value.map(h => h.hall),
+    },
+    {
+        name: '배민',
+        data: hourlyData.value.map(h => h.baemin),
+    },
+    {
+        name: '쿠팡',
+        data: hourlyData.value.map(h => h.coupang),
+    },
+    {
+        name: '요기요',
+        data: hourlyData.value.map(h => h.yogiyo),
+    },
+]);
+
+
+const filteredHourlyData = computed(() => {
+    if (!props.salesData || !props.selectedDate) {
+        return []; // 데이터가 없을 경우 빈 배열 반환
     }
+
+    const dateKey = props.selectedDate.toISOString().split('T')[0]; // 날짜를 'YYYY-MM-DD' 형식으로 변환
+    const dailyData = props.salesData[dateKey];
+
+    if (!dailyData) {
+        return []; // 해당 날짜의 데이터가 없을 경우 빈 배열 반환
+    }
+
+    if (props.selectedCategory === 'all') {
+        return dailyData; // 모든 카테고리를 선택한 경우 전체 데이터 반환
+    }
+
+    return dailyData.filter(item => item.type === props.selectedCategory); // 선택된 카테고리에 해당하는 데이터 필터링
 });
 
-// 날짜 범위에 따른 데이터 필터링 - 수정된 부분
 const filteredSalesData = computed(() => {
     if (!props.selectedDate) return [];
 
@@ -242,13 +270,6 @@ const formatYAxisLabel = (value) => {
     return value;
 };
 
-const calculateBarHeight = (value) => {
-    if (!value) return '0%';
-    const maxValue = yAxisValues.value[yAxisValues.value.length - 1];
-    const percentage = (value / maxValue) * 100;
-    return `${percentage}%`;
-};
-
 const categoryOrderCount = computed(() => {
     const result = {
         hall: 0,
@@ -270,6 +291,40 @@ const categoryOrderCount = computed(() => {
 const deliveryOrderCount = computed(() => {
     return categoryOrderCount.value.baemin + categoryOrderCount.value.coupang + categoryOrderCount.value.yogiyo;
 });
+
+const chartOptions = computed(() => ({
+    chart: {
+        type: 'bar',
+        stacked: true, // 스택형 막대 그래프 활성화
+        toolbar: { show: false },
+    },
+    plotOptions: {
+        bar: {
+            horizontal: false, // 수직 막대 그래프
+            columnWidth: '40%', // 막대 너비
+        },
+    },
+    dataLabels: {
+        enabled: false, // 데이터 레이블 비활성화
+    },
+    xaxis: {
+        categories: hourlyData.value.map(item => `${item.hour}시`), // 시간대별 카테고리
+    },
+    yaxis: {
+        labels: {
+            formatter: val => `${val.toLocaleString()}원`, // Y축 값 포맷
+        },
+    },
+    tooltip: {
+        y: {
+            formatter: val => `${val.toLocaleString()}원`, // 툴팁 값 포맷
+        },
+    },
+    legend: {
+        position: 'top', // 범례 위치
+    },
+    colors: ['#FFD666', '#87E8DE', '#FF9C6E', '#B37FEB'], // 카테고리별 색상
+}));
 </script>
 
 <template>
@@ -312,47 +367,15 @@ const deliveryOrderCount = computed(() => {
                 </div>
             </div>
 
-            <div class="sales-detail">
-                <div v-if="props.selectedDate" class="date-info">
+            <div class="sales-detail" v-if="selectedDate">
+                <div class="date-info">
                     <div class="chart-container">
                         <div class="chart-header">
                             <div class="chart-title">시간대별 매출</div>
-                            <div class="chart-buttons">
-                                <button v-for="category in ['all', 'hall', 'baemin', 'coupang', 'yogiyo']"
-                                    :key="category" :class="{ active: selectedCategory === category }"
-                                    @click="selectedCategory = category">
-                                    {{ categoryMap[category] }}
-                                </button>
-                            </div>
+
                         </div>
 
-                        <div class="chart">
-                            <div class="y-axis">
-                                <div v-for="value in yAxisValues" :key="value" class="y-axis-label">
-                                    {{ formatYAxisLabel(value) }}
-                                </div>
-                            </div>
-
-                            <div class="chart-bars">
-                                <div v-for="hourData in filteredHourlyData" :key="hourData.hour" class="hour-column">
-                                    <div class="bar-container">
-                                        <div v-if="selectedCategory === 'all' || selectedCategory === 'hall'"
-                                            class="bar hall-bar" :style="{ height: calculateBarHeight(hourData.hall) }">
-                                        </div>
-                                        <div v-if="selectedCategory === 'all' || selectedCategory === 'baemin'"
-                                            class="bar baemin-bar"
-                                            :style="{ height: calculateBarHeight(hourData.baemin) }"></div>
-                                        <div v-if="selectedCategory === 'all' || selectedCategory === 'coupang'"
-                                            class="bar coupang-bar"
-                                            :style="{ height: calculateBarHeight(hourData.coupang) }"></div>
-                                        <div v-if="selectedCategory === 'all' || selectedCategory === 'yogiyo'"
-                                            class="bar yogiyo-bar"
-                                            :style="{ height: calculateBarHeight(hourData.yogiyo) }"></div>
-                                    </div>
-                                    <div class="hour-label">{{ hourData.hour }}시</div>
-                                </div>
-                            </div>
-                        </div>
+                        <apexchart type="bar" height="350" :options="chartOptions" :series="chartSeries" />
                     </div>
                 </div>
             </div>
@@ -653,5 +676,18 @@ button.active {
 
 button:focus {
     outline: none;
+}
+
+.chart-buttons button {
+    margin-right: 8px;
+    padding: 6px 10px;
+    border: none;
+    background-color: #eee;
+    cursor: pointer;
+}
+
+.chart-buttons button.active {
+    background-color: #333;
+    color: #fff;
 }
 </style>

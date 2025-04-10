@@ -176,15 +176,15 @@ const deleteSelectedItems = () => {
 
 <template>
   <!-- 왼쪽: 유통기한 / 발주 필요 재고 -->
-  <v-row class="flex-nowrap" no-gutters>
-    <v-col cols="3" class="left-panel">
+  <v-row class="flex_nowrap" no-gutters>
+    <v-col cols="3" class="left_panel">
       <!-- 상단: 만료 임박 / 발주 필요 재고 -->
       <v-row class="mb-6" justify="center">
         <!-- 만료 임박 -->
         <v-col cols="12" md="5" class="text-center">
           <div class="label">만료 임박</div>
-          <div class="warning-text">마늘</div>
-          <div class="warning-text">D-8</div>
+          <div class="warning_text">마늘</div>
+          <div class="warning_text">D-8</div>
         </v-col>
 
         <!-- 세로 구분선 -->
@@ -198,15 +198,15 @@ const deleteSelectedItems = () => {
         <!-- 발주 필요 재고 -->
         <v-col cols="12" md="6" class="text-center">
           <div class="label">발주 필요재고</div>
-          <div class="warning-text" v-if="stockStatus === '필요'">6개</div>
-          <div class="warning-text" v-else>0</div>
+          <div class="warning_text" v-if="stockStatus === '필요'">6개</div>
+          <div class="warning_text" v-else>0</div>
         </v-col>
       </v-row>
 
       <!-- 탭 -->
       <v-tabs
         v-model="tab"
-        class="custom-tabs"
+        class="custom_tabs shift_tabs"
         background-color="transparent"
         show-arrows
       >
@@ -214,8 +214,8 @@ const deleteSelectedItems = () => {
           variant="text"
           value="exp"
           :class="{
-            'selected-tab': tab === 'exp',
-            'default-tab': tab !== 'exp',
+            selected_tab: tab === 'exp',
+            default_tab: tab !== 'exp',
           }"
         >
           유통기한
@@ -224,8 +224,8 @@ const deleteSelectedItems = () => {
           variant="text"
           value="order"
           :class="{
-            'selected-tab': tab === 'order',
-            'default-tab': tab !== 'order',
+            selected_tab: tab === 'order',
+            default_tab: tab !== 'order',
           }"
         >
           발주필요재고
@@ -237,9 +237,9 @@ const deleteSelectedItems = () => {
         <!-- 유통기한 필터 -->
         <v-window-item value="exp">
           <v-row class="mt-3">
-            <v-col>
+            <v-col cols="5">
               <v-btn
-                class="filter-btn"
+                class="filter_btn"
                 :class="{ selected: selectedFilter === '전체' }"
                 block
                 depressed
@@ -248,9 +248,9 @@ const deleteSelectedItems = () => {
                 전체
               </v-btn>
             </v-col>
-            <v-col>
+            <v-col cols="5">
               <v-btn
-                class="filter-btn"
+                class="filter_btn"
                 :class="{ selected: selectedFilter === '만료' }"
                 block
                 depressed
@@ -259,9 +259,9 @@ const deleteSelectedItems = () => {
                 만료
               </v-btn>
             </v-col>
-            <v-col>
+            <v-col cols="5">
               <v-btn
-                class="filter-btn"
+                class="filter_btn"
                 :class="{ selected: selectedFilter === '임박' }"
                 block
                 depressed
@@ -270,9 +270,9 @@ const deleteSelectedItems = () => {
                 임박
               </v-btn>
             </v-col>
-            <v-col>
+            <v-col cols="5">
               <v-btn
-                class="filter-btn"
+                class="filter_btn"
                 :class="{ selected: selectedFilter === '유효' }"
                 block
                 depressed
@@ -289,7 +289,7 @@ const deleteSelectedItems = () => {
           <v-row class="mt-3">
             <v-col>
               <v-btn
-                class="filter-btn"
+                class="filter_btn"
                 :class="{ selected: selectedFilter === '필요' }"
                 block
                 depressed
@@ -300,7 +300,7 @@ const deleteSelectedItems = () => {
             </v-col>
             <v-col>
               <v-btn
-                class="filter-btn"
+                class="filter_btn"
                 :class="{ selected: selectedFilter === '충분' }"
                 block
                 depressed
@@ -436,18 +436,22 @@ const deleteSelectedItems = () => {
   color: #59595e;
   margin-bottom: 4px;
   font-weight: 900;
+  text-align: center;
   border-radius: 20px;
+  justify-content: center;
+  display: flex;
 }
 
-.warning-text {
+.warning_text {
   font-size: 18px;
   font-weight: bold;
   color: red;
   margin-bottom: 4px;
 }
 
-.custom-tabs {
+.custom_tabs {
   background-color: transparent !important;
+
   box-shadow: none !important;
   border: none !important;
 }
@@ -462,30 +466,32 @@ const deleteSelectedItems = () => {
   padding: 0 16px !important;
 }
 
-.selected-tab {
+.selected_tab {
+  box-shadow: none !important;
   color: #858b91 !important;
   font-weight: bold;
   border-bottom: 2px solid #c8c8c8;
   background-color: transparent !important;
-  box-shadow: none !important;
 }
 
-.default-tab:hover {
+.default_tab:hover {
+  box-shadow: none !important;
   color: rgba(112, 128, 144, 0.8) !important;
   background-color: transparent !important;
   font-weight: 500;
   cursor: pointer;
 }
 
-.filter-btn {
+.filter_btn {
+  box-shadow: none !important;
   background-color: #c2c5c8 !important;
   color: white !important;
   transition: color 0.2s ease;
   border-radius: 999px !important;
-  padding: 6px 16px !important;
+  padding: 8px 10px !important;
 }
 
-.filter-btn.selected {
+.filter_btn.selected {
   background-color: #858b91 !important;
   color: white !important;
 }
@@ -524,7 +530,7 @@ const deleteSelectedItems = () => {
   border-bottom: 1px solid #ccc;
 }
 
-.selected-row {
+.selected_row {
   background-color: rgba(206, 222, 239, 0.42);
 }
 
@@ -688,7 +694,10 @@ const deleteSelectedItems = () => {
   background-color: #e5e7eb;
 }
 
-.left-panel {
+.left_panel {
   margin-right: 65px;
+}
+.shift_tabs {
+  margin-left: 50px; /* px 값으로 조절 가능 */
 }
 </style>

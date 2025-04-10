@@ -4,6 +4,7 @@ import { Bar } from "vue-chartjs";
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js";
 import upIcon from "@/assets/image/up.png";
 import downIcon from "@/assets/image/down.png";
+import Calendar from "@/components/Calendar.vue";
 
 const keyword = ref("");
 const salesData = [
@@ -363,204 +364,49 @@ const chartOptions = {
 };
 
 // 달력 관련 데이터
-const currentDate = ref(new Date("2025-04-07"));
+const startDate = ref("");
+const endDate = ref("");
 const selectedDate = ref("2025-04-07");
-const showCalendar = ref(false);
 const selectedDateTable = computed(() => {
   return selectedDate.value.replace(/-/g, ".").slice(-5);
-});
-
-// 현재 달의 첫 날과 마지막 날 계산
-const firstDayOfMonth = computed(() => {
-  const date = new Date(currentDate.value);
-  date.setDate(1);
-  return date;
-});
-
-const lastDayOfMonth = computed(() => {
-  const date = new Date(currentDate.value);
-  date.setMonth(date.getMonth() + 1);
-  date.setDate(0);
-  return date;
-});
-
-// 달력에 표시할 날짜 배열 생성
-const calendarDays = computed(() => {
-  const days = [];
-
-  // 이전 달의 날짜 추가
-  const firstDay = firstDayOfMonth.value.getDay();
-  if (firstDay > 0) {
-    const prevMonthLastDay = new Date(firstDayOfMonth.value);
-    prevMonthLastDay.setDate(0);
-    const lastDate = prevMonthLastDay.getDate();
-
-    for (let i = firstDay - 1; i >= 0; i--) {
-      const date = new Date(prevMonthLastDay);
-      date.setDate(lastDate - i);
-      days.push({
-        date,
-        isCurrentMonth: false,
-        isSelected: isSameDay(date, new Date(selectedDate.value)),
-      });
-    }
-  }
-
-  // 현재 달의 날짜 추가
-  const lastDate = lastDayOfMonth.value.getDate();
-  for (let i = 1; i <= lastDate; i++) {
-    const date = new Date(firstDayOfMonth.value);
-    date.setDate(i);
-    days.push({
-      date,
-      isCurrentMonth: true,
-      isSelected: isSameDay(date, new Date(selectedDate.value)),
-    });
-  }
-
-  // 다음 달의 날짜 추가
-  const lastDay = lastDayOfMonth.value.getDay();
-  if (lastDay < 6) {
-    const nextMonthFirstDay = new Date(lastDayOfMonth.value);
-    nextMonthFirstDay.setDate(lastDayOfMonth.value.getDate() + 1);
-
-    for (let i = 0; i < 6 - lastDay; i++) {
-      const date = new Date(nextMonthFirstDay);
-      date.setDate(nextMonthFirstDay.getDate() + i);
-      days.push({
-        date,
-        isCurrentMonth: false,
-        isSelected: isSameDay(date, new Date(selectedDate.value)),
-      });
-    }
-  }
-
-  return days;
-});
-
-// 날짜 포맷 함수
-const formatDate = (date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
-// 날짜 비교 함수
-function isSameDay(date1, date2) {
-  return date1.getFullYear() === date2.getFullYear() && date1.getMonth() === date2.getMonth() && date1.getDate() === date2.getDate();
-}
-
-// 달력 날짜 선택 함수
-const selectDate = (day) => {
-  selectedDate.value = formatDate(day.date);
-  showCalendar.value = false;
-};
-
-// 이전 달, 다음 달 이동 함수
-const prevMonth = () => {
-  const date = new Date(currentDate.value);
-  date.setMonth(date.getMonth() - 1);
-  currentDate.value = date;
-};
-
-const nextMonth = () => {
-  const date = new Date(currentDate.value);
-  date.setMonth(date.getMonth() + 1);
-  currentDate.value = date;
-};
-
-// 현재 월 표시 텍스트
-const currentMonthText = computed(() => {
-  return `${currentDate.value.getFullYear()}년${currentDate.value.getMonth() + 1}월`;
 });
 
 // 선택된 날짜의 판매 데이터
 const sortOrder = ref("asc");
 const sortIcon = computed(() => (sortOrder.value === "asc" ? upIcon : downIcon));
-const selectedDateSales = computed(() => {
-  // 선택된 날짜의 판매 데이터 필터링
+
+const periodSales = computed(() => {
   const query = keyword.value.trim();
-  const filteredSales = salesData.filter((item) => item.date === selectedDate.value);
+  const start = new Date(startDate.value);
+  const end = new Date(endDate.value);
+
+  // 날짜 범위에 해당하는 데이터 필터링
+  const filteredSales = salesData.filter((item) => {
+    const itemDate = new Date(item.date);
+    return itemDate >= start && itemDate <= end;
+  });
+  console.log(filteredSales);
+
+  // 키워드 필터링
   const filteredMenu = filteredSales.filter((item) => {
     return !query || item.menuName.includes(query);
   });
 
   filteredMenu.sort((a, b) => {
-    return sortOrder.value === "asc"
-      ? a.time.localeCompare(b.time) // 오름차순
-      : b.time.localeCompare(a.time); // 내림차순
+    const dateCompare = sortOrder.value === "asc" ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
+
+    // 날짜가 다르면 date 기준으로 정렬
+    if (dateCompare !== 0) return dateCompare;
+
+    // 날짜가 같으면 time 기준으로 정렬
+    return sortOrder.value === "asc" ? a.time.localeCompare(b.time) : b.time.localeCompare(a.time);
   });
-  // 메뉴별 판매 수량 집계
-  // const salesByMenu = {};
-  // filteredSales.forEach((item) => {
-  //   if (!salesByMenu[item.menuName]) {
-  //     salesByMenu[item.menuName] = {
-  //       menuName: item.menuName,
-  //       categoryName: item.categoryName,
-  //       time: item.time,
-  //       count: 0,
-  //     };
-  //   }
-  //   salesByMenu[item.menuName].count++;
-  // });
+
   return Object.values(filteredMenu);
 });
 
 const toggleSortOrder = () => {
   sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc";
-};
-
-// 테이블 너비 동기화를 위한 refs
-const nonScrollableWrapperRef = ref(null);
-const scrollableWrapperRef = ref(null);
-const tableHeaderRef = ref(null);
-const tableBodyRef = ref(null);
-
-// 테이블 너비 동기화 함수
-const syncTableWidths = () => {
-  if (!nonScrollableWrapperRef.value || !scrollableWrapperRef.value || !tableHeaderRef.value || !tableBodyRef.value) return;
-
-  // 스크롤바 너비 계산
-  const scrollbarWidth = scrollableWrapperRef.value.offsetWidth - scrollableWrapperRef.value.clientWidth;
-
-  // 헤더 테이블의 너비를 본문 테이블과 동일하게 설정
-  const bodyTableWidth = tableBodyRef.value.offsetWidth;
-  tableHeaderRef.value.style.width = `${bodyTableWidth}px`;
-
-  // 스크롤바 너비를 고려하여 scrollable_wrapper의 너비 조정
-  nonScrollableWrapperRef.value.style.width = `calc(100% - ${scrollbarWidth}px)`;
-
-  // 각 열의 너비 동기화
-  const headerCells = tableHeaderRef.value.querySelectorAll("th");
-  const bodyCells = tableBodyRef.value.querySelectorAll("tr:first-child td");
-
-  if (headerCells.length === bodyCells.length) {
-    for (let i = 0; i < headerCells.length; i++) {
-      const width = bodyCells[i].offsetWidth;
-      headerCells[i].style.width = `${width}px`;
-    }
-  }
-};
-
-// 컴포넌트 마운트 시 및 데이터 변경 시 테이블 너비 동기화
-onMounted(() => {
-  nextTick(() => {
-    syncTableWidths();
-
-    // 윈도우 리사이즈 시 테이블 너비 재동기화
-    window.addEventListener("resize", syncTableWidths);
-  });
-});
-
-// 선택된 날짜가 변경될 때 테이블 너비 재동기화
-watch(selectedDate, () => {
-  nextTick(syncTableWidths);
-});
-
-// 컴포넌트 언마운트 시 이벤트 리스너 제거
-const onBeforeUnmount = () => {
-  window.removeEventListener("resize", syncTableWidths);
 };
 </script>
 
@@ -592,38 +438,11 @@ const onBeforeUnmount = () => {
     <div class="chart_container">
       <div class="chart_header">
         <div class="date_selector">
-          <span class="date_display" @click="showCalendar = !showCalendar">
-            {{ selectedDate }}
-            <span class="calendar_icon">📅</span>
-          </span>
-          <div v-if="showCalendar" class="calendar">
-            <div class="calendar_header">
-              <button @click="prevMonth" class="month_nav">&lt;</button>
-              <span class="current_month">{{ currentMonthText }}</span>
-              <button @click="nextMonth" class="month_nav">&gt;</button>
-            </div>
-            <div class="weekdays">
-              <div class="weekday">S</div>
-              <div class="weekday">M</div>
-              <div class="weekday">T</div>
-              <div class="weekday">W</div>
-              <div class="weekday">T</div>
-              <div class="weekday">F</div>
-              <div class="weekday">S</div>
-            </div>
-            <div class="days">
-              <div v-for="(day, index) in calendarDays" :key="index" class="day" :class="{
-                other_month: !day.isCurrentMonth,
-                selected: day.isSelected,
-              }" @click="selectDate(day)">
-                {{ day.date.getDate() }}
-              </div>
-            </div>
-          </div>
+          <Calendar v-model:startDate="startDate" v-model:endDate="endDate" />
         </div>
       </div>
       <div class="chart">
-        <Bar :data="chartData" :options="chartOptions" />
+        <!--<Bar :data="chartData" :options="chartOptions" />-->
       </div>
 
       <!-- 선택된 날짜의 판매 데이터 테이블 -->
@@ -633,8 +452,8 @@ const onBeforeUnmount = () => {
             <table ref="tableHeaderRef" class="sales_table header_table">
               <thead>
                 <tr>
-                  <th @click="toggleSortOrder"><img :src="sortIcon" alt="정렬 아이콘" class="search_icon" /> {{
-                    selectedDateTable }}</th>
+                  <th @click="toggleSortOrder"><img :src="sortIcon" alt="정렬 아이콘" class="search_icon" /></th>
+                  <th @click="toggleSortOrder">날짜</th>
                   <th>메뉴명</th>
                   <th>수량</th>
                 </tr>
@@ -645,12 +464,13 @@ const onBeforeUnmount = () => {
           <div ref="scrollableWrapperRef" class="scrollable_wrapper">
             <table ref="tableBodyRef" class="sales_table body_table">
               <tbody>
-                <tr v-for="(item, idx) in selectedDateSales" :key="idx">
+                <tr v-for="(item, idx) in periodSales" :key="idx">
+                  <td>{{ item.date.slice(5) }}</td>
                   <td>{{ item.time }}</td>
                   <td>{{ item.menuName }}</td>
                   <td>1</td>
                 </tr>
-                <tr v-if="selectedDateSales.length === 0">
+                <tr v-if="periodSales.length === 0">
                   <td colspan="3" class="no_data">해당 날짜의 판매 데이터가 없습니다.</td>
                 </tr>
               </tbody>
@@ -664,8 +484,8 @@ const onBeforeUnmount = () => {
 
 <style scoped>
 .menu_analysis {
-  width: 90vw;
-  height: 70vh;
+  width: 100%;
+  height: 100%;
   background-color: white;
   display: flex;
 }
@@ -778,98 +598,6 @@ const onBeforeUnmount = () => {
 .date_selector {
   position: relative;
   margin-left: auto;
-}
-
-.date_display {
-  cursor: pointer;
-  padding: 8px 12px;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  display: inline-flex;
-  align-items: center;
-  font-size: 14px;
-}
-
-.calendar_icon {
-  margin-left: 8px;
-}
-
-.calendar {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  width: 300px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-  padding: 12px;
-  margin-top: 8px;
-}
-
-.calendar_header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.month_nav {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  color: #666;
-}
-
-.current_month {
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.weekdays {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  margin-bottom: 8px;
-}
-
-.weekday {
-  text-align: center;
-  font-weight: bold;
-  font-size: 12px;
-  color: #666;
-  padding: 6px 0;
-}
-
-.days {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-}
-
-.day {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 32px;
-  cursor: pointer;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.day:hover {
-  background-color: #f0f0f0;
-}
-
-.other_month {
-  color: #ccc;
-}
-
-.selected {
-  background-color: rgba(153, 102, 255, 0.2);
-  font-weight: bold;
-  color: #6b46c1;
 }
 
 /* 판매 데이터 테이블 스타일 */
