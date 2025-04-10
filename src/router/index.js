@@ -116,6 +116,11 @@ const routes = createRouter({
             import("@/components/inventory_management/InventoryManagement.vue"),
           name: "InventoryRegister",
         },
+        {
+          path: "map",
+          component: () => import("@/components/market_management/MyMap.vue"),
+          name: "CommunityMap",
+        },
       ],
     },
   ],
