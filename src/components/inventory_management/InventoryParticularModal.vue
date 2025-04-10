@@ -53,7 +53,7 @@ const inventory_items = ref([
 
 <template>
   <v-card>
-    <div v-if="isOpen" class="particular_modal_container" @click.self="emit('close')">
+    <div v-if="isOpen" class="particular_modal_container" @click.self="emit('close')" style="z-index: 2000;">
       <div class="modal">
         <div class="modal_content">
           <div class="modal_header">

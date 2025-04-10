@@ -48,7 +48,7 @@ const removeIngredient = (index) => {
 </script>
 
 <template>
-  <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')">
+  <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')" style="z-index: 2000;">
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
@@ -72,12 +72,7 @@ const removeIngredient = (index) => {
               <p class="title_warn">(필수)</p>
             </div>
             <div class="unit-container">
-              <input
-                type="text"
-                v-model="Minimumquantity"
-                placeholder="5"
-                class="min-qty-input"
-              />
+              <input type="text" v-model="Minimumquantity" placeholder="5" class="min-qty-input" />
               <select v-model="category" class="unit-select">
                 <option value="Kg">Kg</option>
                 <option value="g">g</option>
@@ -92,12 +87,7 @@ const removeIngredient = (index) => {
         <div class="input_group">
           <div class="modal_title2 between">
             <label>최소수량</label>
-            <input
-              type="text"
-              v-model="Minimumquantity"
-              placeholder="5"
-              class="min-qty-input"
-            />
+            <input type="text" v-model="Minimumquantity" placeholder="5" class="min-qty-input" />
           </div>
           <p class="sub_title">
             최소 보유하고 있어야하는 재고의 수를 입력해 주세요.
@@ -107,45 +97,25 @@ const removeIngredient = (index) => {
           <div class="modal_title2 flex-between">
             <label>유통기한</label>
             <div class="checkbox-group">
-              <input
-                type="checkbox"
-                class="checkbox"
-                v-model="isExpirationDifferent"
-              />
+              <input type="checkbox" class="checkbox" v-model="isExpirationDifferent" />
               <p class="sub_title">유통기한이 달라요</p>
             </div>
           </div>
 
           <div class="button-group">
-            <v-btn
-              v-for="day in days"
-              :key="day.value"
-              :class="{ 'selected-btn': selectedDays === day.value }"
-              @click="selectDay(day.value)"
-              variant="outlined"
-            >
+            <v-btn v-for="day in days" :key="day.value" :class="{ 'selected-btn': selectedDays === day.value }"
+              @click="selectDay(day.value)" variant="outlined">
               {{ day.label }}
             </v-btn>
 
             <!-- 직접입력 버튼 -->
-            <v-btn
-              v-if="!isCustomInput"
-              :class="{ 'selected-btn': selectedDays === 'custom' }"
-              @click="enableCustomInput"
-              variant="outlined"
-            >
+            <v-btn v-if="!isCustomInput" :class="{ 'selected-btn': selectedDays === 'custom' }"
+              @click="enableCustomInput" variant="outlined">
               직접입력
             </v-btn>
 
-            <v-text-field
-              v-else
-              v-model="customDays"
-              class="custom-input"
-              variant="outlined"
-              density="compact"
-              hide-details
-              @blur="disableCustomInput"
-            ></v-text-field>
+            <v-text-field v-else v-model="customDays" class="custom-input" variant="outlined" density="compact"
+              hide-details @blur="disableCustomInput"></v-text-field>
 
             <span class="fixed-text">일 까지</span>
           </div>
@@ -230,21 +200,27 @@ const removeIngredient = (index) => {
     transform: translateX(0);
   }
 }
+
 .modal_header {
   border-bottom: #ccc solid 1px;
-  padding-bottom: 5px; /* 👈 선 위 아래 여백 */
-  margin-bottom: 45px; /* 👈 선 아래 전체 여백 (원하시는 만큼 늘리세요) */
+  padding-bottom: 5px;
+  /* 👈 선 위 아래 여백 */
+  margin-bottom: 45px;
+  /* 👈 선 아래 전체 여백 (원하시는 만큼 늘리세요) */
 }
+
 .modal_title2 {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 .modal_title2.between {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .min-qty-input {
   width: 80px;
   padding: 8px 10px;
@@ -253,6 +229,7 @@ const removeIngredient = (index) => {
   font-size: 14px;
   text-align: right;
 }
+
 .title_warn {
   font-size: 14px;
   color: red;
@@ -281,7 +258,8 @@ const removeIngredient = (index) => {
   margin-top: 4px;
   margin-bottom: 4px;
   color: #666;
-  justify-content: flex-end; /* 🌟 오른쪽 정렬 */
+  justify-content: flex-end;
+  /* 🌟 오른쪽 정렬 */
 }
 
 .modal_desc {
@@ -430,6 +408,7 @@ const removeIngredient = (index) => {
 .confirm_btn:hover {
   background: #8cbfa4;
 }
+
 .custom-solid-autocomplete {
   padding: 10px;
   border: 1px solid #ccc;
@@ -440,13 +419,16 @@ const removeIngredient = (index) => {
 .unit-container {
   display: flex;
   align-items: center;
-  gap: 8px; /* 입력 필드와 드롭다운 사이 간격 */
+  gap: 8px;
+  /* 입력 필드와 드롭다운 사이 간격 */
 }
 
 .unit-input,
 .unit-select {
-  height: 45px; /* 동일한 높이 */
-  border-radius: 20px; /* 둥근 모서리 */
+  height: 45px;
+  /* 동일한 높이 */
+  border-radius: 20px;
+  /* 둥근 모서리 */
   border: 1px solid #ccc;
   padding: 0 12px;
   font-size: 16px;
@@ -456,26 +438,30 @@ const removeIngredient = (index) => {
 }
 
 .unit-input {
-  width: 80px; /* 숫자 입력 필드 크기 */
+  width: 80px;
+  /* 숫자 입력 필드 크기 */
 }
 
 .unit-select {
-  width: 80px; /* 드롭다운 크기 */
-  appearance: none; /* 기본 스타일 제거 */
-  background: white
-    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
-    no-repeat right 10px center;
+  width: 80px;
+  /* 드롭다운 크기 */
+  appearance: none;
+  /* 기본 스타일 제거 */
+  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
   background-size: 16px;
 }
+
 .button-group {
   display: flex;
   align-items: center;
-  justify-content: center; /* 🌟 가운데 정렬 */
+  justify-content: center;
+  /* 🌟 가운데 정렬 */
   gap: 8px;
 }
 
 .v-btn {
-  min-width: 60px; /* 모든 버튼 크기 일정하게 */
+  min-width: 60px;
+  /* 모든 버튼 크기 일정하게 */
   height: 40px;
   border-radius: 20px;
   font-size: 14px;
@@ -487,16 +473,20 @@ const removeIngredient = (index) => {
 }
 
 .custom-input {
-  width: 10px !important; /* 직접입력 칸의 가로 크기 */
-  height: 40px !important; /* 버튼과 동일한 높이 */
+  width: 10px !important;
+  /* 직접입력 칸의 가로 크기 */
+  height: 40px !important;
+  /* 버튼과 동일한 높이 */
   text-align: center;
   font-size: 14px;
   padding: 0;
 }
+
 .fixed-text {
   margin-left: 8px;
   font-size: 14px;
 }
+
 .input-row {
   display: flex;
   justify-content: space-between;
@@ -507,7 +497,8 @@ const removeIngredient = (index) => {
 .input-label-group {
   display: flex;
   align-items: center;
-  gap: 6px; /* label과 (필수) 사이 간격 조절 */
+  gap: 6px;
+  /* label과 (필수) 사이 간격 조절 */
 }
 
 .min-qty-input {
@@ -518,6 +509,7 @@ const removeIngredient = (index) => {
   font-size: 14px;
   text-align: right;
 }
+
 .checkbox {
   appearance: none;
   -webkit-appearance: none;
@@ -530,10 +522,12 @@ const removeIngredient = (index) => {
   position: relative;
   transition: all 0.2s ease-in-out;
 }
+
 .checkbox:checked {
   background-color: #708090;
   border-color: #708090;
 }
+
 .checkbox:checked::after {
   content: "";
   position: absolute;
@@ -544,6 +538,7 @@ const removeIngredient = (index) => {
   background: #708090;
   border-radius: 50%;
 }
+
 .flex-between {
   display: flex;
   justify-content: space-between;
@@ -553,7 +548,8 @@ const removeIngredient = (index) => {
 .checkbox-group {
   display: flex;
   align-items: center;
-  gap: 4px; /* 체크박스와 텍스트 사이 간격 */
+  gap: 4px;
+  /* 체크박스와 텍스트 사이 간격 */
 }
 
 .sub_title {
