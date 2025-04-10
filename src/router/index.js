@@ -104,6 +104,12 @@ const routes = createRouter({
             import("@/components/sales_management/SalesAnalysis.vue"),
           name: "SalesAnalysis",
         },
+        {
+          path: "inventory",
+          component: () =>
+            import("@/components/inventory_management/Inventory.vue"),
+          name: "Inventory",
+        },
       ],
     },
   ],
