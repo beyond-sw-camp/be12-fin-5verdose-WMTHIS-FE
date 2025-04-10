@@ -73,7 +73,7 @@ const removeIngredient = (index) => {
 </script>
 
 <template>
-  <div v-if="isOpen" class="sale_modal_container" @click.self="emit('close')">
+  <div v-if="isOpen" class="sale_modal_container" @click.self="emit('close')" style="z-index: 2000;">
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
@@ -91,11 +91,7 @@ const removeIngredient = (index) => {
             </div>
             <p class="sub_title">판매 시 사용하는 물품명을 선택해주세요.</p>
             <div class="unit-container">
-              <select
-                v-model="category"
-                class="unit-select"
-                style="width: 250px"
-              >
+              <select v-model="category" class="unit-select" style="width: 250px">
                 <option value="마늘">마늘</option>
                 <option value="토마토">토마토</option>
                 <option value="양배추">양배추</option>
@@ -112,18 +108,14 @@ const removeIngredient = (index) => {
             </div>
             <p class="sub_title">물품의 희망가격을 입력해주세요.</p>
             <div class="unit-container">
-              <input
-                type="text"
-                v-model="minimumQuantity"
-                style="width: 200px"
-                placeholder="3000"
-                class="min-qty-input"
-              />
+              <input type="text" v-model="minimumQuantity" style="width: 200px" placeholder="3000"
+                class="min-qty-input" />
               <p>원</p>
             </div>
           </div>
         </div>
         <div class="input_group">
+<<<<<<< HEAD
           <div class="input_row">
             <!-- 왼쪽: 라벨 + 설명 -->
             <div class="input_info">
@@ -141,6 +133,15 @@ const removeIngredient = (index) => {
               />
               <span class="unit-text">Kg</span>
             </div>
+=======
+          <div class="modal_title2 between">
+            <label>수량</label>
+          </div>
+          <p class="sub_title">물품의 수량을 입력해주세요.</p>
+          <div class="input-with-unit">
+            <input type="text" v-model="minimumQuantity" placeholder="3" class="min-qty-input" style="width: 200px" />
+            <p class="unit-text">Kg</p>
+>>>>>>> d4172fb71b2785ae24e79ba8cc32123fce64f85e
           </div>
         </div>
 
@@ -153,16 +154,8 @@ const removeIngredient = (index) => {
             가능해요.)
           </p>
           <div class="unit-container">
-            <v-file-input
-              v-model="files"
-              variant="outlined"
-              accept="image/*"
-              multiple
-              :counter="true"
-              :rules="[maxFileRule]"
-              :show-size="true"
-              hide-details="auto"
-            />
+            <v-file-input v-model="files" variant="outlined" accept="image/*" multiple :counter="true"
+              :rules="[maxFileRule]" :show-size="true" hide-details="auto" />
           </div>
           <div class="input_group">
             <div class="modal_title2">
@@ -254,22 +247,32 @@ const removeIngredient = (index) => {
     transform: translateX(0);
   }
 }
+
 .modal_header {
   border-bottom: #ccc solid 1px;
-  padding-bottom: 5px; /* 👈 선 위 아래 여백 */
-  margin-bottom: 45px; /* 👈 선 아래 전체 여백 (원하시는 만큼 늘리세요) */
+  padding-bottom: 5px;
+  /* 👈 선 위 아래 여백 */
+  margin-bottom: 45px;
+  /* 👈 선 아래 전체 여백 (원하시는 만큼 늘리세요) */
 }
+
 .modal_title2 {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 .modal_title2.between {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+<<<<<<< HEAD
 .min_qty_input {
+=======
+
+.min-qty-input {
+>>>>>>> d4172fb71b2785ae24e79ba8cc32123fce64f85e
   width: 80px;
   padding: 8px 10px;
   border: 1px solid #ccc;
@@ -277,6 +280,7 @@ const removeIngredient = (index) => {
   font-size: 14px;
   text-align: right;
 }
+
 .title_warn {
   font-size: 14px;
   color: red;
@@ -305,7 +309,8 @@ const removeIngredient = (index) => {
   margin-top: 4px;
   margin-bottom: 4px;
   color: #666;
-  justify-content: flex-end; /* 🌟 오른쪽 정렬 */
+  justify-content: flex-end;
+  /* 🌟 오른쪽 정렬 */
 }
 
 .modal_desc {
@@ -345,6 +350,7 @@ const removeIngredient = (index) => {
 .tab_inventory button:hover {
   background-color: #9fa6ad;
 }
+
 .input_row {
   display: flex;
   justify-content: space-between;
@@ -459,6 +465,7 @@ const removeIngredient = (index) => {
 .confirm_btn:hover {
   background: #8cbfa4;
 }
+
 .custom-solid-autocomplete {
   padding: 10px;
   border: 1px solid #ccc;
@@ -475,8 +482,10 @@ const removeIngredient = (index) => {
 .unit-input,
 .unit-select {
   width: 500px;
-  height: 45px; /* 동일한 높이 */
-  border-radius: 20px; /* 둥근 모서리 */
+  height: 45px;
+  /* 동일한 높이 */
+  border-radius: 20px;
+  /* 둥근 모서리 */
   border: 1px solid #ccc;
   padding: 0 12px;
   font-size: 16px;
@@ -486,26 +495,30 @@ const removeIngredient = (index) => {
 }
 
 .unit-input {
-  width: 80px; /* 숫자 입력 필드 크기 */
+  width: 80px;
+  /* 숫자 입력 필드 크기 */
 }
 
 .unit-select {
-  width: 80px; /* 드롭다운 크기 */
-  appearance: none; /* 기본 스타일 제거 */
-  background: white
-    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
-    no-repeat right 10px center;
+  width: 80px;
+  /* 드롭다운 크기 */
+  appearance: none;
+  /* 기본 스타일 제거 */
+  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
   background-size: 16px;
 }
+
 .button_group {
   display: flex;
   align-items: center;
-  justify-content: center; /* 🌟 가운데 정렬 */
+  justify-content: center;
+  /* 🌟 가운데 정렬 */
   gap: 8px;
 }
 
 .v-btn {
-  min-width: 60px; /* 모든 버튼 크기 일정하게 */
+  min-width: 60px;
+  /* 모든 버튼 크기 일정하게 */
   height: 40px;
   border-radius: 20px;
   font-size: 14px;
@@ -517,16 +530,20 @@ const removeIngredient = (index) => {
 }
 
 .custom_input {
-  width: 10px !important; /* 직접입력 칸의 가로 크기 */
-  height: 40px !important; /* 버튼과 동일한 높이 */
+  width: 10px !important;
+  /* 직접입력 칸의 가로 크기 */
+  height: 40px !important;
+  /* 버튼과 동일한 높이 */
   text-align: center;
   font-size: 14px;
   padding: 0;
 }
+
 .fixed-text {
   margin-left: 8px;
   font-size: 14px;
 }
+
 .input-row {
   display: flex;
   justify-content: space-between;
@@ -537,7 +554,8 @@ const removeIngredient = (index) => {
 .input-label-group {
   display: flex;
   align-items: center;
-  gap: 6px; /* label과 (필수) 사이 간격 조절 */
+  gap: 6px;
+  /* label과 (필수) 사이 간격 조절 */
 }
 
 .min-qty-input {
@@ -548,16 +566,24 @@ const removeIngredient = (index) => {
   font-size: 14px;
   text-align: right;
 }
+
 .input_with_unit {
   display: flex;
-  justify-content: flex-end; /* 오른쪽 정렬 */
+  justify-content: flex-end;
+  /* 오른쪽 정렬 */
   align-items: center;
+<<<<<<< HEAD
   gap: 8px; /* 입력창과 단위 사이 간격 */
   text-align: right;
+=======
+  gap: 8px;
+  /* 입력창과 단위 사이 간격 */
+>>>>>>> d4172fb71b2785ae24e79ba8cc32123fce64f85e
 }
 
 .min-qty-input {
-  width: 100px; /* 필요에 따라 조정 가능 */
+  width: 100px;
+  /* 필요에 따라 조정 가능 */
   text-align: right;
 }
 

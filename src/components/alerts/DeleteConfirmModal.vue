@@ -6,7 +6,7 @@ defineEmits(["confirm", "cancel"]);
 </script>
 
 <template>
-    <div v-if="isOpen" class="modal_overlay">
+    <div v-if="isOpen" class="modal_overlay" style="z-index: 2000;">
         <div class="modal">
             <p class="modal_message">현재 항목을 삭제하시겠습니까?</p>
             <div class="modal_buttons">
