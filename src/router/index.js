@@ -127,6 +127,12 @@ const routes = createRouter({
             import("@/components/market_management/MarketPostList.vue"),
           name: "CommunityList",
         },
+        {
+          path: "transactions",
+          component: () =>
+            import("@/components/market_management/TradeList.vue"),
+          name: "CommunityTransactions",
+        },
       ],
     },
   ],
