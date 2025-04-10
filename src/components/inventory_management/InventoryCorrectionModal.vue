@@ -152,7 +152,7 @@ const removeIngredient = (index) => {
         </div>
       </div>
       <div class="modal_footer">
-        <button class="confirm_btn" @click="submitCorrection">수정</button>
+        <button class="confirm_btn" @click="emit('close')">수정</button>
       </div>
     </div>
   </div>

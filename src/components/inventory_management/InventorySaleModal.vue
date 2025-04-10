@@ -123,23 +123,27 @@ const removeIngredient = (index) => {
             </div>
           </div>
         </div>
-
         <div class="input_group">
-          <div class="modal_title2 between">
-            <label>수량</label>
-          </div>
-          <p class="sub_title">물품의 수량을 입력해주세요.</p>
-          <div class="input-with-unit">
-            <input
-              type="text"
-              v-model="minimumQuantity"
-              placeholder="3"
-              class="min-qty-input"
-              style="width: 200px"
-            />
-            <p class="unit-text">Kg</p>
+          <div class="input_row">
+            <!-- 왼쪽: 라벨 + 설명 -->
+            <div class="input_info">
+              <label class="modal_title2">수량</label>
+              <p class="sub_title">물품의 수량을 입력해주세요.</p>
+            </div>
+
+            <!-- 오른쪽: 수량 입력 + 단위 -->
+            <div class="input-inline-row">
+              <input
+                type="text"
+                v-model="Minimumquantity"
+                placeholder="5"
+                class="min-qty-input"
+              />
+              <span class="unit-text">Kg</span>
+            </div>
           </div>
         </div>
+
         <div class="input_group">
           <div class="modal_title2">
             <label>사진등록</label>
@@ -265,7 +269,7 @@ const removeIngredient = (index) => {
   justify-content: space-between;
   align-items: center;
 }
-.min-qty-input {
+.min_qty_input {
   width: 80px;
   padding: 8px 10px;
   border: 1px solid #ccc;
@@ -549,6 +553,7 @@ const removeIngredient = (index) => {
   justify-content: flex-end; /* 오른쪽 정렬 */
   align-items: center;
   gap: 8px; /* 입력창과 단위 사이 간격 */
+  text-align: right;
 }
 
 .min-qty-input {
@@ -558,5 +563,6 @@ const removeIngredient = (index) => {
 
 .unit-text {
   margin: 0;
+  text-align: right;
 }
 </style>
