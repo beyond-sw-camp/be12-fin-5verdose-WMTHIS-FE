@@ -63,7 +63,15 @@ const salesData = ref({
         { type: 'yogiyo', amount: 13000, paidAt: '2025-04-01 13:20' },
         { type: 'hall', amount: 15000, paidAt: '2025-04-01 13:55' },
         { type: 'baemin', amount: 40000, paidAt: '2025-04-01 13:55' }
-    ]
+    ],
+    '2025-04-10': [
+        { type: 'hall', amount: 12000, paidAt: '2025-04-01 11:25' },
+        { type: 'baemin', amount: 18000, paidAt: '2025-04-01 12:10' },
+        { type: 'coupang', amount: 16000, paidAt: '2025-04-01 12:45' },
+        { type: 'yogiyo', amount: 13000, paidAt: '2025-04-01 13:20' },
+        { type: 'hall', amount: 15000, paidAt: '2025-04-01 13:55' },
+        { type: 'baemin', amount: 50000, paidAt: '2025-04-01 13:55' }
+    ],
 });
 
 // 날짜 선택 핸들러
