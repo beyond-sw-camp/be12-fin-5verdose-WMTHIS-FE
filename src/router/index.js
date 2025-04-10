@@ -101,7 +101,7 @@ const routes = createRouter({
         {
           path: "salesAnalysis",
           component: () =>
-            import("@/components/sales_management/SalesAnalysisDetail.vue"),
+            import("@/components/sales_management/SalesAnalysis.vue"),
           name: "SalesAnalysis",
         },
       ],
