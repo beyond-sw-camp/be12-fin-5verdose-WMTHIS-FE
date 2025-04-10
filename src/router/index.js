@@ -121,6 +121,12 @@ const routes = createRouter({
           component: () => import("@/components/market_management/MyMap.vue"),
           name: "CommunityMap",
         },
+        {
+          path: "list",
+          component: () =>
+            import("@/components/market_management/MarketPostList.vue"),
+          name: "CommunityList",
+        },
       ],
     },
   ],
