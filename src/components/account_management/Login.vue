@@ -43,6 +43,7 @@ const rememberId = ref(false);
 
 const login = () => {
   console.log('로그인 시도', userId.value, password.value, rememberId.value);
+  router.push({ name: 'dashboard' });
 };
 
 const findPassword = () => {

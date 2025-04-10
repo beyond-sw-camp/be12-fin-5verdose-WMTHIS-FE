@@ -118,6 +118,9 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, reactive } from 'vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const isScrolled = ref(false);
 const activeMenu = ref('');
@@ -135,9 +138,41 @@ const setActiveMenu = (menu) => {
   activeMenu.value = menu;
 };
 
+const menuRoutes = {
+  '메뉴 관리': {
+    '메뉴 관리': 'MenuMain',
+    '카테고리 관리': 'MenuCategory',
+    '옵션 관리': 'MenuOption'
+  },
+  '재고 관리': {
+    '재고 관리': 'InventoryMain',
+    '재고 등록': 'InventoryRegister'
+  },
+  '가게 분석': {
+    '매출 분석': 'SalesAnalysis',
+    '메뉴 분석': 'MenuAnalysis',
+    '재고 분석': 'InventoryAnalysis'
+  },
+  '커뮤니티': {
+    '지도로 보기': 'CommunityMap',
+    '목록으로 찾기': 'CommunityList',
+    '거래내역': 'CommunityTransactions'
+  },
+  '가게 관리': {
+    'MY 가게': 'MyStore'
+  }
+};
+
+
+
 const setActiveDropdown = (menu, item) => {
   activeDropdowns[menu] = item;
   activeMenu.value = menu;
+
+  const routeName = menuRoutes[menu]?.[item];
+  if (routeName) {
+    router.push({ name: routeName });
+  }
 };
 
 onMounted(() => {
@@ -159,7 +194,7 @@ onBeforeUnmount(() => {
 .left-bar {
   position: fixed;
   top: -8px;
-  left: 7rem;
+  left: 8rem;
   width: 12px;
   height: 64px;
   /* 헤더 높이와 동일하게 설정 */

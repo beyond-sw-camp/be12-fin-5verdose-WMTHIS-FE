@@ -81,118 +81,109 @@ const summaries = [
 
 
 <template>
-    <v-app>
-        <v-main>
-            <v-container>
-                <v-row>
-                    <v-col cols="12" md="4">
-                        <v-card>
-                            <v-card-title>매출 현황</v-card-title>
-                            <v-card-text>
-                                <div class="amount">232,100원</div>
-                                <div class="comment_main">
-                                    <p>저번주 오늘보다</p>
-                                    <p class="amount_highlight"> -161,400원</p>
-                                </div>
-                                <div class="comment_sub">
-                                    <div class="comment_sub1">
-                                        <p class="hall_box">■ </p>
-                                        <div class="flex-between">
-                                            <p>홀</p>
-                                            <p>106,100원</p>
-                                        </div>
-                                    </div>
-                                    <div class="comment_sub1">
-                                        <p class="delivery_box">■ </p>
-                                        <div class="flex-between">
-                                            <p>배달</p>
-                                            <p>106,100원</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </v-card-text>
-                        </v-card>
-                    </v-col>
-                    <v-col cols="12" md="8">
-                        <v-card>
-                            <apexchart type="bar" :options="chartOptions" :series="series" height="200"></apexchart>
-                        </v-card>
-                    </v-col>
-                </v-row>
-            </v-container>
-
-
-            <v-container>
-                <v-row>
-                    <v-col cols="12" md="9">
-                        <v-carousel class="carousel-root" show-arrows="hover" cycle hide-delimiter-background
-                            v-model="currentCarousel">
-                            <v-carousel-item v-for="(text, i) in summaries" :key="i">
-                                <v-sheet class="carousel-sheet">
-                                    <div class="carousel-content">
-                                        <p class="carousel-line carousel-line-bold">
-                                            {{ text.line1 }}
-                                            <span class="highlight-text">{{ text.highlight1 }}</span>
-                                            {{ text.line2 }}
-                                        </p>
-                                        <p class="carousel-line">
-                                            {{ text.line3 }}
-                                            <span class="highlight-text font-bold">{{ text.highlight2 }}</span>
-                                            <span class="highlight-text font-bold">{{ text.line4 }}</span>
-                                        </p>
-                                    </div>
-                                </v-sheet>
-                            </v-carousel-item>
-                        </v-carousel>
-                    </v-col>
-
-                    <v-col cols="12" md="3">
-                        <div class="best_menu_title">이번 주 메뉴 TOP 3</div>
-                        <div class="best_menu_item">
-                            <img src="../assets/1st.png" alt="만료임박 아이콘" class="best_menu_icon" />
-                            <div class="best_menu_list">토마토 파스타</div>
-                        </div>
-                        <div class="best_menu_item">
-                            <div class="best_menu_rank">2</div>
-                            <div class="best_menu_list">불고기 필라프</div>
-                        </div>
-                        <div class="best_menu_item">
-                            <div class="best_menu_rank">3</div>
-                            <div class="best_menu_list">로제 파스타</div>
-                        </div>
-                    </v-col>
-                </v-row>
-            </v-container>
-
-
-            <div class="status-wrapper">
-                <div class="status-item">
-                    <span class="status-label">만료임박</span>
-                    <div class="icon_place">
-                        <img src="../assets/calendar.png" alt="만료임박 아이콘" class="status-icon" />
-                        <span class="status-number text-red">4</span>
+    <v-row>
+        <v-col cols="12" md="4">
+            <v-card>
+                <v-card-title>매출 현황</v-card-title>
+                <v-card-text>
+                    <div class="amount">232,100원</div>
+                    <div class="comment_main">
+                        <p>저번주 오늘보다</p>
+                        <p class="amount_highlight"> -161,400원</p>
                     </div>
-                </div>
-
-                <div class="status-item">
-                    <span class="status-label">발주 필요</span>
-                    <div class="icon_place">
-                        <img src="../assets/stock.png" alt="발주 필요 아이콘" class="status-icon" />
-                        <span class="status-number text-yellow">5</span>
+                    <div class="comment_sub">
+                        <div class="comment_sub1">
+                            <p class="hall_box">■ </p>
+                            <div class="flex-between">
+                                <p>홀</p>
+                                <p>106,100원</p>
+                            </div>
+                        </div>
+                        <div class="comment_sub1">
+                            <p class="delivery_box">■ </p>
+                            <div class="flex-between">
+                                <p>배달</p>
+                                <p>106,100원</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </v-card-text>
+            </v-card>
+        </v-col>
+        <v-col cols="12" md="8">
+            <v-card>
+                <apexchart type="bar" :options="chartOptions" :series="series" height="200"></apexchart>
+            </v-card>
+        </v-col>
+    </v-row>
 
-                <div class="status-item">
-                    <span class="status-label">금일 입고</span>
-                    <div class="icon_place">
-                        <img src="../assets/completed.png" alt="금일 입고 아이콘" class="status-icon" />
-                        <span class="status-number text-gray">8</span>
-                    </div>
-                </div>
+    <v-row>
+        <v-col cols="12" md="9">
+            <v-carousel class="carousel-root" show-arrows="hover" cycle hide-delimiter-background
+                v-model="currentCarousel">
+                <v-carousel-item v-for="(text, i) in summaries" :key="i">
+                    <v-sheet class="carousel-sheet">
+                        <div class="carousel-content">
+                            <p class="carousel-line carousel-line-bold">
+                                {{ text.line1 }}
+                                <span class="highlight-text">{{ text.highlight1 }}</span>
+                                {{ text.line2 }}
+                            </p>
+                            <p class="carousel-line">
+                                {{ text.line3 }}
+                                <span class="highlight-text font-bold">{{ text.highlight2 }}</span>
+                                <span class="highlight-text font-bold">{{ text.line4 }}</span>
+                            </p>
+                        </div>
+                    </v-sheet>
+                </v-carousel-item>
+            </v-carousel>
+        </v-col>
+
+        <v-col cols="12" md="3">
+            <div class="best_menu_title">이번 주 메뉴 TOP 3</div>
+            <div class="best_menu_item">
+                <img src="@/assets/image/1st.png" alt="만료임박 아이콘" class="best_menu_icon" />
+                <div class="best_menu_list">토마토 파스타</div>
             </div>
+            <div class="best_menu_item">
+                <div class="best_menu_rank">2</div>
+                <div class="best_menu_list">불고기 필라프</div>
+            </div>
+            <div class="best_menu_item">
+                <div class="best_menu_rank">3</div>
+                <div class="best_menu_list">로제 파스타</div>
+            </div>
+        </v-col>
+    </v-row>
 
-            < </v-main>
-    </v-app>
+
+    <div class="status-wrapper">
+        <div class="status-item">
+            <span class="status-label">만료임박</span>
+            <div class="icon_place">
+                <img src="@/assets/image/calendar.png" alt="만료임박 아이콘" class="status-icon" />
+                <span class="status-number text-red">4</span>
+            </div>
+        </div>
+
+        <div class="status-item">
+            <span class="status-label">발주 필요</span>
+            <div class="icon_place">
+                <img src="@/assets/image/stock.png" alt="발주 필요 아이콘" class="status-icon" />
+                <span class="status-number text-yellow">5</span>
+            </div>
+        </div>
+
+        <div class="status-item">
+            <span class="status-label">금일 입고</span>
+            <div class="icon_place">
+                <img src="@/assets/image/completed.png" alt="금일 입고 아이콘" class="status-icon" />
+                <span class="status-number text-gray">8</span>
+            </div>
+        </div>
+    </div>
+
 </template>
 
 <style scoped>
