@@ -1,7 +1,7 @@
 <template>
     <v-app>
-        <v-container fluid class="pa-0  fill-height">
-            <v-row no-gutters class="fill-height">
+        <v-container fluid class="pa-0 ">
+            <v-row no-gutters style="height: 900px;">
                 <v-col cols="12" md="8" class="d-none d-md-flex">
                     <AccountImagePanel />
                 </v-col>
