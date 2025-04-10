@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
-import Calendar from './Calendar.vue';
-import SalesDetail from './SalesDetail.vue';
+import Calendar from '@/components/sales_management/Calendar.vue';
+import SalesDetail from '@/components/sales_management/SalesDetail.vue';
 
 const currentMonth = ref(new Date().getMonth());
 const currentYear = ref(new Date().getFullYear());
