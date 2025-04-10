@@ -5,9 +5,9 @@ import Header from '@/components/common/Header.vue';
 
 <template>
   <v-app>
-    <Header style="z-index: 0;" />
+    <Header />
     <v-main>
-      <v-container fluid style="z-index: -1;">
+      <v-container fluid>
         <div class="content_wrapper">
           <RouterView />
         </div>
