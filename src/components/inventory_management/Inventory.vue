@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, computed } from "vue";
-import InventoryRegisterModal from "../components/InventoryRegisterModal.vue";
-import InventoryModifyModal from "../components/InventoryModifyModal.vue";
+import InventoryRegisterModal from "@/components/inventory_management/InventoryRegisterModal.vue";
+import InventoryModifyModal from "@/components/InventoryModifyModal.vue";
 import DeleteConfirmModal from "./DeleteConfirmModal.vue";
 import DeleteAlertModal from "./DeleteAlertModal.vue";
 
@@ -156,12 +156,7 @@ const deleteSelectedItems = () => {
       <thead>
         <tr>
           <th>
-            <input
-              type="checkbox"
-              v-model="select_all"
-              @change="toggle_select_all"
-              class="circle_checkbox"
-            />
+            <input type="checkbox" v-model="select_all" @change="toggle_select_all" class="circle_checkbox" />
           </th>
           <th>재고명</th>
           <th>용량/단위</th>
@@ -171,17 +166,9 @@ const deleteSelectedItems = () => {
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="(item, index) in inventory_items"
-          :key="index"
-          :class="{ selected_row: item.selected }"
-        >
+        <tr v-for="(item, index) in inventory_items" :key="index" :class="{ selected_row: item.selected }">
           <td>
-            <input
-              type="checkbox"
-              v-model="item.selected"
-              class="circle_checkbox"
-            />
+            <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
           </td>
           <td class="bold_text">{{ item.name }}</td>
           <td>{{ item.unit }}</td>
@@ -197,24 +184,12 @@ const deleteSelectedItems = () => {
     </table>
 
     <!-- 모달 컴포넌트들 -->
-    <InventoryRegisterModal
-      v-if="modalType === 'register'"
-      :isOpen="isModalOpen"
-      @close="closeModal"
-    />
+    <InventoryRegisterModal v-if="modalType === 'register'" :isOpen="isModalOpen" @close="closeModal" />
 
-    <InventoryModifyModal
-      v-if="modalType === 'modify'"
-      :isOpen="isModalOpen"
-      :item="selectedItem"
-      @close="closeModal"
-    />
+    <InventoryModifyModal v-if="modalType === 'modify'" :isOpen="isModalOpen" :item="selectedItem"
+      @close="closeModal" />
 
-    <DeleteConfirmModal
-      :isOpen="isDeleteConfirmOpen"
-      @confirm="deleteSelectedItems"
-      @cancel="closeDeleteConfirm"
-    />
+    <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
     <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
   </div>
 </template>

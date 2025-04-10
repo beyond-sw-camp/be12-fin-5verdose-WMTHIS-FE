@@ -63,16 +63,40 @@ const routes = createRouter({
       component: () => import("@/components/UserMain.vue"),
       children: [
         {
-          path: "/",
+          path: "",
           component: () =>
             import("@/components/sales_management/SalesStatus.vue"),
           name: "dashboard",
         },
         {
-          path: "/menu",
+          path: "menu",
           component: () =>
             import("@/components/menu_management/menu/MyMenu.vue"),
           name: "MenuMain",
+        },
+        {
+          path: "category",
+          component: () =>
+            import("@/components/menu_management/category/MyCategory.vue"),
+          name: "MenuCategory",
+        },
+        {
+          path: "option",
+          component: () =>
+            import("@/components/menu_management/option/MyOption.vue"),
+          name: "MenuOption",
+        },
+        {
+          path: "menuAnalysis",
+          component: () =>
+            import("@/components/sales_management/MenuAnalysis.vue"),
+          name: "MenuAnalysis",
+        },
+        {
+          path: "inventoryAnalysis",
+          component: () =>
+            import("@/components/sales_management/MenuTable.vue"),
+          name: "InventoryAnalysis",
         },
       ],
     },
