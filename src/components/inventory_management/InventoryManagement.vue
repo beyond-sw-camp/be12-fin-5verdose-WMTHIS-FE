@@ -237,7 +237,7 @@ const deleteSelectedItems = () => {
         <!-- 유통기한 필터 -->
         <v-window-item value="exp">
           <v-row class="mt-3">
-            <v-col>
+            <v-col cols="5">
               <v-btn
                 class="filter-btn"
                 :class="{ selected: selectedFilter === '전체' }"
@@ -248,7 +248,7 @@ const deleteSelectedItems = () => {
                 전체
               </v-btn>
             </v-col>
-            <v-col>
+            <v-col cols="5">
               <v-btn
                 class="filter-btn"
                 :class="{ selected: selectedFilter === '만료' }"
@@ -259,7 +259,7 @@ const deleteSelectedItems = () => {
                 만료
               </v-btn>
             </v-col>
-            <v-col>
+            <v-col cols="5">
               <v-btn
                 class="filter-btn"
                 :class="{ selected: selectedFilter === '임박' }"
@@ -270,7 +270,7 @@ const deleteSelectedItems = () => {
                 임박
               </v-btn>
             </v-col>
-            <v-col>
+            <v-col cols="5">
               <v-btn
                 class="filter-btn"
                 :class="{ selected: selectedFilter === '유효' }"
@@ -448,6 +448,7 @@ const deleteSelectedItems = () => {
 
 .custom-tabs {
   background-color: transparent !important;
+
   box-shadow: none !important;
   border: none !important;
 }
@@ -463,14 +464,15 @@ const deleteSelectedItems = () => {
 }
 
 .selected-tab {
+  box-shadow: none !important;
   color: #858b91 !important;
   font-weight: bold;
   border-bottom: 2px solid #c8c8c8;
   background-color: transparent !important;
-  box-shadow: none !important;
 }
 
 .default-tab:hover {
+  box-shadow: none !important;
   color: rgba(112, 128, 144, 0.8) !important;
   background-color: transparent !important;
   font-weight: 500;
@@ -478,11 +480,12 @@ const deleteSelectedItems = () => {
 }
 
 .filter-btn {
+  box-shadow: none !important;
   background-color: #c2c5c8 !important;
   color: white !important;
   transition: color 0.2s ease;
   border-radius: 999px !important;
-  padding: 6px 16px !important;
+  padding: 8px 10px !important;
 }
 
 .filter-btn.selected {

@@ -1,118 +1,112 @@
 <template>
-  <div class="header-container">
-    <!-- 왼쪽 세로 바 -->
 
-    <v-app-bar app floating elevation="2" :class="{ 'mt-2': true, 'scrolled': isScrolled }" color="transparent">
-      <div class="d-flex align-center">
-        <v-app-bar-title class="font-weight-bold text-white" style="margin-left: 20px;">WMTHIS</v-app-bar-title>
-      </div>
+  <v-app-bar app floating elevation="2" :class="{ 'mt-2': true, 'scrolled': isScrolled }" color="transparent">
+    <div class="d-flex align-center">
+      <v-app-bar-title class="font-weight-bold text-white" style="margin-left: 20px;">WMTHIS</v-app-bar-title>
+    </div>
 
-      <div class="d-none d-md-flex">
-        <!-- 대시보드 메뉴 -->
-        <v-menu open-on-click offset-y>
-          <template v-slot:activator="{ props }">
-            <v-btn text class="mx-1 header-menu first-menu custom-btn" :class="{ 'active-menu': activeMenu === '대시보드' }"
-              v-bind="props" @click="goToDashboard">
-              대시보드
-            </v-btn>
-          </template>
-        </v-menu>
+    <div class="d-none d-md-flex">
+      <!-- 대시보드 메뉴 -->
+      <v-menu open-on-click offset-y>
+        <template v-slot:activator="{ props }">
+          <v-btn text class="mx-1 header-menu first-menu custom-btn" :class="{ 'active-menu': activeMenu === '대시보드' }"
+            v-bind="props" @click="goToDashboard">
+            대시보드
+          </v-btn>
+        </template>
+      </v-menu>
 
-        <!-- 메뉴 관리 -->
-        <v-menu open-on-click offset-y>
-          <template v-slot:activator="{ props }">
-            <v-btn text class="mx-1 header-menu custom-btn" :class="{ 'active-menu': activeMenu === '메뉴 관리' }"
-              v-bind="props" @click="setActiveMenu('메뉴 관리')">
-              메뉴 관리
-            </v-btn>
-          </template>
-          <v-list class="dropdown-list">
-            <v-list-item v-for="(item, index) in ['메뉴 관리', '카테고리 관리', '옵션 관리']" :key="index"
-              @click="setActiveDropdown('메뉴 관리', item)"
-              :class="{ 'active-dropdown': activeDropdowns['메뉴 관리'] === item }">
-              <v-list-item-title>{{ item }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+      <!-- 메뉴 관리 -->
+      <v-menu open-on-click offset-y>
+        <template v-slot:activator="{ props }">
+          <v-btn text class="mx-1 header-menu custom-btn" :class="{ 'active-menu': activeMenu === '메뉴 관리' }"
+            v-bind="props" @click="setActiveMenu('메뉴 관리')">
+            메뉴 관리
+          </v-btn>
+        </template>
+        <v-list class="dropdown-list">
+          <v-list-item v-for="(item, index) in ['메뉴 관리', '카테고리 관리', '옵션 관리']" :key="index"
+            @click="setActiveDropdown('메뉴 관리', item)" :class="{ 'active-dropdown': activeDropdowns['메뉴 관리'] === item }">
+            <v-list-item-title>{{ item }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
 
-        <!-- 재고 관리 -->
-        <v-menu open-on-click offset-y>
-          <template v-slot:activator="{ props }">
-            <v-btn text class="mx-1 header-menu custom-btn" :class="{ 'active-menu': activeMenu === '재고 관리' }"
-              v-bind="props" @click="setActiveMenu('재고 관리')">
-              재고 관리
-            </v-btn>
-          </template>
-          <v-list class="dropdown-list">
-            <v-list-item v-for="(item, index) in ['재고 관리', '재고 등록']" :key="index"
-              @click="setActiveDropdown('재고 관리', item)"
-              :class="{ 'active-dropdown': activeDropdowns['재고 관리'] === item }">
-              <v-list-item-title>{{ item }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+      <!-- 재고 관리 -->
+      <v-menu open-on-click offset-y>
+        <template v-slot:activator="{ props }">
+          <v-btn text class="mx-1 header-menu custom-btn" :class="{ 'active-menu': activeMenu === '재고 관리' }"
+            v-bind="props" @click="setActiveMenu('재고 관리')">
+            재고 관리
+          </v-btn>
+        </template>
+        <v-list class="dropdown-list">
+          <v-list-item v-for="(item, index) in ['재고 관리', '재고 등록']" :key="index"
+            @click="setActiveDropdown('재고 관리', item)" :class="{ 'active-dropdown': activeDropdowns['재고 관리'] === item }">
+            <v-list-item-title>{{ item }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
 
-        <!-- 가게 분석 -->
-        <v-menu open-on-click offset-y>
-          <template v-slot:activator="{ props }">
-            <v-btn text class="mx-1 header-menu custom-btn" :class="{ 'active-menu': activeMenu === '가게 분석' }"
-              v-bind="props" @click="setActiveMenu('가게 분석')">
-              가게 분석
-            </v-btn>
-          </template>
-          <v-list class="dropdown-list">
-            <v-list-item v-for="(item, index) in ['매출 분석', '메뉴 분석', '재고 분석']" :key="index"
-              @click="setActiveDropdown('가게 분석', item)"
-              :class="{ 'active-dropdown': activeDropdowns['가게 분석'] === item }">
-              <v-list-item-title>{{ item }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+      <!-- 가게 분석 -->
+      <v-menu open-on-click offset-y>
+        <template v-slot:activator="{ props }">
+          <v-btn text class="mx-1 header-menu custom-btn" :class="{ 'active-menu': activeMenu === '가게 분석' }"
+            v-bind="props" @click="setActiveMenu('가게 분석')">
+            가게 분석
+          </v-btn>
+        </template>
+        <v-list class="dropdown-list">
+          <v-list-item v-for="(item, index) in ['매출 분석', '메뉴 분석', '재고 분석']" :key="index"
+            @click="setActiveDropdown('가게 분석', item)" :class="{ 'active-dropdown': activeDropdowns['가게 분석'] === item }">
+            <v-list-item-title>{{ item }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
 
-        <!-- 커뮤니티 -->
-        <v-menu open-on-click offset-y>
-          <template v-slot:activator="{ props }">
-            <v-btn text class="mx-1 header-menu custom-btn" :class="{ 'active-menu': activeMenu === '커뮤니티' }"
-              v-bind="props" @click="setActiveMenu('커뮤니티')">
-              커뮤니티
-            </v-btn>
-          </template>
-          <v-list class="dropdown-list">
-            <v-list-item v-for="(item, index) in ['지도로 보기', '목록으로 찾기', '거래내역']" :key="index"
-              @click="setActiveDropdown('커뮤니티', item)" :class="{ 'active-dropdown': activeDropdowns['커뮤니티'] === item }">
-              <v-list-item-title>{{ item }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+      <!-- 커뮤니티 -->
+      <v-menu open-on-click offset-y>
+        <template v-slot:activator="{ props }">
+          <v-btn text class="mx-1 header-menu custom-btn" :class="{ 'active-menu': activeMenu === '커뮤니티' }"
+            v-bind="props" @click="setActiveMenu('커뮤니티')">
+            커뮤니티
+          </v-btn>
+        </template>
+        <v-list class="dropdown-list">
+          <v-list-item v-for="(item, index) in ['지도로 보기', '목록으로 찾기', '거래내역']" :key="index"
+            @click="setActiveDropdown('커뮤니티', item)" :class="{ 'active-dropdown': activeDropdowns['커뮤니티'] === item }">
+            <v-list-item-title>{{ item }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
 
-        <!-- 가게 관리 -->
-        <v-menu open-on-click offset-y>
-          <template v-slot:activator="{ props }">
-            <v-btn text class="mx-1 header-menu custom-btn" :class="{ 'active-menu': activeMenu === '가게 관리' }"
-              v-bind="props" @click="setActiveMenu('가게 관리')">
-              가게 관리
-            </v-btn>
-          </template>
-          <v-list class="dropdown-list">
-            <v-list-item v-for="(item, index) in ['MY 가게']" :key="index" @click="setActiveDropdown('가게 관리', item)"
-              :class="{ 'active-dropdown': activeDropdowns['가게 관리'] === item }">
-              <v-list-item-title>{{ item }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </div>
+      <!-- 가게 관리 -->
+      <v-menu open-on-click offset-y>
+        <template v-slot:activator="{ props }">
+          <v-btn text class="mx-1 header-menu custom-btn" :class="{ 'active-menu': activeMenu === '가게 관리' }"
+            v-bind="props" @click="setActiveMenu('가게 관리')">
+            가게 관리
+          </v-btn>
+        </template>
+        <v-list class="dropdown-list">
+          <v-list-item v-for="(item, index) in ['MY Page']" :key="index" @click="setActiveDropdown('가게 관리', item)"
+            :class="{ 'active-dropdown': activeDropdowns['가게 관리'] === item }">
+            <v-list-item-title>{{ item }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </div>
 
-      <v-spacer></v-spacer>
+    <v-spacer></v-spacer>
 
-      <v-btn icon class="text-white custom-icon-btn">
-        <v-icon>mdi-bell</v-icon>
-      </v-btn>
+    <v-btn icon class="text-white custom-icon-btn">
+      <v-icon>mdi-bell</v-icon>
+    </v-btn>
 
-      <v-btn icon class="text-white custom-icon-btn">
-        <v-icon>mdi-dots-vertical</v-icon>
-      </v-btn>
-    </v-app-bar>
-  </div>
+    <v-btn icon class="text-white custom-icon-btn">
+      <v-icon>mdi-dots-vertical</v-icon>
+    </v-btn>
+  </v-app-bar>
 </template>
 
 <script setup>
@@ -162,7 +156,7 @@ const menuRoutes = {
     '거래내역': 'CommunityTransactions'
   },
   '가게 관리': {
-    'MY 가게': 'MyStore'
+    'MY Page': 'MyPage'
   }
 };
 
@@ -188,17 +182,10 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.header-container {
-  position: relative;
-  width: 95%;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
 .v-app-bar {
-  width: calc(100% - 12px);
-  max-width: 99%;
-  margin-left: 12px;
+  display: flex !important;
+  position: relative !important;
+  max-width: 1300px;
   border-radius: 8px;
   background-color: #708090 !important;
 }
