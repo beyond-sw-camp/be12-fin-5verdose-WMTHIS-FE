@@ -26,7 +26,7 @@ const activeTab = ref('단일메뉴');
 </script>
 
 <template>
-    <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')">
+    <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')" style="z-index: 2000;">
         <div class="modal">
             <div class="modal_content">
                 <div class="modal_header">

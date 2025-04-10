@@ -33,7 +33,7 @@ const handleReject = (id) => {
 </script>
 
 <template>
-    <div v-if="props.isOpen" class="side_modal_overlay" @click="handleOverlayClick">
+    <div v-if="props.isOpen" class="side_modal_overlay" @click="handleOverlayClick" style="z-index: 2000;">
         <div class="side_modal" @click.stop>
             <div class="modal_content">
                 <div class="modal_header">

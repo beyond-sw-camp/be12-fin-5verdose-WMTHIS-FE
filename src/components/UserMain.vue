@@ -2,12 +2,13 @@
 import { RouterView } from 'vue-router';
 import Header from '@/components/common/Header.vue';
 </script>
-
 <template>
   <v-app>
-    <Header style="z-index: 0;" />
+    <div class="header-wrapper">
+      <Header />
+    </div>
     <v-main>
-      <v-container fluid style="z-index: -1;">
+      <v-container fluid>
         <div class="content_wrapper">
           <RouterView />
         </div>
@@ -25,6 +26,15 @@ import Header from '@/components/common/Header.vue';
   .v-main {
     padding-top: 56px;
   }
+}
+
+/* 헤더 중앙 정렬을 위한 래퍼 */
+.header-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  position: fixed;
+  z-index: 100;
 }
 
 /* 중앙 정렬된 콘텐츠 박스 */

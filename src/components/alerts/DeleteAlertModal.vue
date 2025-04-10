@@ -6,7 +6,7 @@ defineEmits(["close"]);
 </script>
 
 <template>
-    <div v-if="isOpen" class="modal_overlay">
+    <div v-if="isOpen" class="modal_overlay" style="z-index: 2000;">
         <div class="modal">
             <p class="modal_message">삭제할 항목을 선택해주세요.</p>
             <button class="confirm_btn" @click="$emit('close')">확인</button>
