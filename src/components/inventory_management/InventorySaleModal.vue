@@ -128,7 +128,6 @@ const removeIngredient = (index) => {
             </div>
           </div>
         </div>
-        <!-- ✅ 최종 정리된 수량 + 단위 한 줄 UI -->
         <div class="input_group">
           <div class="input_row">
             <!-- 왼쪽: 라벨 + 설명 -->
@@ -147,6 +146,7 @@ const removeIngredient = (index) => {
               />
               <span class="unit-text">Kg</span>
             </div>
+      
           </div>
         </div>
 
@@ -280,6 +280,9 @@ const removeIngredient = (index) => {
   justify-content: space-between;
   align-items: center;
 }
+
+
+
 .min-qty-input {
   width: 80px;
   padding: 8px 10px;
@@ -585,6 +588,8 @@ const removeIngredient = (index) => {
 
   gap: 8px; /* 입력창과 단위 사이 간격 */
   text-align: right;
+
+
 }
 
 .min-qty-input {
