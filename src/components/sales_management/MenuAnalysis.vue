@@ -2,8 +2,8 @@
 import { ref, computed, onMounted, nextTick, watch } from "vue";
 import { Bar } from "vue-chartjs";
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js";
-import upIcon from "../assets/up.png";
-import downIcon from "../assets/down.png";
+import upIcon from "@/assets/image/up.png";
+import downIcon from "@/assets/image/down.png";
 
 const keyword = ref("");
 const salesData = [
@@ -571,7 +571,7 @@ const onBeforeUnmount = () => {
         <h1>메뉴 분석</h1>
         <div class="search_container">
           <input v-model="keyword" type="text" placeholder="메뉴 검색" class="search_input" />
-          <img src="../assets/search_button.png" alt="검색" class="search_icon" />
+          <img src="@/assets/image/search_button.png" alt="검색" class="search_icon" />
         </div>
       </div>
       <table class="menu_table">
@@ -612,16 +612,10 @@ const onBeforeUnmount = () => {
               <div class="weekday">S</div>
             </div>
             <div class="days">
-              <div
-                v-for="(day, index) in calendarDays"
-                :key="index"
-                class="day"
-                :class="{
-                  other_month: !day.isCurrentMonth,
-                  selected: day.isSelected,
-                }"
-                @click="selectDate(day)"
-              >
+              <div v-for="(day, index) in calendarDays" :key="index" class="day" :class="{
+                other_month: !day.isCurrentMonth,
+                selected: day.isSelected,
+              }" @click="selectDate(day)">
                 {{ day.date.getDate() }}
               </div>
             </div>
@@ -639,7 +633,8 @@ const onBeforeUnmount = () => {
             <table ref="tableHeaderRef" class="sales_table header_table">
               <thead>
                 <tr>
-                  <th @click="toggleSortOrder"><img :src="sortIcon" alt="정렬 아이콘" class="search_icon" /> {{ selectedDateTable }}</th>
+                  <th @click="toggleSortOrder"><img :src="sortIcon" alt="정렬 아이콘" class="search_icon" /> {{
+                    selectedDateTable }}</th>
                   <th>메뉴명</th>
                   <th>수량</th>
                 </tr>

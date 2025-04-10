@@ -17,6 +17,6 @@ app.use(pinia);
 app.use(vuetify);
 app.use(router);
 app.use(VueKonva);
-app.use(VueApexCharts);
+app.component("apexchart", VueApexCharts);
 app.config.globalProperties.$axios = axios;
 app.mount("#app");

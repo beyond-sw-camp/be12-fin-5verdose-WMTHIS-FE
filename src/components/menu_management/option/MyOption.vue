@@ -1,9 +1,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
-import OptionRegisterModal from './OptionRegisterModal.vue';
-import OptionEditModal from './OptionEditModal.vue';
-import DeleteConfirmModal from './DeleteConfirmModal.vue';
-import DeleteAlertModal from './DeleteAlertModal.vue';
+import OptionRegisterModal from '@/components/menu_management/option/OptionRegisterModal.vue';
+import OptionEditModal from '@/components/menu_management/option/OptionEditModal.vue';
+import DeleteConfirmModal from '@/components/alerts/DeleteConfirmModal.vue';
+import DeleteAlertModal from '@/components/alerts/DeleteAlertModal.vue';
 
 const isRegisterModalOpen = ref(false);
 const isEditModalOpen = ref(false);
@@ -72,7 +72,7 @@ const deleteSelectedItems = () => {
             <div class="search_box">
                 <input type="text" class="search_input" placeholder="옵션 검색" />
                 <button class="search_btn">
-                    <img src="../assets/search_button.png" class="search_icon">
+                    <img src="@/assets/image/search_button.png" class="search_icon">
                 </button>
             </div>
 

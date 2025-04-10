@@ -1,7 +1,6 @@
 <script setup>
 import { onMounted } from "vue";
-import Header from "./Header.vue";
-import Detail from "./MyMapDetailModal.vue";
+import Detail from "@/components/market_management/MyMapDetailModal.vue";
 import { ref } from "vue";
 
 onMounted(() => {
@@ -54,12 +53,12 @@ function initMap() {
 
     const map = new kakao.maps.Map(mapContainer, mapOption);
     normalImage = new kakao.maps.MarkerImage(
-      "../../img/bluePing.png",
+      "/src/assets/image/bluePing.png",
       new kakao.maps.Size(30, 30) // 일반 사이즈
     );
 
     largeImage = new kakao.maps.MarkerImage(
-      "../../img/redPing.png",
+      "/src/assets/image/redPing.png",
       new kakao.maps.Size(50, 50) // 클릭 시 크게!
     );
     /*
@@ -338,7 +337,8 @@ function initMap() {
     <div id="map" style="width: 100%; height: 65vh; margin"></div>
     <div class="fixed_panel_wrapper hidden">
       <div id="fixedPanel" class="fixed_panel">
-        <button class="close_btn" @click="handleClosePanel"><img src="../../img/xMark.png" class="panel_button" /></button>
+        <button class="close_btn" @click="handleClosePanel"><img src="@/assets/image/xMark.png"
+            class="panel_button" /></button>
         <div id="fixedPanelContent"></div>
       </div>
     </div>
@@ -362,10 +362,12 @@ function initMap() {
   color: #0068c3;
   width: 120px;
 }
+
 :deep(.custom_overlay_board_goods) {
   width: 30px;
   font-size: 10px;
 }
+
 :deep(.custom_overlay_board_date) {
   width: 90px;
   font-size: 10px;
@@ -373,13 +375,17 @@ function initMap() {
 
 :deep(.custom_overlay_rule) {
   display: inline-block;
-  white-space: nowrap; /* 줄바꿈 안 함 */
-  overflow: hidden; /* 넘치는 부분 감춤 */
-  text-overflow: ellipsis; /* 넘친 부분 ... 처리 */
+  white-space: nowrap;
+  /* 줄바꿈 안 함 */
+  overflow: hidden;
+  /* 넘치는 부분 감춤 */
+  text-overflow: ellipsis;
+  /* 넘친 부분 ... 처리 */
 }
 
 .fixed_panel_wrapper {
-  position: fixed; /* 화면에 고정 */
+  position: fixed;
+  /* 화면에 고정 */
   bottom: 5vh;
   left: 50%;
   transform: translateX(-50%);
@@ -414,7 +420,8 @@ function initMap() {
   position: absolute;
   top: 8px;
   right: 8px;
-  z-index: 10000; /* 다른 요소보다 위로 */
+  z-index: 10000;
+  /* 다른 요소보다 위로 */
 }
 
 .panel_button {
@@ -436,6 +443,7 @@ function initMap() {
   font-weight: bold;
   color: #333;
 }
+
 :deep(.custom_board_table thead th:first-child) {
   border-top-left-radius: 12px;
   border-bottom-left-radius: 12px;

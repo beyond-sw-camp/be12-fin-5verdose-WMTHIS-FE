@@ -13,7 +13,7 @@
         <v-menu open-on-click offset-y>
           <template v-slot:activator="{ props }">
             <v-btn text class="mx-1 header-menu first-menu custom-btn" :class="{ 'active-menu': activeMenu === '대시보드' }"
-              v-bind="props" @click="setActiveMenu('대시보드')">
+              v-bind="props" @click="goToDashboard">
               대시보드
             </v-btn>
           </template>
@@ -136,6 +136,10 @@ const handleScroll = () => {
 
 const setActiveMenu = (menu) => {
   activeMenu.value = menu;
+};
+
+const goToDashboard = () => {
+  router.push({ name: 'dashboard' });
 };
 
 const menuRoutes = {

@@ -1,6 +1,5 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
-import MenuDetailModal from './MenuDetailModal.vue';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/ko';
@@ -110,7 +109,7 @@ const menu_items = ref([
             <div class="search_box">
                 <input type="text" class="search_input" placeholder="물품 검색" />
                 <button class="search_btn">
-                    <img src="../assets/search_button.png" class="search_icon">
+                    <img src="@/assets/image/search_button.png" class="search_icon">
                 </button>
             </div>
             <div class="date_filter_box">
