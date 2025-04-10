@@ -98,6 +98,12 @@ const routes = createRouter({
             import("@/components/sales_management/MenuTable.vue"),
           name: "InventoryAnalysis",
         },
+        {
+          path: "salesAnalysis",
+          component: () =>
+            import("@/components/sales_management/SalesAnalysisDetail.vue"),
+          name: "SalesAnalysis",
+        },
       ],
     },
   ],
