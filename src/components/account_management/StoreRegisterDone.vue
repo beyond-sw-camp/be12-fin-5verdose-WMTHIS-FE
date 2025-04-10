@@ -27,7 +27,7 @@ const logoImage = ref(Logo) // 로고 이미지 참조 추가
 
 // 함수 정의
 const submit = () => {
-    router.push({ name: 'signup1' });
+    router.push({ name: 'dashboard' }); // 대시보드로 이동
 }
 </script>
 

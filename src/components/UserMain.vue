@@ -1,6 +1,6 @@
 <script setup>
 import { RouterView } from 'vue-router';
-import Header from './Header.vue';
+import Header from '@/components/common/Header.vue';
 </script>
 
 <template>
@@ -8,7 +8,9 @@ import Header from './Header.vue';
     <Header />
     <v-main>
       <v-container fluid>
-        <RouterView />
+        <div class="content_wrapper">
+          <RouterView />
+        </div>
       </v-container>
     </v-main>
   </v-app>
@@ -17,13 +19,25 @@ import Header from './Header.vue';
 <style scoped>
 .v-main {
   padding-top: 64px;
-  /* 헤더 높이에 맞게 조정 */
 }
 
 @media (max-width: 959px) {
   .v-main {
     padding-top: 56px;
-    /* 모바일에서 헤더 높이에 맞게 조정 */
   }
+}
+
+/* 중앙 정렬된 콘텐츠 박스 */
+.content_wrapper {
+  background-color: rgb(255, 255, 255);
+  padding: 50px;
+  max-width: 1300px !important;
+  margin: 20px auto;
+  /* 수평 가운데 정렬 */
+  padding: 16px;
+  /* 콘텐츠 여백 */
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 15px;
 }
 </style>
