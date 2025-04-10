@@ -1,7 +1,6 @@
 <template>
   <div class="header-container">
     <!-- 왼쪽 세로 바 -->
-    <div class="left-bar"></div>
 
     <v-app-bar app floating elevation="2" :class="{ 'mt-2': true, 'scrolled': isScrolled }" color="transparent">
       <div class="d-flex align-center">
@@ -191,31 +190,16 @@ onBeforeUnmount(() => {
 <style scoped>
 .header-container {
   position: relative;
-  width: 100%;
-  height: 0;
-}
-
-.left-bar {
-  position: fixed;
-  top: -8px;
-  left: 8rem;
-  width: 12px;
-  height: 64px;
-  /* 헤더 높이와 동일하게 설정 */
-  background-color: #708090;
-  border-radius: 4px;
-  z-index: 1000;
-  margin-top: 16px;
-  /* 헤더의 mt-2와 일치 */
+  width: 95%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .v-app-bar {
-  width: 95% !important;
-  max-width: 1200px;
-  left: 10% !important;
-  transform: translateX(-50%);
+  width: calc(100% - 12px);
+  max-width: 99%;
+  margin-left: 12px;
   border-radius: 8px;
-  transition: all 0.3s ease;
   background-color: #708090 !important;
 }
 
@@ -289,13 +273,5 @@ onBeforeUnmount(() => {
 /* 활성화된 드롭다운 아이템 스타일 */
 .active-dropdown .v-list-item__title {
   color: white !important;
-}
-
-/* 스크롤 시 왼쪽 바 위치 조정 */
-@media (max-width: 959px) {
-  .left-bar {
-    height: 56px;
-    /* 모바일에서 헤더 높이 */
-  }
 }
 </style>
