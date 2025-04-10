@@ -9,7 +9,7 @@ import Header from '@/components/common/Header.vue';
     </div>
     <v-main>
       <v-container fluid>
-        <div class="content_wrapper">
+        <div class="content_wrapper" style="min-height: 700px;">
           <RouterView />
         </div>
       </v-container>
