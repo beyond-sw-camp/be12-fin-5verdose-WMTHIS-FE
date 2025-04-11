@@ -287,7 +287,7 @@ const deleteSelectedItems = () => {
         <!-- 발주 필요 재고 필터 -->
         <v-window-item value="order">
           <v-row class="mt-3">
-            <v-col>
+            <v-col cols="5">
               <v-btn
                 class="filter_btn"
                 :class="{ selected: selectedFilter === '필요' }"
@@ -298,7 +298,7 @@ const deleteSelectedItems = () => {
                 필요
               </v-btn>
             </v-col>
-            <v-col>
+            <v-col cols="5">
               <v-btn
                 class="filter_btn"
                 :class="{ selected: selectedFilter === '충분' }"
@@ -312,14 +312,18 @@ const deleteSelectedItems = () => {
           </v-row>
         </v-window-item>
       </v-window>
-      <v-col cols="6" md="1" class="d-flex justify-start">
-        <div
-          class="divider"
-          style="width: 2px; background-color: #ccc; height: 100%"
-        ></div>
-      </v-col>
     </v-col>
-
+    <v-col cols="auto" class="d-flex justify-center">
+      <div
+        class="divider"
+        style="
+          width: 2px;
+          background-color: #ccc;
+          height: 100%;
+          margin-left: -75px;
+        "
+      ></div>
+    </v-col>
     <!-- 오른쪽: 재고 테이블 -->
     <v-col cols="3" md="8" style="max-width: 1200px">
       <div class="body">
@@ -457,7 +461,7 @@ const deleteSelectedItems = () => {
 }
 
 .v-tab {
-  color: #4d826c !important;
+  color: #413d3d !important;
   font-weight: 500;
   background-color: transparent !important;
   box-shadow: none !important;
@@ -489,6 +493,7 @@ const deleteSelectedItems = () => {
   transition: color 0.2s ease;
   border-radius: 999px !important;
   padding: 8px 10px !important;
+  margin-left: 20px;
 }
 
 .filter_btn.selected {
