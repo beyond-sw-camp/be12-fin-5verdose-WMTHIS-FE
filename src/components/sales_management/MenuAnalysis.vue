@@ -405,6 +405,26 @@ const periodSales = computed(() => {
   return Object.values(filteredMenu);
 });
 
+const selectedDates = ref(null);
+
+// 중복 제거된 날짜 목록
+const uniqueDates = computed(() => {
+  const dates = periodSales.value.map(item => item.date);
+  return [...new Set(dates)].sort((a, b) =>
+    sortOrder.value === "asc" ? a.localeCompare(b) : b.localeCompare(a)
+  );
+});
+
+// 해당 날짜의 상세 데이터
+const salesForSelectedDate = computed(() => {
+  if (!selectedDates.value) return [];
+  return periodSales.value.filter(item => item.date === selectedDates.value);
+});
+
+
+
+
+
 const toggleSortOrder = () => {
   sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc";
 };
@@ -453,7 +473,6 @@ const toggleSortOrder = () => {
               <thead>
                 <tr>
                   <th @click="toggleSortOrder"><img :src="sortIcon" alt="정렬 아이콘" class="search_icon" /></th>
-                  <th @click="toggleSortOrder">날짜</th>
                   <th>메뉴명</th>
                   <th>수량</th>
                 </tr>
@@ -464,15 +483,29 @@ const toggleSortOrder = () => {
           <div ref="scrollableWrapperRef" class="scrollable_wrapper">
             <table ref="tableBodyRef" class="sales_table body_table">
               <tbody>
-                <tr v-for="(item, idx) in periodSales" :key="idx">
-                  <td>{{ item.date.slice(5) }}</td>
-                  <td>{{ item.time }}</td>
-                  <td>{{ item.menuName }}</td>
-                  <td>1</td>
-                </tr>
-                <tr v-if="periodSales.length === 0">
-                  <td colspan="3" class="no_data">해당 날짜의 판매 데이터가 없습니다.</td>
-                </tr>
+                  <tr
+v-for="(date, idx) in uniqueDates"
+    :key="idx"
+    @click="selectedDates = date"
+    :class="{ selected: selectedDates === date }"
+    style="cursor: pointer"
+  >
+    <td colspan="3">
+      <strong>{{ date.slice(5) }}</strong> ▶ 클릭하여 상세 보기
+    </td>
+  </tr>
+
+  <!-- 선택된 날짜의 상세 데이터 출력 -->
+  <tr v-for="(item, idx) in salesForSelectedDate" :key="`detail-${idx}`">
+    <td>{{ item.time }}</td>
+    <td>{{ item.menuName }}</td>
+    <td>1</td>
+  </tr>
+
+  <!-- 데이터 없을 때 안내 메시지 -->
+  <tr v-if="uniqueDates.length === 0">
+    <td colspan="3" class="no_data">해당 날짜의 판매 데이터가 없습니다.</td>
+  </tr>
               </tbody>
             </table>
           </div>
