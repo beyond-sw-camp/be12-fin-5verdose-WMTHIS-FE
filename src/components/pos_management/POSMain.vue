@@ -36,6 +36,7 @@ const selectedTableForCancel = ref(null);
 // 테이블 선택 처리
 const selectTable = (tableId) => {
     // 선택한 테이블 ID를 로컬 스토리지에 저장
+    console.log(tables.value)
     localStorage.setItem('selected_table_id', tableId);
     localStorage.setItem('order_type', 'table');
 

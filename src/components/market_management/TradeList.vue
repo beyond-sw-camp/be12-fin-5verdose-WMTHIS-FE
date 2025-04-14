@@ -5,6 +5,7 @@ import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import TradeRequestModal from './TradeRequestModal.vue';
 import axios from 'axios';
+import { api } from '@/api';
 
 
 dayjs.extend(isSameOrAfter);
@@ -126,6 +127,8 @@ const filteredItems = computed(() => {
         });
 });
 
+
+
 const requestPay = (item, onSuccess) => {
     if (!window.IMP) {
         const script = document.createElement('script');
@@ -155,15 +158,13 @@ const runPayment = (item, onSuccess) => {
         buyer_addr: '서울특별시 보라매로 87',
     }, async function (rsp) {
         if (rsp.success) {
-            console.log("결제 성공:", rsp);
-            console.log("결제 성공:", rsp.imp_uid, rsp.merchant_uid);
-            // 결제 성공 후 서버에 결제 정보 전송
-            // 서버에서 결제 검증 후 성공 여부 확인
-            const verifyRes = await axios.post('api/payments/verify', {
+            const data = {
                 impUid: rsp.imp_uid,
                 merchantUid: rsp.merchant_uid
-            });
-            if (verifyRes.data === 'success') {
+            };
+            // 결제 성공 후 서버에 결제 정보 전송
+            // 서버에서 결제 검증 후 성공 여부 확인
+            if (api.verify(data)) {
                 onSuccess(); // 결제 성공 처리
             } else {
                 alert('결제 검증에 실패했습니다.');
