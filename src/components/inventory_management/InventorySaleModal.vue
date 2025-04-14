@@ -73,7 +73,12 @@ const removeIngredient = (index) => {
 </script>
 
 <template>
-  <div v-if="isOpen" class="sale_modal_container" @click.self="emit('close')" style="z-index: 2000;">
+  <div
+    v-if="isOpen"
+    class="sale_modal_container"
+    @click.self="emit('close')"
+    style="z-index: 2000"
+  >
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
@@ -91,7 +96,11 @@ const removeIngredient = (index) => {
             </div>
             <p class="sub_title">판매 시 사용하는 물품명을 선택해주세요.</p>
             <div class="unit-container">
-              <select v-model="category" class="unit-select" style="width: 250px">
+              <select
+                v-model="category"
+                class="unit-select"
+                style="width: 250px"
+              >
                 <option value="마늘">마늘</option>
                 <option value="토마토">토마토</option>
                 <option value="양배추">양배추</option>
@@ -108,14 +117,18 @@ const removeIngredient = (index) => {
             </div>
             <p class="sub_title">물품의 희망가격을 입력해주세요.</p>
             <div class="unit-container">
-              <input type="text" v-model="minimumQuantity" style="width: 200px" placeholder="3000"
-                class="min-qty-input" />
+              <input
+                type="text"
+                v-model="minimumQuantity"
+                style="width: 200px"
+                placeholder="3000"
+                class="min-qty-input"
+              />
               <p>원</p>
             </div>
           </div>
         </div>
         <div class="input_group">
-<<<<<<< HEAD
           <div class="input_row">
             <!-- 왼쪽: 라벨 + 설명 -->
             <div class="input_info">
@@ -133,15 +146,7 @@ const removeIngredient = (index) => {
               />
               <span class="unit-text">Kg</span>
             </div>
-=======
-          <div class="modal_title2 between">
-            <label>수량</label>
-          </div>
-          <p class="sub_title">물품의 수량을 입력해주세요.</p>
-          <div class="input-with-unit">
-            <input type="text" v-model="minimumQuantity" placeholder="3" class="min-qty-input" style="width: 200px" />
-            <p class="unit-text">Kg</p>
->>>>>>> d4172fb71b2785ae24e79ba8cc32123fce64f85e
+      
           </div>
         </div>
 
@@ -154,8 +159,16 @@ const removeIngredient = (index) => {
             가능해요.)
           </p>
           <div class="unit-container">
-            <v-file-input v-model="files" variant="outlined" accept="image/*" multiple :counter="true"
-              :rules="[maxFileRule]" :show-size="true" hide-details="auto" />
+            <v-file-input
+              v-model="files"
+              variant="outlined"
+              accept="image/*"
+              multiple
+              :counter="true"
+              :rules="[maxFileRule]"
+              :show-size="true"
+              hide-details="auto"
+            />
           </div>
           <div class="input_group">
             <div class="modal_title2">
@@ -169,7 +182,7 @@ const removeIngredient = (index) => {
         </div>
       </div>
       <div class="modal_footer">
-        <button class="confirm_btn" @click="emit('close')">등록</button>
+        <button class="confirm_btn" @click="emit('close')">수정</button>
       </div>
     </div>
   </div>
@@ -267,12 +280,10 @@ const removeIngredient = (index) => {
   justify-content: space-between;
   align-items: center;
 }
-<<<<<<< HEAD
-.min_qty_input {
-=======
+
+
 
 .min-qty-input {
->>>>>>> d4172fb71b2785ae24e79ba8cc32123fce64f85e
   width: 80px;
   padding: 8px 10px;
   border: 1px solid #ccc;
@@ -504,7 +515,9 @@ const removeIngredient = (index) => {
   /* 드롭다운 크기 */
   appearance: none;
   /* 기본 스타일 제거 */
-  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
+  background: white
+    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
   background-size: 16px;
 }
 
@@ -572,13 +585,11 @@ const removeIngredient = (index) => {
   justify-content: flex-end;
   /* 오른쪽 정렬 */
   align-items: center;
-<<<<<<< HEAD
+
   gap: 8px; /* 입력창과 단위 사이 간격 */
   text-align: right;
-=======
-  gap: 8px;
-  /* 입력창과 단위 사이 간격 */
->>>>>>> d4172fb71b2785ae24e79ba8cc32123fce64f85e
+
+
 }
 
 .min-qty-input {
