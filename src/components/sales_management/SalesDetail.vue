@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch } from "vue"
 const props = defineProps({
     salesData: {
         type: Object,
@@ -11,218 +11,237 @@ const props = defineProps({
     },
     selectedCategory: {
         type: String,
-        default: 'all',
+        default: "all",
     },
     selectedPeriod: {
-        type: String,
-        default: 'today', // 기본값을 설정하지 않으면 오류 발생 가능
+        type: [String, Object],
+        required: true,
     },
-});
-watch(() => props.salesData, (newVal) => {
-    console.log('salesData:', newVal);
-});
-watch(() => props.selectedDate, (newVal) => {
-    console.log('selectedDate:', newVal);
-});
-watch(() => props.selectedPeriod, (newVal) => {
-    console.log('selectedPeriod:', newVal);
-});
+})
+watch(
+    () => props.salesData,
+    (newVal) => {
+        console.log("salesData:", newVal)
+    },
+)
+watch(
+    () => props.selectedDate,
+    (newVal) => {
+        console.log("selectedDate:", newVal)
+    },
+)
+
+watch(
+    () => props.selectedPeriod,
+    (val) => {
+        console.log("선택된 기간:", val)
+    },
+)
 const chartSeries = computed(() => [
     {
-        name: '홀',
-        data: hourlyData.value.map(h => h.hall),
+        name: "홀",
+        data: hourlyData.value.map((h) => h.hall),
     },
     {
-        name: '배민',
-        data: hourlyData.value.map(h => h.baemin),
+        name: "배민",
+        data: hourlyData.value.map((h) => h.baemin),
     },
     {
-        name: '쿠팡',
-        data: hourlyData.value.map(h => h.coupang),
+        name: "쿠팡",
+        data: hourlyData.value.map((h) => h.coupang),
     },
     {
-        name: '요기요',
-        data: hourlyData.value.map(h => h.yogiyo),
+        name: "요기요",
+        data: hourlyData.value.map((h) => h.yogiyo),
     },
-]);
-
-
-const filteredHourlyData = computed(() => {
-    if (!props.salesData || !props.selectedDate) {
-        return []; // 데이터가 없을 경우 빈 배열 반환
-    }
-
-    const dateKey = props.selectedDate.toISOString().split('T')[0]; // 날짜를 'YYYY-MM-DD' 형식으로 변환
-    const dailyData = props.salesData[dateKey];
-
-    if (!dailyData) {
-        return []; // 해당 날짜의 데이터가 없을 경우 빈 배열 반환
-    }
-
-    if (props.selectedCategory === 'all') {
-        return dailyData; // 모든 카테고리를 선택한 경우 전체 데이터 반환
-    }
-
-    return dailyData.filter(item => item.type === props.selectedCategory); // 선택된 카테고리에 해당하는 데이터 필터링
-});
-
-const filteredSalesData = computed(() => {
-    if (!props.selectedDate) return [];
-
-    // 선택된 날짜를 기준으로 시작
-    const selectedDate = new Date(props.selectedDate);
-    selectedDate.setHours(0, 0, 0, 0);
-
-    // 오늘 날짜 계산
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (props.selectedPeriod === 'today') {
-        // 오늘 데이터
-        const dateStr = formatDateToString(today);
-        return props.salesData[dateStr] || [];
-    }
-    else if (props.selectedPeriod === 'yesterday') {
-        // 어제 데이터 - 이미 어제 날짜가 selectedDate로 전달되므로 그대로 사용
-        const dateStr = formatDateToString(selectedDate);
-        return props.salesData[dateStr] || [];
-    }
-    else if (props.selectedPeriod === 'week') {
-        // 이번 주 데이터 (일요일부터 토요일까지)
-        const currentDay = today.getDay(); // 0(일요일)부터 6(토요일)
-        const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - currentDay); // 이번 주 시작일 (일요일)
-
-        let allWeekData = [];
-        for (let i = 0; i < 7; i++) {
-            const date = new Date(startOfWeek);
-            date.setDate(startOfWeek.getDate() + i);
-            const dateStr = formatDateToString(date);
-            const dayData = props.salesData[dateStr] || [];
-            allWeekData = [...allWeekData, ...dayData];
-        }
-        return allWeekData;
-    }
-    else if (props.selectedPeriod === 'month') {
-        // 이번 달 데이터 (1일부터 말일까지)
-        const year = today.getFullYear();
-        const month = today.getMonth();
-        const lastDay = new Date(year, month + 1, 0).getDate();
-
-        let allMonthData = [];
-        for (let i = 1; i <= lastDay; i++) {
-            const date = new Date(year, month, i);
-            const dateStr = formatDateToString(date);
-            const dayData = props.salesData[dateStr] || [];
-            allMonthData = [...allMonthData, ...dayData];
-        }
-        return allMonthData;
-    }
-    else if (props.selectedPeriod === 'specific') {
-        // 특정 날짜 데이터 - 선택된 날짜의 데이터 표시
-        const dateStr = formatDateToString(selectedDate);
-        return props.salesData[dateStr] || [];
-    }
-
-    // 기본값: 선택된 날짜의 데이터
-    const dateStr = formatDateToString(selectedDate);
-    return props.salesData[dateStr] || [];
-});
+])
 
 // 날짜를 문자열로 변환하는 헬퍼 함수
 const formatDateToString = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-};
+    if (!date) return ""
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, "0")
+    const day = String(date.getDate()).padStart(2, "0")
+    return `${year}-${month}-${day}`
+}
+
+const filteredSalesData = computed(() => {
+    if (!props.salesData || !props.selectedDate) return []
+
+    const salesData = props.salesData
+
+    // 커스텀 날짜 범위 선택 처리
+    if (props.selectedPeriod?.type === "custom" && props.selectedPeriod.start && props.selectedPeriod.end) {
+        const start = new Date(props.selectedPeriod.start)
+        const end = new Date(props.selectedPeriod.end)
+        start.setHours(0, 0, 0, 0)
+        end.setHours(23, 59, 59, 999)
+
+        const result = []
+        const date = new Date(start)
+
+        while (date <= end) {
+            const dateStr = formatDateToString(date)
+            if (salesData[dateStr]) {
+                result.push(...salesData[dateStr])
+            }
+            date.setDate(date.getDate() + 1)
+        }
+
+        return result
+    }
+
+    // 특정 기간 선택 처리
+    if (typeof props.selectedPeriod === "string") {
+        if (props.selectedPeriod === "today") {
+            const today = formatDateToString(new Date())
+            return salesData[today] || []
+        }
+
+        if (props.selectedPeriod === "yesterday") {
+            const yesterday = new Date()
+            yesterday.setDate(yesterday.getDate() - 1)
+            const yesterdayStr = formatDateToString(yesterday)
+            return salesData[yesterdayStr] || []
+        }
+
+        if (props.selectedPeriod === "week") {
+            const today = new Date()
+            const currentDay = today.getDay() // 0(일) ~ 6(토)
+            const startOfWeek = new Date(today)
+            startOfWeek.setDate(today.getDate() - currentDay)
+
+            let weekData = []
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(startOfWeek)
+                date.setDate(startOfWeek.getDate() + i)
+                const dateStr = formatDateToString(date)
+                if (salesData[dateStr]) {
+                    weekData = [...weekData, ...salesData[dateStr]]
+                }
+            }
+            return weekData
+        }
+
+        if (props.selectedPeriod === "month") {
+            const today = new Date()
+            const year = today.getFullYear()
+            const month = today.getMonth()
+            const lastDay = new Date(year, month + 1, 0).getDate()
+
+            let monthData = []
+            for (let i = 1; i <= lastDay; i++) {
+                const date = new Date(year, month, i)
+                const dateStr = formatDateToString(date)
+                if (salesData[dateStr]) {
+                    monthData = [...monthData, ...salesData[dateStr]]
+                }
+            }
+            return monthData
+        }
+    }
+
+    // 기본: 선택된 날짜의 데이터 반환 (단일 날짜 선택)
+    const dateStr = formatDateToString(props.selectedDate)
+    console.log("선택된 날짜:", dateStr, "데이터:", salesData[dateStr])
+    return salesData[dateStr] || []
+})
 
 // 현재 표시되는 데이터 수정
 const currentDateData = computed(() => {
-    return filteredSalesData.value;
-});
+    return filteredSalesData.value
+})
 
 // 표시되는 날짜 텍스트 수정
 const formattedDate = computed(() => {
-    if (!props.selectedDate) return '';
+    if (!props.selectedDate) return ""
 
-    const year = props.selectedDate.getFullYear();
-    const month = props.selectedDate.getMonth() + 1;
-    const date = props.selectedDate.getDate();
+    const selectedDate = new Date(props.selectedDate)
+    const year = selectedDate.getFullYear()
+    const month = selectedDate.getMonth() + 1
+    const date = selectedDate.getDate()
 
-    if (props.selectedPeriod === 'today') {
-        return `${year}년 ${month}월 ${date}일 (오늘)`;
+    if (props.selectedPeriod === "today") {
+        const today = new Date()
+        return `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일 (오늘)`
+    } else if (props.selectedPeriod === "yesterday") {
+        const yesterday = new Date()
+        yesterday.setDate(yesterday.getDate() - 1)
+        return `${yesterday.getFullYear()}년 ${yesterday.getMonth() + 1}월 ${yesterday.getDate()}일 (어제)`
+    } else if (props.selectedPeriod === "week") {
+        const today = new Date()
+        const currentDay = today.getDay()
+        const startOfWeek = new Date(today)
+        startOfWeek.setDate(today.getDate() - currentDay)
+
+        const endOfWeek = new Date(startOfWeek)
+        endOfWeek.setDate(startOfWeek.getDate() + 6)
+
+        const startMonth = startOfWeek.getMonth() + 1
+        const startDate = startOfWeek.getDate()
+        const endMonth = endOfWeek.getMonth() + 1
+        const endDate = endOfWeek.getDate()
+        const year = startOfWeek.getFullYear()
+
+        return `${year}년 ${startMonth}월 ${startDate}일 ~ ${endMonth}월 ${endDate}일 (이번주)`
+    } else if (props.selectedPeriod === "month") {
+        const today = new Date()
+        const year = today.getFullYear()
+        const month = today.getMonth() + 1
+        const lastDay = new Date(year, month, 0).getDate()
+        return `${year}년 ${month}월 1일 ~ ${month}월 ${lastDay}일 (이번달)`
+    } else if (props.selectedPeriod?.type === "custom" && props.selectedPeriod.start && props.selectedPeriod.end) {
+        const start = new Date(props.selectedPeriod.start)
+        const end = new Date(props.selectedPeriod.end)
+
+        const startStr = `${start.getFullYear()}년 ${start.getMonth() + 1}월 ${start.getDate()}일`
+        const endStr = `${end.getFullYear()}년 ${end.getMonth() + 1}월 ${end.getDate()}일`
+
+        return `${startStr} ~ ${endStr} (사용자 선택 기간)`
     }
-    else if (props.selectedPeriod === 'yesterday') {
-        return `${year}년 ${month}월 ${date}일 (어제)`;
-    }
-    else if (props.selectedPeriod === 'week') {
-        const today = new Date();
-        const currentDay = today.getDay();
-        const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - currentDay);
 
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-        const startMonth = startOfWeek.getMonth() + 1;
-        const startDate = startOfWeek.getDate();
-        const endMonth = endOfWeek.getMonth() + 1;
-        const endDate = endOfWeek.getDate();
-
-        return `${year}년 ${startMonth}월 ${startDate}일 ~ ${endMonth}월 ${endDate}일 (이번주)`;
-    }
-    else if (props.selectedPeriod === 'month') {
-        const lastDay = new Date(year, month, 0).getDate();
-        return `${year}년 ${month}월 1일 ~ ${month}월 ${lastDay}일 (이번달)`;
-    }
-    else if (props.selectedPeriod === 'specific') {
-        return `${year}년 ${month}월 ${date}일`;
-    }
-
-    return `${year}년 ${month}월 ${date}일`;
-});
+    return `${year}년 ${month}월 ${date}일`
+})
 
 const dateString = computed(() => {
-    if (!props.selectedDate) return '';
+    if (!props.selectedDate) return ""
 
-    const year = props.selectedDate.getFullYear();
-    const month = String(props.selectedDate.getMonth() + 1).padStart(2, '0');
-    const date = String(props.selectedDate.getDate()).padStart(2, '0');
+    const year = props.selectedDate.getFullYear()
+    const month = String(props.selectedDate.getMonth() + 1).padStart(2, "0")
+    const date = String(props.selectedDate.getDate()).padStart(2, "0")
 
-    return `${year}-${month}-${date}`;
-});
-
+    return `${year}-${month}-${date}`
+})
 
 const totalOrders = computed(() => {
-    return currentDateData.value.length;
-});
+    return currentDateData.value.length
+})
 
 const totalSales = computed(() => {
-    return currentDateData.value.reduce((sum, item) => sum + item.amount, 0);
-});
+    return currentDateData.value.reduce((sum, item) => sum + item.amount, 0)
+})
 const deliveryTotal = computed(() => {
-    return categorySales.value.baemin + categorySales.value.coupang + categorySales.value.yogiyo;
-});
+    return categorySales.value.baemin + categorySales.value.coupang + categorySales.value.yogiyo
+})
 const categorySales = computed(() => {
     const result = {
         hall: 0,
         baemin: 0,
         coupang: 0,
-        yogiyo: 0
-    };
+        yogiyo: 0,
+    }
 
-    currentDateData.value.forEach(item => {
+    currentDateData.value.forEach((item) => {
         if (result[item.type] !== undefined) {
-            result[item.type] += item.amount;
+            result[item.type] += item.amount
         }
-    });
+    })
 
-    return result;
-});
+    return result
+})
 
 const hourlyData = computed(() => {
-    const hours = {};
+    const hours = {}
 
     for (let i = 0; i < 24; i++) {
         hours[i] = {
@@ -230,101 +249,95 @@ const hourlyData = computed(() => {
             hall: 0,
             baemin: 0,
             coupang: 0,
-            yogiyo: 0
-        };
+            yogiyo: 0,
+        }
     }
 
-    currentDateData.value.forEach(item => {
-        const paidTime = new Date(item.paidAt);
-        const hour = paidTime.getHours();
+    currentDateData.value.forEach((item) => {
+        const paidTime = new Date(item.paidAt)
+        const hour = paidTime.getHours()
 
         if (hours[hour] && hours[hour][item.type] !== undefined) {
-            hours[hour][item.type] += item.amount;
+            hours[hour][item.type] += item.amount
         }
-    });
+    })
 
-    return Object.values(hours);
-});
+    return Object.values(hours)
+})
 
 const formatCurrency = (amount) => {
-    return amount.toLocaleString() + '원';
-};
+    return amount.toLocaleString() + "원"
+}
 
 const yAxisValues = computed(() => {
-    let maxValue = 0;
-    hourlyData.value.forEach(hour => {
-        const total = hour.hall + hour.baemin + hour.coupang + hour.yogiyo;
-        if (total > maxValue) maxValue = total;
-    });
+    let maxValue = 0
+    hourlyData.value.forEach((hour) => {
+        const total = hour.hall + hour.baemin + hour.coupang + hour.yogiyo
+        if (total > maxValue) maxValue = total
+    })
 
-    if (maxValue < 20000) maxValue = 20000;
+    if (maxValue < 20000) maxValue = 20000
 
-    const step = Math.ceil(maxValue / 5 / 10000) * 10000;
-    return [0, step, step * 2, step * 3, step * 4, step * 5];
-});
-
-const formatYAxisLabel = (value) => {
-    if (value >= 10000) {
-        return `${value / 5000}만`;
-    }
-    return value;
-};
+    const step = Math.ceil(maxValue / 5 / 10000) * 10000
+    return [0, step, step * 2, step * 3, step * 4, step * 5]
+})
 
 const categoryOrderCount = computed(() => {
     const result = {
         hall: 0,
         baemin: 0,
         coupang: 0,
-        yogiyo: 0
-    };
+        yogiyo: 0,
+    }
 
-    currentDateData.value.forEach(item => {
+    currentDateData.value.forEach((item) => {
         if (result[item.type] !== undefined) {
-            result[item.type] += 1;
+            result[item.type] += 1
         }
-    });
+    })
 
-    return result;
-});
+    return result
+})
 
 // 배달 주문 건수 계산
 const deliveryOrderCount = computed(() => {
-    return categoryOrderCount.value.baemin + categoryOrderCount.value.coupang + categoryOrderCount.value.yogiyo;
-});
+    return categoryOrderCount.value.baemin + categoryOrderCount.value.coupang + categoryOrderCount.value.yogiyo
+})
 
 const chartOptions = computed(() => ({
     chart: {
-        type: 'bar',
+        type: "bar",
         stacked: true, // 스택형 막대 그래프 활성화
         toolbar: { show: false },
     },
     plotOptions: {
         bar: {
             horizontal: false, // 수직 막대 그래프
-            columnWidth: '40%', // 막대 너비
+            columnWidth: "40%", // 막대 너비
         },
     },
     dataLabels: {
         enabled: false, // 데이터 레이블 비활성화
     },
     xaxis: {
-        categories: hourlyData.value.map(item => `${item.hour}시`), // 시간대별 카테고리
+        categories: hourlyData.value.map((item) => `${item.hour}시`), // 시간대별 카테고리
     },
     yaxis: {
         labels: {
-            formatter: val => `${val.toLocaleString()}원`, // Y축 값 포맷
+            formatter: (val) => `${val.toLocaleString()}원`, // Y축 값 포맷
         },
     },
     tooltip: {
         y: {
-            formatter: val => `${val.toLocaleString()}원`, // 툴팁 값 포맷
+            formatter: (val) => `${val.toLocaleString()}원`, // 툴팁 값 포맷
         },
     },
     legend: {
-        position: 'top', // 범례 위치
+        position: "top", // 범례 위치
     },
-    colors: ['#FFD666', '#87E8DE', '#FF9C6E', '#B37FEB'], // 카테고리별 색상
-}));
+    colors: ["#FFD666", "#87E8DE", "#FF9C6E", "#B37FEB"], // 카테고리별 색상
+}))
+
 </script>
 
 <template>
@@ -344,7 +357,8 @@ const chartOptions = computed(() => ({
                 <hr>
                 <div>
                     <div class="delivery-summary-title">
-                        <p>홀</p><span>{{ formatCurrency(categorySales.hall) }} ({{ categoryOrderCount.hall }}건)</span>
+                        <p>홀</p><span>{{ formatCurrency(categorySales.hall) }} ({{ categoryOrderCount.hall
+                            }}건)</span>
                     </div>
                     <div class="delivery-summary-title">
                         <p>배달</p> <span>총 {{ formatCurrency(deliveryTotal) }} ({{ deliveryOrderCount }}건)</span>
@@ -358,11 +372,11 @@ const chartOptions = computed(() => ({
                     </div>
                     <div class="delivery-summary">
                         <p>쿠팡</p><span>{{ formatCurrency(categorySales.coupang) }} ({{ categoryOrderCount.coupang
-                        }}건)</span>
+                            }}건)</span>
                     </div>
                     <div class="delivery-summary">
                         <p>요기요</p><span>{{ formatCurrency(categorySales.yogiyo) }} ({{ categoryOrderCount.yogiyo
-                        }}건)</span>
+                            }}건)</span>
                     </div>
                 </div>
             </div>

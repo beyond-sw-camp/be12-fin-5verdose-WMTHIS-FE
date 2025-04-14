@@ -20,8 +20,12 @@ const props = defineProps({
 // 수정된 emit 정의 - 기간 정보도 함께 전달하기 위한 새 이벤트 추가
 const emit = defineEmits(['update:currentMonth', 'update:currentYear', 'date-selected', 'period-selected']);
 
-const selectedDate = ref(null);
+const rangeSelecting = ref(false);
+const selectedRangeStart = ref(null);
+const selectedRangeEnd = ref(null);
 
+const selectedDate = ref(null);
+const selectedRange = ref([]);
 const weekdays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const currentYearMonth = computed(() => {
     return `${props.currentYear}년 ${props.currentMonth + 1}월`;
@@ -79,7 +83,13 @@ const getSalesForDate = (date) => {
     return props.salesData[formattedDate] || [];
 };
 
-
+const startRangeSelection = () => {
+    activeTab.value = 'custom';
+    rangeSelecting.value = true;
+    selectedRangeStart.value = null;
+    selectedRangeEnd.value = null;
+    selectedRange.value = [];
+};
 // 오늘 날짜인지 확인
 const isToday = (date) => {
     const today = new Date();
@@ -90,18 +100,48 @@ const isToday = (date) => {
 
 // 선택된 날짜인지 확인
 const isSelected = (date) => {
-    if (!selectedDate.value) return false;
-    return date.getDate() === selectedDate.value.getDate() &&
-        date.getMonth() === selectedDate.value.getMonth() &&
-        date.getFullYear() === selectedDate.value.getFullYear();
+    return selectedRange.value.some(
+        (selectedDate) =>
+            date.getFullYear() === selectedDate.getFullYear() &&
+            date.getMonth() === selectedDate.getMonth() &&
+            date.getDate() === selectedDate.getDate()
+    );
 };
 
 // 날짜 선택 핸들러
 const selectDate = (date) => {
-    activeTab.value = null;
-    selectedDate.value = date;
-    emit('date-selected', date);
+    if (!rangeSelecting.value) {
+        activeTab.value = null;
+        selectedDate.value = date;
+        selectedRange.value = [date];
+        emit('date-selected', date);
+        // 단일 날짜 선택 시 period-selected 이벤트도 발생시킴
+        emit('period-selected', 'specific');
+    } else {
+        if (!selectedRangeStart.value) {
+            selectedRangeStart.value = date;
+        } else {
+            selectedRangeEnd.value = date;
+
+            const start = selectedRangeStart.value < date ? selectedRangeStart.value : date;
+            const end = selectedRangeStart.value > date ? selectedRangeStart.value : date;
+
+            selectedRange.value = getDateRange(start, end);
+            selectedDate.value = start;
+
+            emit('date-selected', start);
+            emit('period-selected', {
+                type: 'custom',
+                start,
+                end
+            });
+
+            // 선택 완료 후 초기화
+            rangeSelecting.value = false;
+        }
+    }
 };
+
 
 // 매출액 포맷팅
 const formatSales = (amount) => {
@@ -151,25 +191,45 @@ const setActiveTab = (tab) => {
     if (tab === 'yesterday') {
         const yesterday = new Date(today);
         yesterday.setDate(today.getDate() - 1);
-        selectedDate.value = yesterday; // 어제 날짜 선택
+        selectedDate.value = yesterday;
+        selectedRange.value = [yesterday]; // 어제 날짜만 선택
         emit('date-selected', yesterday);
         emit('period-selected', 'yesterday');
     } else if (tab === 'today') {
-        selectedDate.value = today; // 오늘 날짜 선택
+        selectedDate.value = today;
+        selectedRange.value = [today]; // 오늘 날짜만 선택
         emit('date-selected', today);
         emit('period-selected', 'today');
     } else if (tab === 'thisweek') {
         const startOfWeek = new Date(today);
         startOfWeek.setDate(today.getDate() - today.getDay()); // 이번 주 시작일 (일요일)
-        selectedDate.value = startOfWeek; // 이번 주 시작일 선택
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6); // 이번 주 종료일 (토요일)
+
+        selectedDate.value = startOfWeek;
+        selectedRange.value = getDateRange(startOfWeek, endOfWeek); // 이번 주 범위
         emit('date-selected', startOfWeek);
         emit('period-selected', 'week');
     } else if (tab === 'thismonth') {
         const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1); // 이번 달 시작일
-        selectedDate.value = startOfMonth; // 이번 달 시작일 선택
+        const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0); // 이번 달 종료일
+
+        selectedDate.value = startOfMonth;
+        selectedRange.value = getDateRange(startOfMonth, endOfMonth); // 이번 달 범위
         emit('date-selected', startOfMonth);
         emit('period-selected', 'month');
     }
+};
+const getDateRange = (startDate, endDate) => {
+    const range = [];
+    let currentDate = new Date(startDate);
+
+    while (currentDate <= endDate) {
+        range.push(new Date(currentDate)); // 날짜를 배열에 추가
+        currentDate.setDate(currentDate.getDate() + 1); // 하루씩 증가
+    }
+
+    return range;
 };
 </script>
 
@@ -195,6 +255,10 @@ const setActiveTab = (tab) => {
                 <button class="tab-btn" :class="{ active: activeTab === 'thismonth' }"
                     @click="setActiveTab('thismonth')">이번달</button>
             </div>
+
+            <button class="tab-btn" :class="{ active: activeTab === 'custom' }" @click="startRangeSelection">
+                날짜선택
+            </button>
         </div>
         <div class="calendar-header">
             <div class="weekday" v-for="day in weekdays" :key="day">{{ day }}</div>
