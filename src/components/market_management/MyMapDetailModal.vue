@@ -21,7 +21,8 @@ const handleClosePanel = () => {
     <div class="title">
       <h1 class="title_left">{{ item.name }}</h1>
       <div class="title_right">
-        <button class="close_btn" @click="handleClosePanel"><img src="../../img/xMark.png" class="x_button" /></button>
+        <button class="close_btn" @click="handleClosePanel"><img src="@/assets/image/xMark.png"
+            class="x_button" /></button>
         <p class="title_store">{{ item.store }}</p>
       </div>
     </div>
@@ -83,6 +84,7 @@ const handleClosePanel = () => {
   width: 100%;
   height: 10%;
 }
+
 .title_left {
   width: 15%;
 }
@@ -96,7 +98,8 @@ const handleClosePanel = () => {
   position: absolute;
   top: 5px;
   right: 5px;
-  z-index: 10000; /* 다른 요소보다 위로 */
+  z-index: 10000;
+  /* 다른 요소보다 위로 */
   width: 20px;
   height: 20px;
 }
@@ -231,6 +234,7 @@ input.no_spinner {
   cursor: pointer;
   margin-top: 20px;
 }
+
 .detail_message {
   font-size: 13px;
   color: #6d6d6d;

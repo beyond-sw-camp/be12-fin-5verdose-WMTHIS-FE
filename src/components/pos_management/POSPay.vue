@@ -123,7 +123,7 @@ const goBack = () => {
                 <div class="payment_method" :class="{ 'selected': selectedPayment === '카드' }"
                     @click="selectPayment('카드')">
                     <div class="payment_icon">
-                        <img src="../assets/creditpay.png" alt="카드 결제 아이콘" />
+                        <img src="@/assets/image/creditpay.png" alt="카드 결제 아이콘" />
                     </div>
                     <p>카드 결제</p>
                 </div>
@@ -132,7 +132,7 @@ const goBack = () => {
                 <div class="payment_method" :class="{ 'selected': selectedPayment === '현금' }"
                     @click="selectPayment('현금')">
                     <div class="payment_icon">
-                        <img src="../assets/cashpay.png" alt="현금 결제 아이콘" />
+                        <img src="@/assets/image/cashpay.png" alt="현금 결제 아이콘" />
                     </div>
                     <p>현금 결제</p>
                 </div>
@@ -143,7 +143,7 @@ const goBack = () => {
                     <div class="payment_icon">
                         <!-- SVG 아이콘으로 대체 (이미지 경로 문제 해결) -->
                         <div class="payment_icon">
-                            <img src="../assets/qrpay.png" alt="QR 결제 아이콘" />
+                            <img src="@/assets/image/qrpay.png" alt="QR 결제 아이콘" />
                         </div>
                     </div>
                     <p>QR 결제</p>
