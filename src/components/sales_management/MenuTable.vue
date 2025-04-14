@@ -1,605 +1,331 @@
+changeReason
 <script setup>
 import { ref, computed, onMounted, nextTick, watch } from "vue";
-import { Bar } from "vue-chartjs";
-import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js";
 import upIcon from "@/assets/image/up.png";
 import downIcon from "@/assets/image/down.png";
+import Calendar from "@/components/Calendar.vue";
+import StockDiagram from "@/components/sales_management/StockDiagram.vue";
 
 const keyword = ref("");
-const salesData = [
-  {
-    date: "2025-04-05",
-    time: "04:55:00",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-07",
-    time: "06:34:41",
-    categoryName: "파스타",
-    menuName: "쉬림프로제",
-  },
-  {
-    date: "2025-04-05",
-    time: "20:30:10",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-07",
-    time: "09:26:52",
-    categoryName: "피자",
-    menuName: "불고기피자",
-  },
-  {
-    date: "2025-04-07",
-    time: "15:35:31",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-06",
-    time: "17:21:25",
-    categoryName: "피자",
-    menuName: "불고기피자",
-  },
-  {
-    date: "2025-04-06",
-    time: "00:18:27",
-    categoryName: "피자",
-    menuName: "포테이토피자",
-  },
-  {
-    date: "2025-04-05",
-    time: "01:34:21",
-    categoryName: "파스타",
-    menuName: "쉬림프로제",
-  },
-  {
-    date: "2025-04-05",
-    time: "17:01:13",
-    categoryName: "파스타",
-    menuName: "머쉬룸파스타",
-  },
-  {
-    date: "2025-04-05",
-    time: "23:37:55",
-    categoryName: "피자",
-    menuName: "포테이토피자",
-  },
-  {
-    date: "2025-04-07",
-    time: "22:31:25",
-    categoryName: "피자",
-    menuName: "불고기피자",
-  },
-  {
-    date: "2025-04-05",
-    time: "04:20:04",
-    categoryName: "피자",
-    menuName: "포테이토피자",
-  },
-  {
-    date: "2025-04-07",
-    time: "19:08:03",
-    categoryName: "피자",
-    menuName: "쉬림프피자",
-  },
-  {
-    date: "2025-04-07",
-    time: "18:58:56",
-    categoryName: "파스타",
-    menuName: "크림치즈 파스타",
-  },
-  {
-    date: "2025-04-05",
-    time: "21:47:10",
-    categoryName: "피자",
-    menuName: "불고기피자",
-  },
-  {
-    date: "2025-04-07",
-    time: "17:58:41",
-    categoryName: "파스타",
-    menuName: "크림치즈 파스타",
-  },
-  {
-    date: "2025-04-07",
-    time: "03:03:02",
-    categoryName: "파스타",
-    menuName: "크림치즈 파스타",
-  },
-  {
-    date: "2025-04-05",
-    time: "00:35:05",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-06",
-    time: "21:43:30",
-    categoryName: "파스타",
-    menuName: "머쉬룸파스타",
-  },
-  {
-    date: "2025-04-06",
-    time: "01:16:19",
-    categoryName: "피자",
-    menuName: "쉬림프피자",
-  },
-  {
-    date: "2025-04-07",
-    time: "17:25:53",
-    categoryName: "파스타",
-    menuName: "머쉬룸파스타",
-  },
-  {
-    date: "2025-04-05",
-    time: "18:38:43",
-    categoryName: "피자",
-    menuName: "포테이토피자",
-  },
-  {
-    date: "2025-04-06",
-    time: "00:38:58",
-    categoryName: "파스타",
-    menuName: "크림치즈 파스타",
-  },
-  {
-    date: "2025-04-06",
-    time: "07:57:46",
-    categoryName: "피자",
-    menuName: "쉬림프피자",
-  },
-  {
-    date: "2025-04-05",
-    time: "13:29:15",
-    categoryName: "피자",
-    menuName: "포테이토피자",
-  },
-  {
-    date: "2025-04-07",
-    time: "10:20:19",
-    categoryName: "파스타",
-    menuName: "크림치즈 파스타",
-  },
-  {
-    date: "2025-04-05",
-    time: "21:35:05",
-    categoryName: "피자",
-    menuName: "쉬림프피자",
-  },
-  {
-    date: "2025-04-06",
-    time: "16:21:18",
-    categoryName: "피자",
-    menuName: "쉬림프피자",
-  },
-  {
-    date: "2025-04-06",
-    time: "04:20:32",
-    categoryName: "피자",
-    menuName: "불고기피자",
-  },
-  {
-    date: "2025-04-05",
-    time: "10:35:25",
-    categoryName: "파스타",
-    menuName: "크림치즈 파스타",
-  },
-  {
-    date: "2025-04-05",
-    time: "02:11:43",
-    categoryName: "파스타",
-    menuName: "크림치즈 파스타",
-  },
-  {
-    date: "2025-04-05",
-    time: "17:25:37",
-    categoryName: "피자",
-    menuName: "불고기피자",
-  },
-  {
-    date: "2025-04-05",
-    time: "15:48:53",
-    categoryName: "파스타",
-    menuName: "머쉬룸파스타",
-  },
-  {
-    date: "2025-04-07",
-    time: "02:08:54",
-    categoryName: "피자",
-    menuName: "쉬림프피자",
-  },
-  {
-    date: "2025-04-05",
-    time: "06:01:29",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-06",
-    time: "21:40:02",
-    categoryName: "파스타",
-    menuName: "머쉬룸파스타",
-  },
-  {
-    date: "2025-04-06",
-    time: "12:34:22",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-07",
-    time: "06:54:27",
-    categoryName: "파스타",
-    menuName: "머쉬룸파스타",
-  },
-  {
-    date: "2025-04-06",
-    time: "00:31:49",
-    categoryName: "피자",
-    menuName: "불고기피자",
-  },
-  {
-    date: "2025-04-05",
-    time: "23:20:02",
-    categoryName: "피자",
-    menuName: "쉬림프피자",
-  },
-  {
-    date: "2025-04-06",
-    time: "12:44:44",
-    categoryName: "피자",
-    menuName: "불고기피자",
-  },
-  {
-    date: "2025-04-05",
-    time: "04:20:10",
-    categoryName: "피자",
-    menuName: "불고기피자",
-  },
-  {
-    date: "2025-04-05",
-    time: "04:59:05",
-    categoryName: "파스타",
-    menuName: "머쉬룸파스타",
-  },
-  {
-    date: "2025-04-06",
-    time: "00:05:47",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-06",
-    time: "11:52:31",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-07",
-    time: "12:34:42",
-    categoryName: "파스타",
-    menuName: "머쉬룸파스타",
-  },
-  {
-    date: "2025-04-06",
-    time: "20:26:50",
-    categoryName: "피자",
-    menuName: "포테이토피자",
-  },
-  {
-    date: "2025-04-06",
-    time: "06:49:10",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-06",
-    time: "06:16:14",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-05",
-    time: "19:58:13",
-    categoryName: "파스타",
-    menuName: "쉬림프로제",
-  },
+
+const salesMenu = [
+  { date: "2025-04-05", time: "10:15:23", stockName: "우유", changeReason: "쉬림프피자", quantity: -0.44, unit: "L" },
+  { date: "2025-04-05", time: "11:22:12", stockName: "양파", changeReason: "쉬림프로제", quantity: -0.57, unit: "kg" },
+  { date: "2025-04-06", time: "09:03:44", stockName: "고등어", changeReason: "포테이토피자", quantity: -0.87, unit: "kg" },
+  { date: "2025-04-06", time: "13:14:11", stockName: "김치", changeReason: "불고기피자", quantity: -1.03, unit: "kg" },
+  { date: "2025-04-07", time: "08:22:19", stockName: "마늘", changeReason: "알리오올리오", quantity: -0.09, unit: "kg" },
+  { date: "2025-04-07", time: "12:35:55", stockName: "간장", changeReason: "크림치즈 파스타", quantity: -0.22, unit: "L" },
+  { date: "2025-04-05", time: "14:11:33", stockName: "마늘", changeReason: "머쉬룸파스타", quantity: -0.06, unit: "kg" },
+  { date: "2025-04-06", time: "10:10:10", stockName: "우유", changeReason: "쉬림프로제", quantity: -0.98, unit: "L" },
+  { date: "2025-04-07", time: "17:48:29", stockName: "양파", changeReason: "포테이토피자", quantity: -1.33, unit: "kg" },
+  { date: "2025-04-06", time: "18:00:00", stockName: "김치", changeReason: "불고기피자", quantity: -1.12, unit: "kg" },
+  { date: "2025-04-05", time: "07:13:51", stockName: "간장", changeReason: "쉬림프피자", quantity: -0.41, unit: "L" },
+  { date: "2025-04-06", time: "19:20:30", stockName: "고등어", changeReason: "머쉬룸파스타", quantity: -0.65, unit: "kg" },
+  { date: "2025-04-07", time: "21:35:01", stockName: "우유", changeReason: "알리오올리오", quantity: -0.52, unit: "L" },
+  { date: "2025-04-05", time: "06:05:05", stockName: "양파", changeReason: "크림치즈 파스타", quantity: -0.37, unit: "kg" },
+  { date: "2025-04-07", time: "10:42:12", stockName: "김치", changeReason: "쉬림프로제", quantity: -0.83, unit: "kg" },
+  { date: "2025-04-06", time: "08:50:00", stockName: "고등어", changeReason: "포테이토피자", quantity: -0.91, unit: "kg" },
+  { date: "2025-04-05", time: "15:00:00", stockName: "간장", changeReason: "불고기피자", quantity: -0.29, unit: "L" },
+  { date: "2025-04-07", time: "16:18:18", stockName: "마늘", changeReason: "머쉬룸파스타", quantity: -0.13, unit: "kg" },
+  { date: "2025-04-06", time: "12:30:30", stockName: "우유", changeReason: "쉬림프피자", quantity: -0.67, unit: "L" },
+  { date: "2025-04-05", time: "20:44:44", stockName: "김치", changeReason: "크림치즈 파스타", quantity: -1.45, unit: "kg" },
+  { date: "2025-04-07", time: "07:07:07", stockName: "고등어", changeReason: "알리오올리오", quantity: -0.78, unit: "kg" },
+  { date: "2025-04-06", time: "11:11:11", stockName: "양파", changeReason: "머쉬룸파스타", quantity: -0.61, unit: "kg" },
+  { date: "2025-04-05", time: "18:10:10", stockName: "간장", changeReason: "쉬림프로제", quantity: -0.25, unit: "L" },
+  { date: "2025-04-07", time: "23:45:45", stockName: "우유", changeReason: "포테이토피자", quantity: -0.74, unit: "L" },
+  { date: "2025-04-05", time: "22:22:22", stockName: "마늘", changeReason: "불고기피자", quantity: -0.17, unit: "kg" },
+  { date: "2025-04-06", time: "16:55:55", stockName: "양파", changeReason: "크림치즈 파스타", quantity: -1.08, unit: "kg" },
+  { date: "2025-04-07", time: "20:20:20", stockName: "김치", changeReason: "머쉬룸파스타", quantity: -0.72, unit: "kg" },
+  { date: "2025-04-06", time: "14:14:14", stockName: "고등어", changeReason: "쉬림프피자", quantity: -1.19, unit: "kg" },
+  { date: "2025-04-05", time: "05:55:55", stockName: "우유", changeReason: "알리오올리오", quantity: -0.33, unit: "L" },
+  { date: "2025-04-07", time: "06:06:06", stockName: "간장", changeReason: "쉬림프로제", quantity: -0.12, unit: "L" },
 ];
+// 메뉴 판매
+
+const changeStock = [
+  { date: "2025-04-06", time: "09:12:34", stockName: "우유", changeReason: "", quantity: 0.75, unit: "L" },
+  { date: "2025-04-07", time: "11:43:21", stockName: "김치", changeReason: "", quantity: -1.2, unit: "kg" },
+  { date: "2025-04-05", time: "13:05:56", stockName: "양파", changeReason: "", quantity: 2.5, unit: "kg" },
+  { date: "2025-04-06", time: "08:22:19", stockName: "마늘", changeReason: "", quantity: -0.15, unit: "kg" },
+  { date: "2025-04-07", time: "14:14:14", stockName: "간장", changeReason: "", quantity: 0.4, unit: "L" },
+  { date: "2025-04-05", time: "12:00:01", stockName: "고등어", changeReason: "", quantity: -1.0, unit: "kg" },
+  { date: "2025-04-07", time: "15:10:45", stockName: "양파", changeReason: "", quantity: -0.8, unit: "kg" },
+  { date: "2025-04-06", time: "16:55:55", stockName: "우유", changeReason: "", quantity: 1.2, unit: "L" },
+  { date: "2025-04-05", time: "17:17:17", stockName: "김치", changeReason: "", quantity: -0.6, unit: "kg" },
+  { date: "2025-04-07", time: "18:18:18", stockName: "마늘", changeReason: "", quantity: 0.2, unit: "kg" },
+  { date: "2025-04-06", time: "07:07:07", stockName: "간장", changeReason: "", quantity: -0.3, unit: "L" },
+  { date: "2025-04-05", time: "19:30:30", stockName: "고등어", changeReason: "", quantity: 0.5, unit: "kg" },
+  { date: "2025-04-07", time: "20:20:20", stockName: "양파", changeReason: "", quantity: 1.7, unit: "kg" },
+  { date: "2025-04-06", time: "21:21:21", stockName: "우유", changeReason: "", quantity: -0.4, unit: "L" },
+  { date: "2025-04-05", time: "22:22:22", stockName: "김치", changeReason: "", quantity: 2.0, unit: "kg" },
+  { date: "2025-04-06", time: "23:23:23", stockName: "마늘", changeReason: "", quantity: -0.25, unit: "kg" },
+  { date: "2025-04-07", time: "06:06:06", stockName: "간장", changeReason: "", quantity: 0.7, unit: "L" },
+  { date: "2025-04-05", time: "05:05:05", stockName: "고등어", changeReason: "", quantity: -0.9, unit: "kg" },
+  { date: "2025-04-07", time: "04:04:04", stockName: "우유", changeReason: "", quantity: 1.0, unit: "L" },
+  { date: "2025-04-06", time: "03:03:03", stockName: "양파", changeReason: "", quantity: -0.65, unit: "kg" },
+  { date: "2025-04-05", time: "02:02:02", stockName: "김치", changeReason: "", quantity: 1.1, unit: "kg" },
+  { date: "2025-04-06", time: "01:01:01", stockName: "마늘", changeReason: "", quantity: -0.1, unit: "kg" },
+  { date: "2025-04-07", time: "00:00:00", stockName: "간장", changeReason: "", quantity: 0.5, unit: "L" },
+  { date: "2025-04-05", time: "10:10:10", stockName: "고등어", changeReason: "", quantity: 0.3, unit: "kg" },
+  { date: "2025-04-06", time: "11:11:11", stockName: "우유", changeReason: "", quantity: -0.6, unit: "L" },
+  { date: "2025-04-07", time: "09:09:09", stockName: "양파", changeReason: "", quantity: 1.0, unit: "kg" },
+  { date: "2025-04-05", time: "08:08:08", stockName: "김치", changeReason: "", quantity: -0.4, unit: "kg" },
+  { date: "2025-04-06", time: "13:13:13", stockName: "마늘", changeReason: "", quantity: 0.1, unit: "kg" },
+  { date: "2025-04-07", time: "12:12:12", stockName: "간장", changeReason: "", quantity: -0.2, unit: "L" },
+  { date: "2025-04-05", time: "14:14:14", stockName: "고등어", changeReason: "", quantity: 1.5, unit: "kg" },
+];
+// 재고 수동 수정
+
+const salesMarket = [
+  { date: "2025-04-05", time: "08:23:45", stockName: "우유", changeReason: "구매", quantity: 0.83, unit: "L" },
+  { date: "2025-04-06", time: "11:14:37", stockName: "간장", changeReason: "판매", quantity: -0.41, unit: "L" },
+  { date: "2025-04-07", time: "12:56:10", stockName: "고등어", changeReason: "판매", quantity: -1.25, unit: "kg" },
+  { date: "2025-04-05", time: "15:44:00", stockName: "마늘", changeReason: "판매", quantity: -0.22, unit: "kg" },
+  { date: "2025-04-06", time: "19:35:18", stockName: "양파", changeReason: "구매", quantity: 1.42, unit: "kg" },
+  { date: "2025-04-07", time: "06:07:27", stockName: "김치", changeReason: "판매", quantity: -1.19, unit: "kg" },
+  { date: "2025-04-05", time: "10:11:11", stockName: "우유", changeReason: "판매", quantity: -0.56, unit: "L" },
+  { date: "2025-04-06", time: "22:12:43", stockName: "양파", changeReason: "구매", quantity: 0.78, unit: "kg" },
+  { date: "2025-04-07", time: "03:17:50", stockName: "간장", changeReason: "구매", quantity: 0.23, unit: "L" },
+  { date: "2025-04-05", time: "04:04:04", stockName: "고등어", changeReason: "판매", quantity: -0.97, unit: "kg" },
+  { date: "2025-04-06", time: "09:10:33", stockName: "김치", changeReason: "구매", quantity: 1.67, unit: "kg" },
+  { date: "2025-04-07", time: "20:00:00", stockName: "마늘", changeReason: "판매", quantity: -0.13, unit: "kg" },
+  { date: "2025-04-05", time: "13:13:13", stockName: "양파", changeReason: "판매", quantity: -0.34, unit: "kg" },
+  { date: "2025-04-06", time: "14:25:09", stockName: "우유", changeReason: "구매", quantity: 1.1, unit: "L" },
+  { date: "2025-04-07", time: "17:35:55", stockName: "간장", changeReason: "판매", quantity: -0.29, unit: "L" },
+  { date: "2025-04-05", time: "06:22:22", stockName: "고등어", changeReason: "구매", quantity: 0.85, unit: "kg" },
+  { date: "2025-04-06", time: "07:30:30", stockName: "김치", changeReason: "판매", quantity: -1.34, unit: "kg" },
+  { date: "2025-04-07", time: "01:45:12", stockName: "마늘", changeReason: "구매", quantity: 0.25, unit: "kg" },
+  { date: "2025-04-05", time: "18:18:18", stockName: "양파", changeReason: "구매", quantity: 0.69, unit: "kg" },
+  { date: "2025-04-06", time: "05:09:09", stockName: "우유", changeReason: "판매", quantity: -0.48, unit: "L" },
+  { date: "2025-04-07", time: "09:59:59", stockName: "간장", changeReason: "구매", quantity: 0.33, unit: "L" },
+  { date: "2025-04-05", time: "21:12:34", stockName: "고등어", changeReason: "판매", quantity: -0.62, unit: "kg" },
+  { date: "2025-04-06", time: "16:44:44", stockName: "김치", changeReason: "구매", quantity: 1.25, unit: "kg" },
+  { date: "2025-04-07", time: "08:08:08", stockName: "마늘", changeReason: "판매", quantity: -0.18, unit: "kg" },
+  { date: "2025-04-05", time: "23:23:23", stockName: "양파", changeReason: "판매", quantity: -1.05, unit: "kg" },
+  { date: "2025-04-06", time: "03:33:33", stockName: "우유", changeReason: "구매", quantity: 0.91, unit: "L" },
+  { date: "2025-04-07", time: "19:19:19", stockName: "간장", changeReason: "판매", quantity: -0.21, unit: "L" },
+  { date: "2025-04-05", time: "12:12:12", stockName: "고등어", changeReason: "구매", quantity: 0.73, unit: "kg" },
+  { date: "2025-04-06", time: "02:02:02", stockName: "김치", changeReason: "판매", quantity: -0.95, unit: "kg" },
+  { date: "2025-04-07", time: "15:00:00", stockName: "마늘", changeReason: "구매", quantity: 0.19, unit: "kg" },
+];
+// 장터 판매
+
+const total = [...salesMenu, ...changeStock, ...salesMarket];
 
 const flatList = [
-  { menuName: "알리오올리오", category: "파스타" },
-  { menuName: "쉬림프로제", category: "파스타" },
-  { menuName: "머쉬룸파스타", category: "파스타" },
-  { menuName: "크림치즈 파스타", category: "파스타" },
-  { menuName: "불고기피자", category: "피자" },
-  { menuName: "포테이토피자", category: "피자" },
-  { menuName: "쉬림프피자", category: "피자" },
+  { stockName: "마늘", quantity: "3kg" },
+  { stockName: "양파", quantity: "10.5kg" },
+  { stockName: "우유", quantity: "2L" },
+  { stockName: "간장", quantity: "1.2L" },
+  { stockName: "고등어", quantity: "2.5kg" },
+  { stockName: "김치", quantity: "6kg" },
 ];
+
+const selectedIndex = ref(0);
+const selectedStockName = computed(() => filteredList.value[selectedIndex.value]?.stockName || "");
+const selectItem = (index) => {
+  selectedIndex.value = index;
+};
+
+const selectedTab = ref("total");
+const currentDataSource = computed(() => {
+  if (selectedTab.value === "menu") return salesMenu;
+  if (selectedTab.value === "change") return changeStock;
+  if (selectedTab.value === "market") return salesMarket;
+  if (selectedTab.value === "total") return total;
+  return [];
+});
+
+function changeTab(tabName) {
+  selectedTab.value = tabName;
+}
 
 const filteredList = computed(() => {
   const query = keyword.value.trim();
   if (!query) return flatList;
 
-  return flatList.filter((item) => item.menuName.includes(query));
+  return flatList.filter((item) => item.stockName.includes(query));
 });
-
-ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
-
-const labels = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
-const chartData = computed(() => {
-  const result = new Array(24).fill(0); // 00시 ~ 23시까지 24칸 초기화
-  const query = keyword.value.trim();
-
-  const filteredData = salesData.filter((item) => item.date === selectedDate.value);
-  filteredData.forEach(({ menuName, time }) => {
-    if (!query || menuName.includes(query)) {
-      const hour = parseInt(time.split(":")[0], 10);
-      result[hour]++;
-    }
-  });
-
-  return result;
-});
-
-const series = computed(() => [
-  {
-    name: "판매 수",
-    data: chartData.value,
-  },
-]);
-
-const chartOptions = {
-  chart: {
-    id: "sales-bar",
-    toolbar: {
-      show: false,
-    },
-  },
-  xaxis: {
-    categories: labels,
-  },
-  yaxis: {
-    min: 0,
-    max: 10,
-  },
-  plotOptions: {
-    bar: {
-      borderRadius: 4,
-      columnWidth: "60%",
-    },
-  },
-  dataLabels: {
-    enabled: false,
-  },
-  colors: ["#9966ff"],
-};
 
 // 달력 관련 데이터
-const currentDate = ref(new Date("2025-04-07"));
-const selectedDate = ref("2025-04-07");
-const showCalendar = ref(false);
-const selectedDateTable = computed(() => {
-  return selectedDate.value.replace(/-/g, ".").slice(-5);
-});
+const startDate = ref("");
+const endDate = ref("");
+const showByMonth = computed(() => {
+  if (!startDate.value || !endDate.value) return false;
 
-// 현재 달의 첫 날과 마지막 날 계산
-const firstDayOfMonth = computed(() => {
-  const date = new Date(currentDate.value);
-  date.setDate(1);
-  return date;
-});
+  const start = new Date(startDate.value);
+  const end = new Date(endDate.value);
 
-const lastDayOfMonth = computed(() => {
-  const date = new Date(currentDate.value);
-  date.setMonth(date.getMonth() + 1);
-  date.setDate(0);
-  return date;
-});
+  const timeDiff = end.getTime() - start.getTime();
+  const dayCount = timeDiff / (1000 * 60 * 60 * 24) + 1; // +1 해서 당일 포함
 
-// 달력에 표시할 날짜 배열 생성
-const calendarDays = computed(() => {
-  const days = [];
-
-  // 이전 달의 날짜 추가
-  const firstDay = firstDayOfMonth.value.getDay();
-  if (firstDay > 0) {
-    const prevMonthLastDay = new Date(firstDayOfMonth.value);
-    prevMonthLastDay.setDate(0);
-    const lastDate = prevMonthLastDay.getDate();
-
-    for (let i = firstDay - 1; i >= 0; i--) {
-      const date = new Date(prevMonthLastDay);
-      date.setDate(lastDate - i);
-      days.push({
-        date,
-        isCurrentMonth: false,
-        isSelected: isSameDay(date, new Date(selectedDate.value)),
-      });
-    }
-  }
-
-  // 현재 달의 날짜 추가
-  const lastDate = lastDayOfMonth.value.getDate();
-  for (let i = 1; i <= lastDate; i++) {
-    const date = new Date(firstDayOfMonth.value);
-    date.setDate(i);
-    days.push({
-      date,
-      isCurrentMonth: true,
-      isSelected: isSameDay(date, new Date(selectedDate.value)),
-    });
-  }
-
-  // 다음 달의 날짜 추가
-  const lastDay = lastDayOfMonth.value.getDay();
-  if (lastDay < 6) {
-    const nextMonthFirstDay = new Date(lastDayOfMonth.value);
-    nextMonthFirstDay.setDate(lastDayOfMonth.value.getDate() + 1);
-
-    for (let i = 0; i < 6 - lastDay; i++) {
-      const date = new Date(nextMonthFirstDay);
-      date.setDate(nextMonthFirstDay.getDate() + i);
-      days.push({
-        date,
-        isCurrentMonth: false,
-        isSelected: isSameDay(date, new Date(selectedDate.value)),
-      });
-    }
-  }
-
-  return days;
-});
-
-// 날짜 포맷 함수
-const formatDate = (date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
-// 날짜 비교 함수
-function isSameDay(date1, date2) {
-  return date1.getFullYear() === date2.getFullYear() && date1.getMonth() === date2.getMonth() && date1.getDate() === date2.getDate();
-}
-
-// 달력 날짜 선택 함수
-const selectDate = (day) => {
-  selectedDate.value = formatDate(day.date);
-  showCalendar.value = false;
-};
-
-// 이전 달, 다음 달 이동 함수
-const prevMonth = () => {
-  const date = new Date(currentDate.value);
-  date.setMonth(date.getMonth() - 1);
-  currentDate.value = date;
-};
-
-const nextMonth = () => {
-  const date = new Date(currentDate.value);
-  date.setMonth(date.getMonth() + 1);
-  currentDate.value = date;
-};
-
-// 현재 월 표시 텍스트
-const currentMonthText = computed(() => {
-  return `${currentDate.value.getFullYear()}년${currentDate.value.getMonth() + 1}월`;
+  return dayCount > 30;
 });
 
 // 선택된 날짜의 판매 데이터
-const sortOrder = ref("asc");
-const sortIcon = computed(() => (sortOrder.value === "asc" ? upIcon : downIcon));
-const selectedDateSales = computed(() => {
-  // 선택된 날짜의 판매 데이터 필터링
-  const query = keyword.value.trim();
-  const filteredSales = salesData.filter((item) => item.date === selectedDate.value);
-  const filteredMenu = filteredSales.filter((item) => {
-    return !query || item.menuName.includes(query);
+const peroidData = computed(() => {
+  const start = new Date(startDate.value);
+  const end = new Date(endDate.value);
+  const selectedName = selectedStockName.value;
+  // 날짜 범위 필터링
+  const filteredSales = currentDataSource.value.filter((item) => {
+    const itemDate = new Date(item.date);
+    return itemDate >= start && itemDate <= end;
   });
 
-  filteredMenu.sort((a, b) => {
-    return sortOrder.value === "asc"
-      ? a.time.localeCompare(b.time) // 오름차순
-      : b.time.localeCompare(a.time); // 내림차순
+  // 선택된 stockName 기준 필터링
+  const filteredByStock = filteredSales.filter((item) => item.stockName === selectedName);
+
+  // 정렬
+  filteredByStock.sort((a, b) => {
+    const dateCompare = a.date.localeCompare(b.date);
+    if (dateCompare !== 0) return dateCompare;
+    return a.time.localeCompare(b.time);
   });
-  // 메뉴별 판매 수량 집계
-  // const salesByMenu = {};
-  // filteredSales.forEach((item) => {
-  //   if (!salesByMenu[item.menuName]) {
-  //     salesByMenu[item.menuName] = {
-  //       menuName: item.menuName,
-  //       categoryName: item.categoryName,
-  //       time: item.time,
-  //       count: 0,
-  //     };
-  //   }
-  //   salesByMenu[item.menuName].count++;
-  // });
-  return Object.values(filteredMenu);
+
+  return filteredByStock;
 });
 
-const toggleSortOrder = () => {
-  sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc";
+const selectedDates = ref(null);
+const detailStatus = ref({}); // 날짜별 열림/닫힘 상태 저장
+
+const toggleDetail = (date) => {
+  // 이미 선택된 날짜면 상태 토글
+  detailStatus.value[date] = !detailStatus.value[date];
+  selectedDates.value = date;
 };
 
-// 테이블 너비 동기화를 위한 refs
-const nonScrollableWrapperRef = ref(null);
-const scrollableWrapperRef = ref(null);
-const tableHeaderRef = ref(null);
-const tableBodyRef = ref(null);
+const sortIcon = (date) => {
+  return detailStatus.value[date] ? upIcon : downIcon;
+};
 
-// 테이블 너비 동기화 함수
-const syncTableWidths = () => {
-  if (!nonScrollableWrapperRef.value || !scrollableWrapperRef.value || !tableHeaderRef.value || !tableBodyRef.value) return;
+// 중복 제거된 날짜 목록
+const uniqueDates = computed(() => {
+  const dates = peroidData.value.map((item) => item.date);
+  return [...new Set(dates)].sort((a, b) => a.localeCompare(b));
+});
 
-  // 스크롤바 너비 계산
-  const scrollbarWidth = scrollableWrapperRef.value.offsetWidth - scrollableWrapperRef.value.clientWidth;
+const uniqueMonths = computed(() => {
+  const months = peroidData.value.map((item) => item.date.slice(0, 7)); // 'YYYY-MM'
+  return [...new Set(months)].sort((a, b) => a.localeCompare(b));
+});
 
-  // 헤더 테이블의 너비를 본문 테이블과 동일하게 설정
-  const bodyTableWidth = tableBodyRef.value.offsetWidth;
-  tableHeaderRef.value.style.width = `${bodyTableWidth}px`;
+//차트 데이터 - 메뉴
+function getDateRange(start, end, byMonth = false) {
+  const result = [];
+  const current = new Date(start);
 
-  // 스크롤바 너비를 고려하여 scrollable_wrapper의 너비 조정
-  nonScrollableWrapperRef.value.style.width = `calc(100% - ${scrollbarWidth}px)`;
+  while (current <= end) {
+    let formatted;
 
-  // 각 열의 너비 동기화
-  const headerCells = tableHeaderRef.value.querySelectorAll("th");
-  const bodyCells = tableBodyRef.value.querySelectorAll("tr:first-child td");
+    if (byMonth) {
+      // YYYY.MM
+      const year = current.getFullYear();
+      const month = String(current.getMonth() + 1).padStart(2, "0");
+      formatted = `${year}.${month}`;
+    } else {
+      // MM.DD
+      const month = String(current.getMonth() + 1).padStart(2, "0");
+      const day = String(current.getDate()).padStart(2, "0");
+      formatted = `${month}.${day}`;
+    }
 
-  if (headerCells.length === bodyCells.length) {
-    for (let i = 0; i < headerCells.length; i++) {
-      const width = bodyCells[i].offsetWidth;
-      headerCells[i].style.width = `${width}px`;
+    if (!result.includes(formatted)) {
+      result.push(formatted);
+    }
+
+    if (byMonth) {
+      current.setMonth(current.getMonth() + 1);
+    } else {
+      current.setDate(current.getDate() + 1);
     }
   }
-};
 
-// 컴포넌트 마운트 시 및 데이터 변경 시 테이블 너비 동기화
-onMounted(() => {
-  nextTick(() => {
-    syncTableWidths();
+  return result;
+}
+//차트 데이터 - 메뉴
+const chartSeries = computed(() => {
+  if (!startDate.value || !endDate.value) return [];
 
-    // 윈도우 리사이즈 시 테이블 너비 재동기화
-    window.addEventListener("resize", syncTableWidths);
+  const start = new Date(startDate.value);
+  const end = new Date(endDate.value);
+  const labels = getDateRange(start, end, showByMonth.value); // 포맷된 라벨
+
+  const counts = {};
+
+  peroidData.value.forEach((item) => {
+    const itemDate = new Date(item.date);
+    let key;
+
+    if (showByMonth.value) {
+      // YYYY.MM
+      key = `${itemDate.getFullYear()}.${String(itemDate.getMonth() + 1).padStart(2, "0")}`;
+    } else {
+      // MM.DD
+      key = `${String(itemDate.getMonth() + 1).padStart(2, "0")}.${String(itemDate.getDate()).padStart(2, "0")}`;
+    }
+
+    counts[key] = parseFloat(((counts[key] || 0) + item.quantity).toFixed(2));
   });
+  console.log(counts);
+
+  return [
+    {
+      name: "판매 량",
+      data: labels.map((label) => counts[label] || 0), // 라벨 기준으로 맞춤
+    },
+  ];
 });
 
-// 선택된 날짜가 변경될 때 테이블 너비 재동기화
-watch(selectedDate, () => {
-  nextTick(syncTableWidths);
-});
+const chartOptions = computed(() => {
+  if (!startDate.value || !endDate.value) return {};
 
-// 컴포넌트 언마운트 시 이벤트 리스너 제거
-const onBeforeUnmount = () => {
-  window.removeEventListener("resize", syncTableWidths);
-};
+  const start = new Date(startDate.value);
+  const end = new Date(endDate.value);
+  const labels = getDateRange(start, end, showByMonth.value);
+
+  return {
+    chart: {
+      type: "bar",
+      height: 350,
+    },
+    title: {
+      text: showByMonth.value ? "월별 판매 건수" : "일별 판매 건수",
+      align: "center",
+    },
+    xaxis: {
+      categories: labels,
+    },
+    yaxis: {
+      title: {
+        text: "판매 량",
+      },
+    },
+  };
+});
 </script>
 
 <template>
   <div class="menu_analysis">
     <div class="menu_list">
       <div class="header">
-        <h1>메뉴 분석</h1>
+        <h1>재고 소요량 분석</h1>
         <div class="search_container">
-          <input v-model="keyword" type="text" placeholder="메뉴 검색" class="search_input" />
+          <input v-model="keyword" type="text" placeholder="재고 검색" class="search_input" />
           <img src="@/assets/image/search_button.png" alt="검색" class="search_icon" />
         </div>
       </div>
       <table class="menu_table">
         <thead>
           <tr>
-            <th>메뉴 명</th>
-            <th>카테고리</th>
+            <th>재고 명</th>
+            <th>용량</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, idx) in filteredList" :key="idx">
-            <td>{{ item.menuName }}</td>
-            <td>{{ item.category }}</td>
+          <tr v-for="(item, idx) in filteredList" :key="idx" @click="selectItem(idx)" :class="{ selected: selectedIndex === idx }">
+            <td>{{ item.stockName }}</td>
+            <td>{{ item.quantity }}</td>
           </tr>
         </tbody>
       </table>
@@ -607,38 +333,20 @@ const onBeforeUnmount = () => {
     <div class="chart_container">
       <div class="chart_header">
         <div class="date_selector">
-          <span class="date_display" @click="showCalendar = !showCalendar">
-            {{ selectedDate }}
-            <span class="calendar_icon">📅</span>
-          </span>
-          <div v-if="showCalendar" class="calendar">
-            <div class="calendar_header">
-              <button @click="prevMonth" class="month_nav">&lt;</button>
-              <span class="current_month">{{ currentMonthText }}</span>
-              <button @click="nextMonth" class="month_nav">&gt;</button>
-            </div>
-            <div class="weekdays">
-              <div class="weekday">S</div>
-              <div class="weekday">M</div>
-              <div class="weekday">T</div>
-              <div class="weekday">W</div>
-              <div class="weekday">T</div>
-              <div class="weekday">F</div>
-              <div class="weekday">S</div>
-            </div>
-            <div class="days">
-              <div v-for="(day, index) in calendarDays" :key="index" class="day" :class="{
-                other_month: !day.isCurrentMonth,
-                selected: day.isSelected,
-              }" @click="selectDate(day)">
-                {{ day.date.getDate() }}
-              </div>
-            </div>
+          <div class="stock_list">
+            <span @click="changeTab('total')" :class="{ active: selectedTab === 'total' }">전체</span>
+
+            <span @click="changeTab('menu')" :class="{ active: selectedTab === 'menu' }">판매</span>
+
+            <span @click="changeTab('change')" :class="{ active: selectedTab === 'change' }">수정</span>
+
+            <span @click="changeTab('market')" :class="{ active: selectedTab === 'market' }">장터</span>
           </div>
+          <Calendar v-model:startDate="startDate" v-model:endDate="endDate" />
         </div>
       </div>
       <div class="chart">
-        <apexchart type="bar" height="350" :options="chartOptions" :series="series" />
+        <StockDiagram :startDate="startDate" :endDate="endDate" :showByMonth="showByMonth" :peroidData="peroidData" />
       </div>
 
       <!-- 선택된 날짜의 판매 데이터 테이블 -->
@@ -648,10 +356,9 @@ const onBeforeUnmount = () => {
             <table ref="tableHeaderRef" class="sales_table header_table">
               <thead>
                 <tr>
-                  <th @click="toggleSortOrder"><img :src="sortIcon" alt="정렬 아이콘" class="search_icon" /> {{
-                    selectedDateTable }}</th>
-                  <th>메뉴명</th>
-                  <th>수량</th>
+                  <th>{{ selectedStockName }}</th>
+                  <th>재고</th>
+                  <th>용량</th>
                 </tr>
               </thead>
             </table>
@@ -660,12 +367,30 @@ const onBeforeUnmount = () => {
           <div ref="scrollableWrapperRef" class="scrollable_wrapper">
             <table ref="tableBodyRef" class="sales_table body_table">
               <tbody>
-                <tr v-for="(item, idx) in selectedDateSales" :key="idx">
-                  <td>{{ item.time }}</td>
-                  <td>{{ item.menuName }}</td>
-                  <td>1</td>
-                </tr>
-                <tr v-if="selectedDateSales.length === 0">
+                <!-- 날짜 또는 월 기준 목록 -->
+                <template v-for="(key, idx) in showByMonth ? uniqueMonths : uniqueDates" :key="idx">
+                  <tr @click="toggleDetail(key)" :class="{ selected: selectedDates === key }" style="cursor: pointer">
+                    <td colspan="3">
+                      <strong>{{ showByMonth ? key.replace("-", ".") : key.slice(5).replace("-", ".") }}</strong>
+                      &nbsp;
+                      <img :src="sortIcon(key)" alt="정렬 아이콘" class="search_icon" />
+                    </td>
+                  </tr>
+
+                  <!-- 상세 내역: 각 key에 대해 필터링 -->
+                  <tr
+                    v-if="detailStatus[key]"
+                    v-for="(item, idx2) in peroidData.filter((i) => (showByMonth ? i.date.startsWith(key) : i.date === key))"
+                    :key="`detail-${idx}-${idx2}`"
+                  >
+                    <td>{{ showByMonth ? item.date : item.time }}</td>
+                    <td>{{ item.changeReason }}</td>
+                    <td>{{ item.quantity }}{{ item.unit }}</td>
+                  </tr>
+                </template>
+
+                <!-- 데이터 없음 안내 -->
+                <tr v-if="uniqueDates.length === 0">
                   <td colspan="3" class="no_data">해당 날짜의 판매 데이터가 없습니다.</td>
                 </tr>
               </tbody>
@@ -679,8 +404,8 @@ const onBeforeUnmount = () => {
 
 <style scoped>
 .menu_analysis {
-  width: 90vw;
-  height: 70vh;
+  width: 100%;
+  height: 100%;
   background-color: white;
   display: flex;
 }
@@ -763,8 +488,13 @@ const onBeforeUnmount = () => {
   border-bottom-right-radius: 20px;
 }
 
+.menu_table tr.selected {
+  background-color: #f9f9f9;
+}
+
 .menu_table tr:hover {
   background-color: #f9f9f9;
+  cursor: pointer;
 }
 
 .chart_container {
@@ -791,100 +521,24 @@ const onBeforeUnmount = () => {
 
 /* 달력 스타일 */
 .date_selector {
-  position: relative;
-  margin-left: auto;
-}
-
-.date_display {
-  cursor: pointer;
-  padding: 8px 12px;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  display: inline-flex;
-  align-items: center;
-  font-size: 14px;
-}
-
-.calendar_icon {
-  margin-left: 8px;
-}
-
-.calendar {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  width: 300px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-  padding: 12px;
-  margin-top: 8px;
-}
-
-.calendar_header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
+  align-items: end;
+  position: relative;
+  width: 100%;
 }
 
-.month_nav {
-  background: none;
-  border: none;
+.stock_list span {
+  padding: 5px 15px 5px 15px;
+}
+
+.stock_list span:hover {
   cursor: pointer;
-  font-size: 16px;
-  color: #666;
+  background-color: #f9f9f9;
 }
 
-.current_month {
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.weekdays {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  margin-bottom: 8px;
-}
-
-.weekday {
-  text-align: center;
-  font-weight: bold;
-  font-size: 12px;
-  color: #666;
-  padding: 6px 0;
-}
-
-.days {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-}
-
-.day {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 32px;
-  cursor: pointer;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.day:hover {
-  background-color: #f0f0f0;
-}
-
-.other_month {
-  color: #ccc;
-}
-
-.selected {
-  background-color: rgba(153, 102, 255, 0.2);
-  font-weight: bold;
-  color: #6b46c1;
+.stock_list span.active {
+  background-color: #b8c0c8; /* 진한 인디고 */
 }
 
 /* 판매 데이터 테이블 스타일 */

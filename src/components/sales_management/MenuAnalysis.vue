@@ -1,314 +1,61 @@
 <script setup>
 import { ref, computed, onMounted, nextTick, watch } from "vue";
-import { Bar } from "vue-chartjs";
-import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js";
 import upIcon from "@/assets/image/up.png";
 import downIcon from "@/assets/image/down.png";
 import Calendar from "@/components/Calendar.vue";
-import { reactive } from "vue";
 
 const keyword = ref("");
 const salesData = [
-  {
-    date: "2025-04-05",
-    time: "04:55:00",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-07",
-    time: "06:34:41",
-    categoryName: "파스타",
-    menuName: "쉬림프로제",
-  },
-  {
-    date: "2025-04-05",
-    time: "20:30:10",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-07",
-    time: "09:26:52",
-    categoryName: "피자",
-    menuName: "불고기피자",
-  },
-  {
-    date: "2025-04-07",
-    time: "15:35:31",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-06",
-    time: "17:21:25",
-    categoryName: "피자",
-    menuName: "불고기피자",
-  },
-  {
-    date: "2025-04-06",
-    time: "00:18:27",
-    categoryName: "피자",
-    menuName: "포테이토피자",
-  },
-  {
-    date: "2025-04-05",
-    time: "01:34:21",
-    categoryName: "파스타",
-    menuName: "쉬림프로제",
-  },
-  {
-    date: "2025-04-05",
-    time: "17:01:13",
-    categoryName: "파스타",
-    menuName: "머쉬룸파스타",
-  },
-  {
-    date: "2025-04-05",
-    time: "23:37:55",
-    categoryName: "피자",
-    menuName: "포테이토피자",
-  },
-  {
-    date: "2025-04-07",
-    time: "22:31:25",
-    categoryName: "피자",
-    menuName: "불고기피자",
-  },
-  {
-    date: "2025-04-05",
-    time: "04:20:04",
-    categoryName: "피자",
-    menuName: "포테이토피자",
-  },
-  {
-    date: "2025-04-07",
-    time: "19:08:03",
-    categoryName: "피자",
-    menuName: "쉬림프피자",
-  },
-  {
-    date: "2025-04-07",
-    time: "18:58:56",
-    categoryName: "파스타",
-    menuName: "크림치즈 파스타",
-  },
-  {
-    date: "2025-04-05",
-    time: "21:47:10",
-    categoryName: "피자",
-    menuName: "불고기피자",
-  },
-  {
-    date: "2025-04-07",
-    time: "17:58:41",
-    categoryName: "파스타",
-    menuName: "크림치즈 파스타",
-  },
-  {
-    date: "2025-04-07",
-    time: "03:03:02",
-    categoryName: "파스타",
-    menuName: "크림치즈 파스타",
-  },
-  {
-    date: "2025-04-05",
-    time: "00:35:05",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-06",
-    time: "21:43:30",
-    categoryName: "파스타",
-    menuName: "머쉬룸파스타",
-  },
-  {
-    date: "2025-04-06",
-    time: "01:16:19",
-    categoryName: "피자",
-    menuName: "쉬림프피자",
-  },
-  {
-    date: "2025-04-07",
-    time: "17:25:53",
-    categoryName: "파스타",
-    menuName: "머쉬룸파스타",
-  },
-  {
-    date: "2025-04-05",
-    time: "18:38:43",
-    categoryName: "피자",
-    menuName: "포테이토피자",
-  },
-  {
-    date: "2025-04-06",
-    time: "00:38:58",
-    categoryName: "파스타",
-    menuName: "크림치즈 파스타",
-  },
-  {
-    date: "2025-04-06",
-    time: "07:57:46",
-    categoryName: "피자",
-    menuName: "쉬림프피자",
-  },
-  {
-    date: "2025-04-05",
-    time: "13:29:15",
-    categoryName: "피자",
-    menuName: "포테이토피자",
-  },
-  {
-    date: "2025-04-07",
-    time: "10:20:19",
-    categoryName: "파스타",
-    menuName: "크림치즈 파스타",
-  },
-  {
-    date: "2025-04-05",
-    time: "21:35:05",
-    categoryName: "피자",
-    menuName: "쉬림프피자",
-  },
-  {
-    date: "2025-04-06",
-    time: "16:21:18",
-    categoryName: "피자",
-    menuName: "쉬림프피자",
-  },
-  {
-    date: "2025-04-06",
-    time: "04:20:32",
-    categoryName: "피자",
-    menuName: "불고기피자",
-  },
-  {
-    date: "2025-04-05",
-    time: "10:35:25",
-    categoryName: "파스타",
-    menuName: "크림치즈 파스타",
-  },
-  {
-    date: "2025-04-05",
-    time: "02:11:43",
-    categoryName: "파스타",
-    menuName: "크림치즈 파스타",
-  },
-  {
-    date: "2025-04-05",
-    time: "17:25:37",
-    categoryName: "피자",
-    menuName: "불고기피자",
-  },
-  {
-    date: "2025-04-05",
-    time: "15:48:53",
-    categoryName: "파스타",
-    menuName: "머쉬룸파스타",
-  },
-  {
-    date: "2025-04-07",
-    time: "02:08:54",
-    categoryName: "피자",
-    menuName: "쉬림프피자",
-  },
-  {
-    date: "2025-04-05",
-    time: "06:01:29",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-06",
-    time: "21:40:02",
-    categoryName: "파스타",
-    menuName: "머쉬룸파스타",
-  },
-  {
-    date: "2025-04-06",
-    time: "12:34:22",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-07",
-    time: "06:54:27",
-    categoryName: "파스타",
-    menuName: "머쉬룸파스타",
-  },
-  {
-    date: "2025-04-06",
-    time: "00:31:49",
-    categoryName: "피자",
-    menuName: "불고기피자",
-  },
-  {
-    date: "2025-04-05",
-    time: "23:20:02",
-    categoryName: "피자",
-    menuName: "쉬림프피자",
-  },
-  {
-    date: "2025-04-06",
-    time: "12:44:44",
-    categoryName: "피자",
-    menuName: "불고기피자",
-  },
-  {
-    date: "2025-04-05",
-    time: "04:20:10",
-    categoryName: "피자",
-    menuName: "불고기피자",
-  },
-  {
-    date: "2025-04-05",
-    time: "04:59:05",
-    categoryName: "파스타",
-    menuName: "머쉬룸파스타",
-  },
-  {
-    date: "2025-04-06",
-    time: "00:05:47",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-06",
-    time: "11:52:31",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-07",
-    time: "12:34:42",
-    categoryName: "파스타",
-    menuName: "머쉬룸파스타",
-  },
-  {
-    date: "2025-04-06",
-    time: "20:26:50",
-    categoryName: "피자",
-    menuName: "포테이토피자",
-  },
-  {
-    date: "2025-04-06",
-    time: "06:49:10",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-06",
-    time: "06:16:14",
-    categoryName: "파스타",
-    menuName: "알리오올리오",
-  },
-  {
-    date: "2025-04-05",
-    time: "19:58:13",
-    categoryName: "파스타",
-    menuName: "쉬림프로제",
-  },
+  { date: "2025-04-05", time: "04:55:00", categoryName: "파스타", menuName: "알리오올리오" },
+  { date: "2025-04-07", time: "06:34:41", categoryName: "파스타", menuName: "쉬림프로제" },
+  { date: "2025-04-05", time: "20:30:10", categoryName: "파스타", menuName: "알리오올리오" },
+  { date: "2025-04-07", time: "09:26:52", categoryName: "피자", menuName: "불고기피자" },
+  { date: "2025-04-07", time: "15:35:31", categoryName: "파스타", menuName: "알리오올리오" },
+  { date: "2025-04-06", time: "17:21:25", categoryName: "피자", menuName: "불고기피자" },
+  { date: "2025-04-06", time: "00:18:27", categoryName: "피자", menuName: "포테이토피자" },
+  { date: "2025-04-05", time: "01:34:21", categoryName: "파스타", menuName: "쉬림프로제" },
+  { date: "2025-04-05", time: "17:01:13", categoryName: "파스타", menuName: "머쉬룸파스타" },
+  { date: "2025-04-05", time: "23:37:55", categoryName: "피자", menuName: "포테이토피자" },
+  { date: "2025-04-07", time: "22:31:25", categoryName: "피자", menuName: "불고기피자" },
+  { date: "2025-04-05", time: "04:20:04", categoryName: "피자", menuName: "포테이토피자" },
+  { date: "2025-04-07", time: "19:08:03", categoryName: "피자", menuName: "쉬림프피자" },
+  { date: "2025-04-07", time: "18:58:56", categoryName: "파스타", menuName: "크림치즈 파스타" },
+  { date: "2025-04-05", time: "21:47:10", categoryName: "피자", menuName: "불고기피자" },
+  { date: "2025-04-07", time: "17:58:41", categoryName: "파스타", menuName: "크림치즈 파스타" },
+  { date: "2025-04-07", time: "03:03:02", categoryName: "파스타", menuName: "크림치즈 파스타" },
+  { date: "2025-04-05", time: "00:35:05", categoryName: "파스타", menuName: "알리오올리오" },
+  { date: "2025-04-06", time: "21:43:30", categoryName: "파스타", menuName: "머쉬룸파스타" },
+  { date: "2025-04-06", time: "01:16:19", categoryName: "피자", menuName: "쉬림프피자" },
+  { date: "2025-04-07", time: "17:25:53", categoryName: "파스타", menuName: "머쉬룸파스타" },
+  { date: "2025-04-05", time: "18:38:43", categoryName: "피자", menuName: "포테이토피자" },
+  { date: "2025-04-06", time: "00:38:58", categoryName: "파스타", menuName: "크림치즈 파스타" },
+  { date: "2025-04-06", time: "07:57:46", categoryName: "피자", menuName: "쉬림프피자" },
+  { date: "2025-04-05", time: "13:29:15", categoryName: "피자", menuName: "포테이토피자" },
+  { date: "2025-04-07", time: "10:20:19", categoryName: "파스타", menuName: "크림치즈 파스타" },
+  { date: "2025-04-05", time: "21:35:05", categoryName: "피자", menuName: "쉬림프피자" },
+  { date: "2025-04-06", time: "16:21:18", categoryName: "피자", menuName: "쉬림프피자" },
+  { date: "2025-04-06", time: "04:20:32", categoryName: "피자", menuName: "불고기피자" },
+  { date: "2025-04-05", time: "10:35:25", categoryName: "파스타", menuName: "크림치즈 파스타" },
+  { date: "2025-04-05", time: "02:11:43", categoryName: "파스타", menuName: "크림치즈 파스타" },
+  { date: "2025-04-05", time: "17:25:37", categoryName: "피자", menuName: "불고기피자" },
+  { date: "2025-04-05", time: "15:48:53", categoryName: "파스타", menuName: "머쉬룸파스타" },
+  { date: "2025-04-07", time: "02:08:54", categoryName: "피자", menuName: "쉬림프피자" },
+  { date: "2025-04-05", time: "06:01:29", categoryName: "파스타", menuName: "알리오올리오" },
+  { date: "2025-04-06", time: "21:40:02", categoryName: "파스타", menuName: "머쉬룸파스타" },
+  { date: "2025-04-06", time: "12:34:22", categoryName: "파스타", menuName: "알리오올리오" },
+  { date: "2025-04-07", time: "06:54:27", categoryName: "파스타", menuName: "머쉬룸파스타" },
+  { date: "2025-04-06", time: "00:31:49", categoryName: "피자", menuName: "불고기피자" },
+  { date: "2025-04-05", time: "23:20:02", categoryName: "피자", menuName: "쉬림프피자" },
+  { date: "2025-04-06", time: "12:44:44", categoryName: "피자", menuName: "불고기피자" },
+  { date: "2025-04-05", time: "04:20:10", categoryName: "피자", menuName: "불고기피자" },
+  { date: "2025-04-05", time: "04:59:05", categoryName: "파스타", menuName: "머쉬룸파스타" },
+  { date: "2025-04-06", time: "00:05:47", categoryName: "파스타", menuName: "알리오올리오" },
+  { date: "2025-04-06", time: "11:52:31", categoryName: "파스타", menuName: "알리오올리오" },
+  { date: "2025-04-07", time: "12:34:42", categoryName: "파스타", menuName: "머쉬룸파스타" },
+  { date: "2025-04-06", time: "20:26:50", categoryName: "피자", menuName: "포테이토피자" },
+  { date: "2025-04-06", time: "06:49:10", categoryName: "파스타", menuName: "알리오올리오" },
+  { date: "2025-04-06", time: "06:16:14", categoryName: "파스타", menuName: "알리오올리오" },
+  { date: "2025-04-05", time: "19:58:13", categoryName: "파스타", menuName: "쉬림프로제" },
 ];
 
 const flatList = [
@@ -328,42 +75,6 @@ const filteredList = computed(() => {
   return flatList.filter((item) => item.menuName.includes(query));
 });
 
-ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
-
-const chartData = computed(() => {
-  const result = new Array(24).fill(0); // 00시 ~ 23시까지 24칸 초기화
-  const query = keyword.value.trim();
-
-  const filteredData = salesData.filter((item) => item.date === selectedDate.value);
-  filteredData.forEach(({ menuName, time }) => {
-    if (!query || menuName.includes(query)) {
-      const hour = parseInt(time.split(":")[0], 10);
-      result[hour]++;
-    }
-  });
-
-  return {
-    labels: Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0")),
-    datasets: [
-      {
-        label: "판매 수",
-        data: result,
-        backgroundColor: "rgba(153, 102, 255, 0.6)",
-      },
-    ],
-  };
-});
-
-const chartOptions = {
-  responsive: true,
-  scales: {
-    y: {
-      beginAtZero: true,
-      max: 10,
-    },
-  },
-};
-
 // 달력 관련 데이터
 const startDate = ref("");
 const endDate = ref("");
@@ -378,14 +89,9 @@ const showByMonth = computed(() => {
 
   return dayCount > 30;
 });
-const selectedDate = ref("2025-04-07");
-const selectedDateTable = computed(() => {
-  return selectedDate.value.replace(/-/g, ".").slice(-5);
-});
 
 // 선택된 날짜의 판매 데이터
 const sortOrder = ref("asc");
-
 const periodSales = computed(() => {
   const query = keyword.value.trim();
   const start = new Date(startDate.value);
@@ -439,6 +145,99 @@ const uniqueMonths = computed(() => {
   const months = periodSales.value.map((item) => item.date.slice(0, 7)); // 'YYYY-MM'
   return [...new Set(months)].sort((a, b) => (sortOrder.value === "asc" ? a.localeCompare(b) : b.localeCompare(a)));
 });
+
+//차트 데이터
+function getDateRange(start, end, byMonth = false) {
+  const result = [];
+  const current = new Date(start);
+
+  while (current <= end) {
+    let formatted;
+
+    if (byMonth) {
+      // YYYY.MM
+      const year = current.getFullYear();
+      const month = String(current.getMonth() + 1).padStart(2, "0");
+      formatted = `${year}.${month}`;
+    } else {
+      // MM.DD
+      const month = String(current.getMonth() + 1).padStart(2, "0");
+      const day = String(current.getDate()).padStart(2, "0");
+      formatted = `${month}.${day}`;
+    }
+
+    if (!result.includes(formatted)) {
+      result.push(formatted);
+    }
+
+    if (byMonth) {
+      current.setMonth(current.getMonth() + 1);
+    } else {
+      current.setDate(current.getDate() + 1);
+    }
+  }
+
+  return result;
+}
+
+const chartSeries = computed(() => {
+  if (!startDate.value || !endDate.value) return [];
+
+  const start = new Date(startDate.value);
+  const end = new Date(endDate.value);
+  const labels = getDateRange(start, end, showByMonth.value); // 포맷된 라벨
+
+  const counts = {};
+
+  periodSales.value.forEach((item) => {
+    const itemDate = new Date(item.date);
+    let key;
+
+    if (showByMonth.value) {
+      // YYYY.MM
+      key = `${itemDate.getFullYear()}.${String(itemDate.getMonth() + 1).padStart(2, "0")}`;
+    } else {
+      // MM.DD
+      key = `${String(itemDate.getMonth() + 1).padStart(2, "0")}.${String(itemDate.getDate()).padStart(2, "0")}`;
+    }
+
+    counts[key] = (counts[key] || 0) + 1;
+  });
+
+  return [
+    {
+      name: "판매 수",
+      data: labels.map((label) => counts[label] || 0), // 라벨 기준으로 맞춤
+    },
+  ];
+});
+
+const chartOptions = computed(() => {
+  if (!startDate.value || !endDate.value) return {};
+
+  const start = new Date(startDate.value);
+  const end = new Date(endDate.value);
+  const labels = getDateRange(start, end, showByMonth.value);
+
+  return {
+    chart: {
+      type: "bar",
+      height: 350,
+    },
+    title: {
+      text: showByMonth.value ? "월별 판매 건수" : "일별 판매 건수",
+      align: "center",
+    },
+    xaxis: {
+      categories: labels,
+    },
+    yaxis: {
+      title: {
+        text: "판매 건수",
+      },
+    },
+  };
+});
 </script>
 
 <template>
@@ -473,7 +272,7 @@ const uniqueMonths = computed(() => {
         </div>
       </div>
       <div class="chart">
-        <!--<Bar :data="chartData" :options="chartOptions" />-->
+        <apexchart type="bar" height="350" :options="chartOptions" :series="chartSeries" />
       </div>
 
       <!-- 선택된 날짜의 판매 데이터 테이블 -->
