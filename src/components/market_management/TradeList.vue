@@ -56,7 +56,7 @@ const trade_items = ref([
         product: '마늘',
         price: 1500,
         quantity: 2,
-        status: '배송확정',
+        status: '결제하기',
         date: '2025-04-06',
         store: '상도파스타'
     },
@@ -80,13 +80,23 @@ const handleButtonClick = (status, index) => {
     } else if (status === '요청확인') {
         selectedProduct.value = trade_items.value[index].product;
         showRequestListModal.value = true;
+    } else {
+        modalMessage.value = '결제를 진행하시겠습니까?';
+        showModal.value = true;
     }
 };
 
 const confirmModal = () => {
     const index = currentItemIndex.value;
+    const item = trade_items.value[index];
     if (trade_items.value[index].status === '배송확정') {
         trade_items.value[index].status = '거래완료';
+    } else if (trade_items.value[index].status === '결제하기') {
+        requestPay(item, () => {
+            // 결제 성공 시 상태 변경
+            item.status = '배송확정';
+            showModal.value = false;
+        });
     }
     showModal.value = false;
 };
@@ -113,6 +123,45 @@ const filteredItems = computed(() => {
             return sortOrder.value === 'asc' ? dateA.diff(dateB) : dateB.diff(dateA);
         });
 });
+
+const requestPay = (item, onSuccess) => {
+    if (!window.IMP) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.iamport.kr/js/iamport.payment-1.2.0.js';
+        script.onload = () => runPayment(item, onSuccess);
+        document.head.appendChild(script);
+    } else {
+        runPayment(item, onSuccess);
+    }
+};
+
+const runPayment = (item, onSuccess) => {
+    const IMP = window.IMP;
+    IMP.init("imp02121780"); // 가맹점 식별코드
+
+    const now = new Date();
+    const makeMerchantUid = 'IMP' + now.getHours() + now.getMinutes() + now.getSeconds() + now.getMilliseconds();
+
+    IMP.request_pay({
+        pg: 'kakaopay',
+        pay_method: 'card',
+        merchant_uid: makeMerchantUid,
+        name: item.product,
+        amount: item.price * item.quantity,
+        buyer_name: 'WHTHIS',
+        buyer_tel: '010-1234-5678',
+        buyer_addr: '서울특별시 보라매로 87',
+    }, function (rsp) {
+        if (rsp.success) {
+            console.log("결제 성공:", rsp);
+            onSuccess(); // 결제 성공 시 콜백 실행
+        } else {
+            console.log("결제 실패:", rsp);
+            alert("결제가 취소되었습니다.");
+        }
+    });
+};
+
 </script>
 
 <template>
