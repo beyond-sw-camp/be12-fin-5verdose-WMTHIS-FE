@@ -5,6 +5,7 @@ import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Lege
 import upIcon from "@/assets/image/up.png";
 import downIcon from "@/assets/image/down.png";
 import Calendar from "@/components/Calendar.vue";
+import { reactive } from "vue";
 
 const keyword = ref("");
 const salesData = [
@@ -366,6 +367,17 @@ const chartOptions = {
 // 달력 관련 데이터
 const startDate = ref("");
 const endDate = ref("");
+const showByMonth = computed(() => {
+  if (!startDate.value || !endDate.value) return false;
+
+  const start = new Date(startDate.value);
+  const end = new Date(endDate.value);
+
+  const timeDiff = end.getTime() - start.getTime();
+  const dayCount = timeDiff / (1000 * 60 * 60 * 24) + 1; // +1 해서 당일 포함
+
+  return dayCount > 30;
+});
 const selectedDate = ref("2025-04-07");
 const selectedDateTable = computed(() => {
   return selectedDate.value.replace(/-/g, ".").slice(-5);
@@ -373,7 +385,6 @@ const selectedDateTable = computed(() => {
 
 // 선택된 날짜의 판매 데이터
 const sortOrder = ref("asc");
-const sortIcon = computed(() => (sortOrder.value === "asc" ? upIcon : downIcon));
 
 const periodSales = computed(() => {
   const query = keyword.value.trim();
@@ -406,28 +417,28 @@ const periodSales = computed(() => {
 });
 
 const selectedDates = ref(null);
+const detailStatus = ref({}); // 날짜별 열림/닫힘 상태 저장
+
+const toggleDetail = (date) => {
+  // 이미 선택된 날짜면 상태 토글
+  detailStatus.value[date] = !detailStatus.value[date];
+  selectedDates.value = date;
+};
+
+const sortIcon = (date) => {
+  return detailStatus.value[date] ? upIcon : downIcon;
+};
 
 // 중복 제거된 날짜 목록
 const uniqueDates = computed(() => {
-  const dates = periodSales.value.map(item => item.date);
-  return [...new Set(dates)].sort((a, b) =>
-    sortOrder.value === "asc" ? a.localeCompare(b) : b.localeCompare(a)
-  );
+  const dates = periodSales.value.map((item) => item.date);
+  return [...new Set(dates)].sort((a, b) => (sortOrder.value === "asc" ? a.localeCompare(b) : b.localeCompare(a)));
 });
 
-// 해당 날짜의 상세 데이터
-const salesForSelectedDate = computed(() => {
-  if (!selectedDates.value) return [];
-  return periodSales.value.filter(item => item.date === selectedDates.value);
+const uniqueMonths = computed(() => {
+  const months = periodSales.value.map((item) => item.date.slice(0, 7)); // 'YYYY-MM'
+  return [...new Set(months)].sort((a, b) => (sortOrder.value === "asc" ? a.localeCompare(b) : b.localeCompare(a)));
 });
-
-
-
-
-
-const toggleSortOrder = () => {
-  sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc";
-};
 </script>
 
 <template>
@@ -472,7 +483,7 @@ const toggleSortOrder = () => {
             <table ref="tableHeaderRef" class="sales_table header_table">
               <thead>
                 <tr>
-                  <th @click="toggleSortOrder"><img :src="sortIcon" alt="정렬 아이콘" class="search_icon" /></th>
+                  <th></th>
                   <th>메뉴명</th>
                   <th>수량</th>
                 </tr>
@@ -483,29 +494,32 @@ const toggleSortOrder = () => {
           <div ref="scrollableWrapperRef" class="scrollable_wrapper">
             <table ref="tableBodyRef" class="sales_table body_table">
               <tbody>
+                <!-- 날짜 또는 월 기준 목록 -->
+                <template v-for="(key, idx) in showByMonth ? uniqueMonths : uniqueDates" :key="idx">
+                  <tr @click="toggleDetail(key)" :class="{ selected: selectedDates === key }" style="cursor: pointer">
+                    <td colspan="3">
+                      <strong>{{ showByMonth ? key.replace("-", ".") : key.slice(5).replace("-", ".") }}</strong>
+                      &nbsp;
+                      <img :src="sortIcon(key)" alt="정렬 아이콘" class="search_icon" />
+                    </td>
+                  </tr>
+
+                  <!-- 상세 내역: 각 key에 대해 필터링 -->
                   <tr
-v-for="(date, idx) in uniqueDates"
-    :key="idx"
-    @click="selectedDates = date"
-    :class="{ selected: selectedDates === date }"
-    style="cursor: pointer"
-  >
-    <td colspan="3">
-      <strong>{{ date.slice(5) }}</strong> ▶ 클릭하여 상세 보기
-    </td>
-  </tr>
+                    v-if="detailStatus[key]"
+                    v-for="(item, idx2) in periodSales.filter((i) => (showByMonth ? i.date.startsWith(key) : i.date === key))"
+                    :key="`detail-${idx}-${idx2}`"
+                  >
+                    <td>{{ showByMonth ? item.date : item.time }}</td>
+                    <td>{{ item.menuName }}</td>
+                    <td>1</td>
+                  </tr>
+                </template>
 
-  <!-- 선택된 날짜의 상세 데이터 출력 -->
-  <tr v-for="(item, idx) in salesForSelectedDate" :key="`detail-${idx}`">
-    <td>{{ item.time }}</td>
-    <td>{{ item.menuName }}</td>
-    <td>1</td>
-  </tr>
-
-  <!-- 데이터 없을 때 안내 메시지 -->
-  <tr v-if="uniqueDates.length === 0">
-    <td colspan="3" class="no_data">해당 날짜의 판매 데이터가 없습니다.</td>
-  </tr>
+                <!-- 데이터 없음 안내 -->
+                <tr v-if="uniqueDates.length === 0">
+                  <td colspan="3" class="no_data">해당 날짜의 판매 데이터가 없습니다.</td>
+                </tr>
               </tbody>
             </table>
           </div>
