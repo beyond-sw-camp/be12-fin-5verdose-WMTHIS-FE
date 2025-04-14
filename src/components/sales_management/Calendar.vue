@@ -115,6 +115,8 @@ const selectDate = (date) => {
         selectedDate.value = date;
         selectedRange.value = [date];
         emit('date-selected', date);
+        // 단일 날짜 선택 시 period-selected 이벤트도 발생시킴
+        emit('period-selected', 'specific');
     } else {
         if (!selectedRangeStart.value) {
             selectedRangeStart.value = date;
@@ -139,6 +141,7 @@ const selectDate = (date) => {
         }
     }
 };
+
 
 // 매출액 포맷팅
 const formatSales = (amount) => {
