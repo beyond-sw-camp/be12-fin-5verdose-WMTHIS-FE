@@ -1,6 +1,8 @@
+// src/stores/useInventoryStore.js
 import { defineStore } from "pinia";
-import axios from "axios";
+import { api } from "@/api"; // api.js에서 export 된 모든 함수들 가져오기
 
+// Pinia store
 export const useInventoryStore = defineStore("inventoryStore", {
   state: () => ({
     inventoryDetail: {
@@ -12,23 +14,19 @@ export const useInventoryStore = defineStore("inventoryStore", {
   }),
 
   actions: {
-    // 재고 정보 세팅
-    setInventoryDetail(detail) {
-      this.inventoryDetail = detail;
+    // registerStoreInventory 함수 정의
+    async registerStoreInventory(storeInventoryData) {
+      try {
+        const result = await api.registerInventory(storeInventoryData); // api.registerInventory 호출
+        return result; // 성공 시 반환
+      } catch (error) {
+        console.error("registerStoreInventory 실패:", error);
+        return false; // 실패 시 false 반환
+      }
     },
 
-    // 재고 등록 요청
-    async registerStoreInventory() {
-      try {
-        const response = await axios.post(
-          "/api/inventory/registerStoreInventory",
-          this.inventoryDetail
-        );
-        return response.data; // BaseResponse<String> 형태
-      } catch (error) {
-        console.error("재고 등록 실패:", error.response?.data || error.message);
-        throw error;
-      }
+    setInventoryDetail(detail) {
+      this.inventoryDetail = detail;
     },
   },
 });
