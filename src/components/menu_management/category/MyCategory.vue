@@ -1,5 +1,6 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
+import { api } from '@/api'; // API 호출을 위한 axios 인스턴스 import
 import CategoryRegisterModal from '@/components/menu_management/category/CategoryRegisterModal.vue';
 import DeleteConfirmModal from '@/components/alerts/DeleteConfirmModal.vue';
 import DeleteAlertModal from '@/components/alerts/DeleteAlertModal.vue';
@@ -9,17 +10,17 @@ const isRegisterModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isDeleteConfirmOpen = ref(false);
 const isDeleteAlertOpen = ref(false); // 삭제 항목 선택 안내 모달
+const selectedCategory = ref(null);
 const openRegisterModal = () => { isRegisterModalOpen.value = true; };
 const closeRegisterModal = () => { isRegisterModalOpen.value = false; };
 
-const openEditModal = () => { isEditModalOpen.value = true; };
+const openEditModal = (item) => {
+    isEditModalOpen.value = true;
+    selectedCategory.value = item.id;
+};
 const closeEditModal = () => { isEditModalOpen.value = false; };
 
-const menu_items = ref([
-    { name: "알리오올리오", category: '파스타', selected: false },
-    { name: "들깨 크림 뇨끼", category: '파스타', selected: false },
-    { name: "토마토 파스타", category: '파스타', selected: false },
-    { name: "봉골레 파스타", category: '파스타', selected: false }
+const category_items = ref([
 ]);
 
 const select_all = ref(false);
@@ -27,19 +28,18 @@ const isBlocked = computed(() => false);
 
 const toggle_select_all = () => {
     if (!isBlocked.value) {
-        menu_items.value.forEach(item => (item.selected = select_all.value));
+        category_items.value.forEach(item => (item.selected = select_all.value));
     }
 };
 
-watch(menu_items, (new_items) => {
+watch(category_items, (new_items) => {
     select_all.value = new_items.every(item => item.selected);
 }, { deep: true });
-
 
 // 삭제 확인 모달 열기
 const openDeleteConfirm = () => {
     if (!isBlocked.value) {
-        const selectedItems = menu_items.value.some(item => item.selected);
+        const selectedItems = category_items.value.some(item => item.selected);
         if (selectedItems) {
             isDeleteConfirmOpen.value = true;
         } else {
@@ -58,11 +58,45 @@ const closeDeleteAlert = () => {
     isDeleteAlertOpen.value = false;
 };
 
-// 삭제 실행
-const deleteSelectedItems = () => {
+const deleteSelectedItems = async () => {
     isDeleteConfirmOpen.value = false;
-    menu_items.value = menu_items.value.filter(item => !item.selected);
+
+    const selectedIds = category_items.value
+        .filter(item => item.selected)
+        .map(item => item.id);
+
+    try {
+        const res = await api.deleteCategory({ ids: selectedIds });
+
+        if (res.data.code === 200) {
+            console.log("삭제 응답:", res.data);
+
+            // UI 업데이트
+            category_items.value = category_items.value.filter(item => !item.selected);
+
+            // 선택 전체 체크박스도 초기화
+            select_all.value = false;
+        } else {
+            console.error("삭제 중 에러:", res.data.message);
+        }
+    } catch (err) {
+        console.error("API 호출 실패:", err);
+    }
 };
+const fetchCategoryList = () => {
+    api.getCategoryList()
+        .then(res => {
+            category_items.value = res;
+            console.log('카테고리 목록 갱신됨:', res);
+        })
+        .catch(error => {
+            console.error('카테고리 목록 불러오기 실패:', error);
+        });
+};
+
+onMounted(() => {
+    fetchCategoryList();
+});
 </script>
 
 
@@ -96,20 +130,21 @@ const deleteSelectedItems = () => {
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(item, index) in menu_items" :key="index" :class="{ 'selected-row': item.selected }">
+                <tr v-for="(item, index) in category_items" :key="index" :class="{ 'selected-row': item.selected }">
                     <td>
                         <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
                     </td>
-                    <td>{{ item.category }}</td>
+                    <td>{{ item.name }}</td>
                     <td>
-                        <button class="detail_btn" @click="openEditModal">수정</button>
+                        <button class="detail_btn" @click="openEditModal(item)">수정</button>
                     </td>
                 </tr>
             </tbody>
         </table>
 
-        <CategoryRegisterModal :isOpen="isRegisterModalOpen" @close="closeRegisterModal" />
-        <CategoryEditModal :isOpen="isEditModalOpen" @close="closeEditModal" />
+        <CategoryRegisterModal :isOpen="isRegisterModalOpen" @close="closeRegisterModal" @refresh="fetchCategoryList" />
+        <CategoryEditModal :isOpen="isEditModalOpen" :category="selectedCategory" @close="closeEditModal"
+            @refresh="fetchCategoryList" />
         <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
         <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
     </div>
