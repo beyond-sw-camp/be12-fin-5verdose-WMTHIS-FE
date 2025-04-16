@@ -1,5 +1,6 @@
 <script setup>
 import { defineProps, defineEmits, ref } from 'vue';
+import { api } from '@/api'; // API 호출을 위한 axios 인스턴스 import
 
 const props = defineProps({
     isOpen: Boolean
@@ -7,7 +8,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close']);
 
-const menuName = ref('');
+const categoryName = ref('');
 const category = ref('');
 const optionList = ['면 추가', '밥 추가', '치즈 추가', '고기 추가'];
 const optionName = ref('');
@@ -17,6 +18,26 @@ const addOption = () => {
     if (optionName.value && !selectedOptions.value.includes(optionName.value)) {
         selectedOptions.value.push(optionName.value);
         optionName.value = '';
+    }
+};
+
+const registerCategory = async () => {
+    if (categoryName.value && selectedOptions.value.length >= 0) {
+        // 카테고리 등록 로직
+        console.log('카테고리 등록:', categoryName.value, selectedOptions.value);
+        const response = await api.registerCategory({
+            name: categoryName.value,
+            //options: selectedOptions.value
+        });
+        if (response) {
+            alert('카테고리가 등록되었습니다.');
+            emit('refresh');
+            emit('close');
+        } else {
+            alert('카테고리 등록에 실패했습니다.');
+        }
+    } else {
+        alert('카테고리명을 입력해주세요.');
     }
 };
 
@@ -44,20 +65,9 @@ const removeOption = (index) => {
                         <p class="title_warn">(필수)</p>
                     </div>
                     <p class="sub_title"> 판매 시 사용하는 카테고리명을 입력해주세요</p>
-                    <input type="text" v-model="menuName" placeholder="카테고리1" />
+                    <input type="text" v-model="categoryName" placeholder="카테고리1" />
                 </div>
 
-
-                <div class="input_group">
-                    <label>옵션</label>
-                    <p class="sub_title"> 카테고리에서 사용가능한 옵션을 선택해주세요.</p>
-                    <select v-model="category">
-                        <option value="">카테고리를 선택해 주세요.</option>
-                        <option value="">탕류</option>
-                        <option value="">사이드</option>
-                        <option value="">선택없음</option>
-                    </select>
-                </div>
 
                 <div class="input_group">
                     <label>옵션 추가</label>
@@ -81,7 +91,7 @@ const removeOption = (index) => {
 
             </div>
             <div class="modal_footer">
-                <button class="confirm_btn" @click="emit('close')">등록</button>
+                <button class="confirm_btn" @click="registerCategory">등록</button>
             </div>
         </div>
     </div>
