@@ -16,23 +16,29 @@ const optionName = ref('');
 const selectedOptions = ref([]);
 
 const addOption = () => {
-    if (optionName.value && !selectedOptions.value.includes(optionName.value)) {
+    if (
+        optionName.value &&
+        !selectedOptions.value.some((opt) => opt.name === optionName.value.name)
+    ) {
         selectedOptions.value.push(optionName.value);
         optionName.value = '';
     }
 };
 
+
 const removeOption = (index) => {
     selectedOptions.value.splice(index, 1);
 };
-
 const getCategory = async () => {
+    console.log('카테고리 ID:', props.category);
     if (!props.category) return;
     try {
-        const res = await api.getCategory({ categoryId: props.category });
+        const res = await api.getCategory({ id: props.category });
         console.log('카테고리 정보:', res.data);
         categoryName.value = res.data.data.name;
-        // 여기에 옵션 등 추가 데이터도 있으면 같이 세팅
+
+        selectedOptions.value = res.data.data.options || [];
+        console.log('선택된 옵션:', selectedOptions.value);
     } catch (error) {
         console.error('카테고리 정보 로드 실패:', error);
     }
@@ -81,8 +87,10 @@ onMounted(() => {
                     <p class="sub_title">면 추가, 밥 추가 등 메뉴에 적용할 옵션을 선택해 주세요.</p>
                     <div class="ingredient_inputs">
                         <select v-model="optionName">
-                            <option value="" disabled selected>옵션 선택</option>
-                            <option v-for="item in optionList" :key="item" :value="item">{{ item.name }}</option>
+                            <option disabled value="">옵션 선택</option>
+                            <option v-for="item in optionList" :key="item.id" :value="item">
+                                {{ item.name }}
+                            </option>
                         </select>
                         <button class="add_btn" @click="addOption">추가</button>
                     </div>
@@ -94,8 +102,6 @@ onMounted(() => {
                         <button class="remove_btn" @click="removeOption(index)">✕</button>
                     </span>
                 </div>
-
-
             </div>
             <div class="modal_footer">
                 <button class="confirm_btn" @click="emit('close')">수정</button>

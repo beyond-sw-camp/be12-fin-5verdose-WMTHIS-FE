@@ -59,4 +59,34 @@ export const api = {
       params: data,
     });
   },
+  registerOption(data) {
+    console.log("registerOption data", data);
+    return instance
+      .post("/option/register", data)
+      .then((res) => {
+        console.log("registerRes", res);
+        return res.data.code === 200; // 성공 여부 반환
+      })
+      .catch((error) => {
+        console.error("Error in registerOption:", error);
+        return false;
+      });
+  },
+  getOptionList() {
+    console.log("getOptionList");
+    return instance
+      .get("/option/list")
+      .then((res) => {
+        console.log("registerRes", res);
+        console.log("code:", res.data.code);
+        if (res.data.code !== 200) {
+          return false; // 실패 시 false 반환;
+        }
+        return res.data.data; // 성공 시 데이터 반환
+      })
+      .catch((error) => {
+        console.error("Error in getOptionList:", error);
+        return false;
+      });
+  },
 };

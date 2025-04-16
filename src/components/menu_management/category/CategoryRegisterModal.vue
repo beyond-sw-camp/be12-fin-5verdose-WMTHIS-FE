@@ -16,6 +16,7 @@ const selectedOptions = ref([]);
 
 const addOption = () => {
     if (optionName.value && !selectedOptions.value.includes(optionName.value)) {
+        console.log('추가할 옵션:', optionName.value.optionId);
         selectedOptions.value.push(optionName.value);
         optionName.value = '';
     }
@@ -23,12 +24,16 @@ const addOption = () => {
 
 const registerCategory = async () => {
     if (categoryName.value && selectedOptions.value.length >= 0) {
-        // 카테고리 등록 로직
-        console.log('카테고리 등록:', categoryName.value, selectedOptions.value);
+        // name만 추출
+        const optionIds = selectedOptions.value.map(option => option.optionId);
+
+        console.log('카테고리 등록:', categoryName.value, optionIds);
+
         const response = await api.registerCategory({
             name: categoryName.value,
-            //options: selectedOptions.value
+            optionIds: optionIds
         });
+
         if (response) {
             alert('카테고리가 등록되었습니다.');
             emit('refresh');
@@ -40,6 +45,7 @@ const registerCategory = async () => {
         alert('카테고리명을 입력해주세요.');
     }
 };
+
 
 const removeOption = (index) => {
     selectedOptions.value.splice(index, 1);

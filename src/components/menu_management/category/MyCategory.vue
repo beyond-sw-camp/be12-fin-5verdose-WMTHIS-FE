@@ -36,8 +36,6 @@ watch(category_items, (new_items) => {
     select_all.value = new_items.every(item => item.selected);
 }, { deep: true });
 
-
-
 // 삭제 확인 모달 열기
 const openDeleteConfirm = () => {
     if (!isBlocked.value) {
@@ -63,12 +61,12 @@ const closeDeleteAlert = () => {
 const deleteSelectedItems = async () => {
     isDeleteConfirmOpen.value = false;
 
-    const selectedNames = category_items.value
+    const selectedIds = category_items.value
         .filter(item => item.selected)
-        .map(item => item.name);
+        .map(item => item.id);
 
     try {
-        const res = await api.deleteCategory({ names: selectedNames });
+        const res = await api.deleteCategory({ ids: selectedIds });
 
         if (res.data.code === 200) {
             console.log("삭제 응답:", res.data);
