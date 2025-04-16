@@ -17,4 +17,118 @@ export const api = {
       return false; // 결제 검증 실패
     }
   },
+  registerCategory(data) {
+    console.log("registerCategory data", data);
+    return instance
+      .post("/category/register", data)
+      .then((res) => {
+        console.log("registerRes", res);
+        console.log("code:", res.data.code);
+
+        return res.data.code === 200; // 성공 시 true 반환;
+      })
+      .catch((error) => {
+        console.error("Error in registerCategory:", error);
+        return false;
+      });
+  },
+  getCategoryList() {
+    console.log("getCategoryList");
+    return instance
+      .get("/category/getList")
+      .then((res) => {
+        console.log("registerRes", res);
+        console.log("code:", res.data.code);
+        if (res.data.code !== 200) {
+          return false; // 실패 시 false 반환;
+        }
+        return res.data.data; // 성공 시 데이터 반환
+      })
+      .catch((error) => {
+        console.error("Error in getCategoryList:", error);
+        return false;
+      });
+  },
+  deleteCategory(data) {
+    return instance.delete("/category/delete", {
+      data: data,
+    });
+  },
+  getCategory(data) {
+    return instance.get("/category/detail", {
+      params: data,
+    });
+  },
+  registerOption(data) {
+    console.log("registerOption data", data);
+    return instance
+      .post("/option/register", data)
+      .then((res) => {
+        console.log("registerRes", res);
+        return res.data.code === 200; // 성공 여부 반환
+      })
+      .catch((error) => {
+        console.error("Error in registerOption:", error);
+        return false;
+      });
+  },
+  getOptionList() {
+    console.log("getOptionList");
+    return instance
+      .get("/option/list")
+      .then((res) => {
+        console.log("registerRes", res);
+        console.log("code:", res.data.code);
+        if (res.data.code !== 200) {
+          return false; // 실패 시 false 반환;
+        }
+        return res.data.data; // 성공 시 데이터 반환
+      })
+      .catch((error) => {
+        console.error("Error in getOptionList:", error);
+        return false;
+      });
+  },
+  updateCategory(payload) {
+    return axios.put("/api/category/update", payload);
+  },
+  deleteOptions(optionIdList) {
+    return instance
+      .post("/option/delete/batch", optionIdList)
+      .then((res) => {
+        console.log("deleteOptions res", res);
+        return res.data.code === 200;
+      })
+      .catch((error) => {
+        console.error("Error in deleteOptions:", error);
+        return false;
+      });
+  },
+  updateOption(requestData) {
+    return instance
+      .post("/option/update", requestData)
+      .then((res) => {
+        console.log("deleteOptions res", res);
+        return res.data.code === 200;
+      })
+      .catch((error) => {
+        console.error("Error in deleteOptions:", error);
+        return false;
+      });
+  },
+  getOptionById(optionId) {
+    return instance
+      .get(`/option/${optionId}`)
+      .then((res) => {
+        console.log("getOptionById res", res);
+        if (res.data.code !== 200) {
+          return false;
+        }
+        return res.data.data;
+      })
+      .catch((error) => {
+        console.error("Error in getOptionById:", error);
+        return false;
+      });
+  },
 };
