@@ -17,4 +17,18 @@ export const api = {
       return false; // 결제 검증 실패
     }
   },
+
+  signUp(data) {
+    console.log("SignUp data", data);
+    return instance
+      .post("/user/signup", data)
+      .then((res) => {
+        console.log("signUpRes", res);
+        return res.data.code === 200; // 성공 여부 반환
+      })
+      .catch((error) => {
+        console.error("Error in signUp:", error);
+        return false;
+      });
+  },
 };

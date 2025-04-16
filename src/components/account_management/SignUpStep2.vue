@@ -2,15 +2,26 @@
 import { ref, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Logo from '@/assets/image/icon.png'; // 로고 이미지 import
+import { useUserStore } from '../../stores/useUserStore';
+import { api } from "@/api/index";
+
+const userStore = useUserStore();
+const businessNumber = ref('');
+const phoneNumber = ref('');
+const ssn = computed(() => {
+  if (!idNumberFront.value || !idNumberBack.value) {
+    return '';
+  }
+  return `${idNumberFront.value}-${idNumberBack.value}`;
+});
+
+const idNumberFront = ref('');
+const idNumberBack = ref('');
 
 // 변수 선언
 const router = useRouter();
 const logoImage = ref(Logo); // 로고 이미지 참조 추가
-const businessNumber = ref('');
-const phoneNumber = ref('');
 const verificationCode = ref('');
-const idNumberFront = ref('');
-const idNumberBack = ref('');
 const isVerificationSent = ref(false);
 const verificationTimer = ref(180); // 3분 타이머 (초 단위)
 const timerInterval = ref(null);
@@ -89,7 +100,7 @@ const handlePhoneNumberInput = (e) => {
 };
 
 // 완료 버튼 클릭
-const submit = () => {
+const submit = async () => {
   // 유효성 검사
   if (!businessNumber.value || businessNumber.value.replace(/[^0-9]/g, '').length !== 10) {
     errorMessage.value = '유효한 사업자 번호를 입력해주세요.';
@@ -116,15 +127,31 @@ const submit = () => {
     return;
   }
 
-  // 실제 구현에서는 회원가입 완료 API 호출
-  console.log('Form submitted', {
+  // Step2 정보 저장
+  userStore.setStep2Data({
     businessNumber: businessNumber.value,
     phoneNumber: phoneNumber.value,
-    verificationCode: verificationCode.value,
-    idNumber: `${idNumberFront.value}-${idNumberBack.value}******`
+    ssn: ssn.value,
   });
 
-  router.push({ name: 'signupDone' });
+  // 최종 API에 넘길 formData 구성
+  const formData = {
+    name: userStore.name,
+    email: userStore.email,
+    password: userStore.password,
+    businessNumber: userStore.businessNumber,
+    phoneNumber: userStore.phoneNumber,
+    ssn: userStore.ssn,
+  };
+
+  const response = await api.signUp(formData);
+
+  if (response) {
+    alert("회원가입 되었습니다.");
+    router.push({ name: 'signupDone' });
+  } else {
+    alert(response.error || "회원가입에 실패하였습니다.");
+  }
 };
 
 // 컴포넌트 언마운트 시 타이머 정리

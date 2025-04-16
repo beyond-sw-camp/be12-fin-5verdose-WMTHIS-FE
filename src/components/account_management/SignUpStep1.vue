@@ -2,13 +2,16 @@
 import { ref, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Logo from '@/assets/image/icon.png'; // 로고 이미지 import
+import { useUserStore } from '../../stores/useUserStore';
 
-// 변수 선언
-const router = useRouter();
-const logoImage = ref(Logo); // 로고 이미지 참조 추가
+const userStore = useUserStore();
+
 const username = ref('');
 const email = ref('');
 const password = ref('');
+// 변수 선언
+const router = useRouter();
+const logoImage = ref(Logo); // 로고 이미지 참조 추가
 const passwordConfirm = ref('');
 const verificationCode = ref('');
 const isVerificationSent = ref(false);
@@ -88,11 +91,10 @@ const submit = () => {
   }
 
   // 실제 구현에서는 회원가입 API 호출 후 다음 단계로 이동
-  console.log('Form submitted', {
-    username: username.value,
+  userStore.setStep1Data({
+    name: username.value,
     email: email.value,
     password: password.value,
-    verificationCode: verificationCode.value
   });
 
   router.push({ name: 'signup2' });
