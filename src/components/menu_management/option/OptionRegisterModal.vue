@@ -1,5 +1,6 @@
 <script setup>
-import { defineProps, defineEmits, ref } from 'vue';
+import { defineProps, defineEmits, ref, onMounted } from 'vue';
+import { api } from '@/api';
 
 const props = defineProps({
     isOpen: Boolean
@@ -7,7 +8,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close']);
 
-const activeTab = ref('단일메뉴'); // 기본 선택된 탭
+const price = ref('');
 const optionName = ref('');
 const ingredientName = ref('');
 const ingredientAmount = ref('');
@@ -17,7 +18,18 @@ const ingredients = ref([
     { name: '토마토', amount: '10', unit: 'g' },
     { name: '삼겹살', amount: '50', unit: 'g' }
 ]);
+const categoryList = ref([]);
 const category = ref('');
+
+// 카테고리 목록 로딩
+const loadCategories = async () => {
+    const result = await api.getCategoryList();
+    if (result) {
+        categoryList.value = result;
+    } else {
+        alert("카테고리 목록을 불러오는 데 실패했습니다.");
+    }
+};
 
 const ingredientOptions = ['고추장', '토마토', '삼겹살', '양파', '파'];
 const unitOptions = ['g', 'kg', 'ml', 'L', 'EA'];
@@ -38,6 +50,33 @@ const addIngredient = () => {
 const removeIngredient = (index) => {
     ingredients.value.splice(index, 1);
 };
+
+const handleRegisterOption = async () => {
+
+    console.log('category.value', category.value);
+    const requestData = {
+        name: optionName.value,
+        price: parseInt(price.value),
+        categoryId: category.value,
+        inventoryQuantities: ingredients.value.map((ingredient) => ({
+            inventoryId: 1,
+            quantity: parseFloat(ingredient.amount),
+        })),
+    };
+
+    const success = await api.registerOption(requestData);
+    if (success) {
+        alert('옵션 등록 성공');
+        emit('close');
+    } else {
+        alert('옵션 등록 실패');
+    }
+};
+
+onMounted(() => {
+    loadCategories();
+});
+
 </script>
 
 <template>
@@ -88,24 +127,24 @@ const removeIngredient = (index) => {
                 <div class="input_group">
                     <label>가격</label>
                     <p class="sub_title">옵션의 가격을 입력해주세요.</p>
-                    <input type="number" min="1" placeholder="(ex) 50000" />
+                    <input type="number" v-model="price" min="1" placeholder="(ex) 50000" />
                 </div>
 
                 <div class="input_group">
                     <label>카테고리</label>
-                    <p class="sub_title"> 메뉴가 속한 카테고리를 입력해 주세요.</p>
+                    <p class="sub_title"> 옵션이 속한 카테고리를 선택해 주세요.</p>
                     <select v-model="category">
                         <option value="">카테고리를 선택해 주세요.</option>
-                        <option value="5900원 메뉴">탕류</option>
-                        <option value="프리미엄 메뉴">사이드</option>
-                        <option value="프리미엄 메뉴">선택없음</option>
+                        <option v-for="cat in categoryList" :key="cat.id" :value="cat.id">
+                            {{ cat.name }}
+                        </option>
                     </select>
                 </div>
 
 
             </div>
             <div class="modal_footer">
-                <button class="confirm_btn" @click="emit('close')">등록</button>
+                <button class="confirm_btn" @click=handleRegisterOption>등록</button>
             </div>
         </div>
     </div>

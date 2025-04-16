@@ -38,6 +38,25 @@ const addIngredient = () => {
 const removeIngredient = (index) => {
     ingredients.value.splice(index, 1);
 };
+const handleRegisterOption = async () => {
+    const requestData = {
+        name: optionName.value,
+        price: parseInt(price.value),
+        categoryId: selectedCategoryId.value,
+        inventoryQuantities: ingredients.value.map((ingredient) => ({
+            inventoryId: getInventoryIdByName(ingredient.name),
+            quantity: parseFloat(ingredient.amount),
+        })),
+    };
+
+    const success = await api.registerOption(requestData);
+    if (success) {
+        alert('옵션 등록 성공');
+        emit('close');
+    } else {
+        alert('옵션 등록 실패');
+    }
+};
 </script>
 
 <template>
@@ -89,17 +108,6 @@ const removeIngredient = (index) => {
                     <label>가격</label>
                     <p class="sub_title">옵션의 가격을 입력해주세요.</p>
                     <input type="number" min="1" placeholder="(ex) 50000" />
-                </div>
-
-                <div class="input_group">
-                    <label>카테고리</label>
-                    <p class="sub_title"> 메뉴가 속한 카테고리를 입력해 주세요.</p>
-                    <select v-model="category">
-                        <option value="">카테고리를 선택해 주세요.</option>
-                        <option value="">탕류</option>
-                        <option value="">사이드</option>
-                        <option value="">선택없음</option>
-                    </select>
                 </div>
             </div>
             <div class="modal_footer">

@@ -1,5 +1,6 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
+import { api } from '@/api'; // API 호출을 위한 axios 인스턴스 import
 import OptionRegisterModal from '@/components/menu_management/option/OptionRegisterModal.vue';
 import OptionEditModal from '@/components/menu_management/option/OptionEditModal.vue';
 import DeleteConfirmModal from '@/components/alerts/DeleteConfirmModal.vue';
@@ -15,11 +16,7 @@ const closeRegisterModal = () => { isRegisterModalOpen.value = false; };
 const openEditModal = () => { isEditModalOpen.value = true; };
 const closeEditModal = () => { isEditModalOpen.value = false; };
 
-const menu_items = ref([
-    { name: "알리오올리오", category: '파스타', stock: 20, selected: false },
-    { name: "들깨 크림 뇨끼", category: '파스타', stock: 12, selected: false },
-    { name: "토마토 파스타", category: '파스타', stock: 15, selected: false },
-    { name: "봉골레 파스타", category: '파스타', stock: 8, selected: false }
+const option_items = ref([
 ]);
 
 const select_all = ref(false);
@@ -27,19 +24,20 @@ const isBlocked = computed(() => false);
 
 const toggle_select_all = () => {
     if (!isBlocked.value) {
-        menu_items.value.forEach(item => (item.selected = select_all.value));
+        option_items.value.forEach(item => (item.selected = select_all.value));
     }
 };
 
-watch(menu_items, (new_items) => {
-    select_all.value = new_items.every(item => item.selected);
+watch(option_items, (new_items_ref) => {
+    select_all.value = new_items_ref.every(item => item.selected);
 }, { deep: true });
+
 
 
 // 삭제 확인 모달 열기
 const openDeleteConfirm = () => {
     if (!isBlocked.value) {
-        const selectedItems = menu_items.value.some(item => item.selected);
+        const selectedItems = option_items.value.some(item => item.selected);
         if (selectedItems) {
             isDeleteConfirmOpen.value = true;
         } else {
@@ -61,8 +59,29 @@ const closeDeleteAlert = () => {
 // 삭제 실행
 const deleteSelectedItems = () => {
     isDeleteConfirmOpen.value = false;
-    menu_items.value = menu_items.value.filter(item => !item.selected);
+    option_items.value = option_items.value.filter(item => !item.selected);
 };
+
+const fetchOptionList = async () => {
+    await api.getOptionList()
+        .then(res => {
+            // selected 필드 추가해서 갱신
+            option_items.value = res.content.map(item => ({
+                ...item,
+                selected: false
+            }));
+            console.log('옵션 목록:', option_items.value);
+            console.log('옵션 목록 갱신됨:', res.content);
+        })
+        .catch(error => {
+            console.error('옵션 목록 불러오기 실패:', error);
+        });
+};
+
+
+onMounted(() => {
+    fetchOptionList();
+});
 </script>
 
 <template>
@@ -90,18 +109,16 @@ const deleteSelectedItems = () => {
                     </th>
                     <th>옵션명</th>
                     <th>카테고리명</th>
-                    <th>재고</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(item, index) in menu_items" :key="index" :class="{ 'selected-row': item.selected }">
+                <tr v-for="(item, index) in option_items" :key="index" :class="{ 'selected-row': item.selected }">
                     <td>
                         <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
                     </td>
                     <td>{{ item.name }}</td>
                     <td>{{ item.category }}</td>
-                    <td>{{ item.stock }}</td>
                     <td>
                         <button class="detail_btn" @click="openEditModal">상세</button>
                     </td>
