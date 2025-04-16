@@ -92,4 +92,31 @@ export const api = {
   updateCategory(payload) {
     return axios.put("/api/category/update", payload);
   },
+  deleteOptions(optionIdList) {
+    return instance
+      .post("/option/delete/batch", optionIdList)
+      .then((res) => {
+        console.log("deleteOptions res", res);
+        return res.data.code === 200;
+      })
+      .catch((error) => {
+        console.error("Error in deleteOptions:", error);
+        return false;
+      });
+  },
+  getOptionById(optionId) {
+    return instance
+      .get(`/option/${optionId}`)
+      .then((res) => {
+        console.log("getOptionById res", res);
+        if (res.data.code !== 200) {
+          return false;
+        }
+        return res.data.data;
+      })
+      .catch((error) => {
+        console.error("Error in getOptionById:", error);
+        return false;
+      });
+  },
 };

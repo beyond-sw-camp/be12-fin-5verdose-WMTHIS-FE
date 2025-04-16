@@ -9,11 +9,15 @@ import DeleteAlertModal from '@/components/alerts/DeleteAlertModal.vue';
 const isRegisterModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isDeleteConfirmOpen = ref(false);
+const selectedOptionId = ref(null); // 이미 등록된 카테고리도 받을 수 있도록
 const isDeleteAlertOpen = ref(false); // 삭제 항목 선택 안내 모달
 const openRegisterModal = () => { isRegisterModalOpen.value = true; };
 const closeRegisterModal = () => { isRegisterModalOpen.value = false; };
 
-const openEditModal = () => { isEditModalOpen.value = true; };
+const openEditModal = (id) => {
+    selectedOptionId.value = id; // 선택된 옵션 ID 저장 
+    isEditModalOpen.value = true;
+};
 const closeEditModal = () => { isEditModalOpen.value = false; };
 
 const option_items = ref([
@@ -59,6 +63,14 @@ const closeDeleteAlert = () => {
 // 삭제 실행
 const deleteSelectedItems = () => {
     isDeleteConfirmOpen.value = false;
+    api.deleteOptions(option_items.value.filter(item => item.selected).map(item => item.optionId))
+        .then(res => {
+            console.log('삭제 성공:', res);
+            fetchOptionList(); // 삭제 후 목록 갱신
+        })
+        .catch(error => {
+            console.error('삭제 실패:', error);
+        });
     option_items.value = option_items.value.filter(item => !item.selected);
 };
 
@@ -108,7 +120,6 @@ onMounted(() => {
                             class="circle_checkbox" />
                     </th>
                     <th>옵션명</th>
-                    <th>카테고리명</th>
                     <th></th>
                 </tr>
             </thead>
@@ -118,16 +129,16 @@ onMounted(() => {
                         <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
                     </td>
                     <td>{{ item.name }}</td>
-                    <td>{{ item.category }}</td>
                     <td>
-                        <button class="detail_btn" @click="openEditModal">상세</button>
+                        <button class="detail_btn" @click="openEditModal(item.optionId)">상세</button>
                     </td>
                 </tr>
             </tbody>
         </table>
 
         <OptionRegisterModal :isOpen="isRegisterModalOpen" @close="closeRegisterModal" />
-        <OptionEditModal :isOpen="isEditModalOpen" @close="closeEditModal" />
+        <OptionEditModal :isOpen="isEditModalOpen" :optionId="selectedOptionId" @close="isEditModalOpen = false" />
+
         <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
         <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
     </div>

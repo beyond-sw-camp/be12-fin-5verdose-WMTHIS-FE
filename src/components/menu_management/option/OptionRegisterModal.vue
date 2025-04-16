@@ -14,9 +14,9 @@ const ingredientName = ref('');
 const ingredientAmount = ref('');
 const ingredientUnit = ref('');
 const ingredients = ref([
-    { name: '고추장', amount: '50', unit: 'g' },
-    { name: '토마토', amount: '10', unit: 'g' },
-    { name: '삼겹살', amount: '50', unit: 'g' }
+    { id: 1, name: '고추장', amount: '50', unit: 'g' },
+    { id: 2, name: '토마토', amount: '10', unit: 'g' },
+    { id: 3, name: '삼겹살', amount: '50', unit: 'g' }
 ]);
 const categoryList = ref([]);
 const category = ref('');
@@ -59,7 +59,7 @@ const handleRegisterOption = async () => {
         price: parseInt(price.value),
         categoryId: category.value,
         inventoryQuantities: ingredients.value.map((ingredient) => ({
-            inventoryId: 1,
+            inventoryId: ingredient.id,
             quantity: parseFloat(ingredient.amount),
         })),
     };
@@ -76,7 +76,6 @@ const handleRegisterOption = async () => {
 onMounted(() => {
     loadCategories();
 });
-
 </script>
 
 <template>
