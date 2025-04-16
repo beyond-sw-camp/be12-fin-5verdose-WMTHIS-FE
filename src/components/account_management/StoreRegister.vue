@@ -51,8 +51,14 @@ const handlePhoneInput = (e) => {
 
 // 주소 검색
 const searchAddress = () => {
-    // 실제 구현에서는 주소 검색 API 호출
-    alert('주소 검색 기능은 실제 구현 시 Daum 우편번호 서비스 등을 연동하세요.');
+    new window.daum.Postcode({
+        oncomplete: function (data) {
+            // 주소 선택 후 callback으로 주소 값을 storeAddress에 할당
+            storeAddress.value = data.address; // 기본 주소
+        },
+        width: '100%',
+        height: '100%',
+    }).open();
 };
 
 // 다음 단계로 이동
