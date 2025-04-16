@@ -130,17 +130,6 @@ onMounted(() => {
                     <input type="number" v-model="price" min="1" placeholder="(ex) 50000" />
                 </div>
 
-                <div class="input_group">
-                    <label>카테고리</label>
-                    <p class="sub_title"> 옵션이 속한 카테고리를 선택해 주세요.</p>
-                    <select v-model="category">
-                        <option value="">카테고리를 선택해 주세요.</option>
-                        <option v-for="cat in categoryList" :key="cat.id" :value="cat.id">
-                            {{ cat.name }}
-                        </option>
-                    </select>
-                </div>
-
 
             </div>
             <div class="modal_footer">

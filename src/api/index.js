@@ -89,4 +89,7 @@ export const api = {
         return false;
       });
   },
+  updateCategory(payload) {
+    return axios.put("/api/category/update", payload);
+  },
 };

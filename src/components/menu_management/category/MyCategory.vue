@@ -143,7 +143,8 @@ onMounted(() => {
         </table>
 
         <CategoryRegisterModal :isOpen="isRegisterModalOpen" @close="closeRegisterModal" @refresh="fetchCategoryList" />
-        <CategoryEditModal :isOpen="isEditModalOpen" :category="selectedCategory" @close="closeEditModal" />
+        <CategoryEditModal :isOpen="isEditModalOpen" :category="selectedCategory" @close="closeEditModal"
+            @refresh="fetchCategoryList" />
         <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
         <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
     </div>

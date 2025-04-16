@@ -57,6 +57,30 @@ const loadOptionList = async () => {
         alert("옵션 목록을 불러오는 데 실패했습니다.");
     }
 };
+const updateCategory = async () => {
+    if (!categoryName.value) {
+        alert('카테고리명을 입력해주세요.');
+        return;
+    }
+
+    try {
+        const payload = {
+            id: props.category, // 또는 id → Spring에서 처리 방식에 따라 다르게
+            newName: categoryName.value,
+            optionIds: selectedOptions.value.map(option => option.optionId)
+        };
+        console.log('수정할 카테고리 데이터:', payload);
+        const res = await api.updateCategory(payload);
+        console.log('수정 성공:', res.data);
+        alert('카테고리가 성공적으로 수정되었습니다.');
+        emit('refresh');
+        emit('close');
+    } catch (err) {
+        console.error('카테고리 수정 실패:', err);
+        alert('카테고리 수정 중 오류가 발생했습니다.');
+    }
+};
+
 
 onMounted(() => {
     // 초기화 로직이 필요하다면 여기에 작성
@@ -104,7 +128,7 @@ onMounted(() => {
                 </div>
             </div>
             <div class="modal_footer">
-                <button class="confirm_btn" @click="emit('close')">수정</button>
+                <button class="confirm_btn" @click=updateCategory>수정</button>
             </div>
         </div>
     </div>
