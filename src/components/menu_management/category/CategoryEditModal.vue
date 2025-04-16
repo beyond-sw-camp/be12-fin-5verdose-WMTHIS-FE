@@ -11,7 +11,7 @@ const emit = defineEmits(['close']);
 
 const categoryName = ref('');
 const category = ref('');
-const optionList = ['면 추가', '밥 추가', '치즈 추가', '고기 추가'];
+const optionList = ref(['면 추가', '밥 추가', '치즈 추가', '고기 추가']);
 const optionName = ref('');
 const selectedOptions = ref([]);
 
@@ -40,6 +40,22 @@ const getCategory = async () => {
 watch(() => props.category, (newVal) => {
     if (newVal) getCategory();
 });
+
+// 옵션 리스트 로딩
+const loadOptionList = async () => {
+    const result = await api.getOptionList();
+    if (result) {
+        console.log('옵션 목록:', result);
+        optionList.value = result.content;
+    } else {
+        alert("옵션 목록을 불러오는 데 실패했습니다.");
+    }
+};
+
+onMounted(() => {
+    // 초기화 로직이 필요하다면 여기에 작성
+    loadOptionList();
+});
 </script>
 
 <template>
@@ -66,7 +82,7 @@ watch(() => props.category, (newVal) => {
                     <div class="ingredient_inputs">
                         <select v-model="optionName">
                             <option value="" disabled selected>옵션 선택</option>
-                            <option v-for="item in optionList" :key="item" :value="item">{{ item }}</option>
+                            <option v-for="item in optionList" :key="item" :value="item">{{ item.name }}</option>
                         </select>
                         <button class="add_btn" @click="addOption">추가</button>
                     </div>
@@ -74,7 +90,7 @@ watch(() => props.category, (newVal) => {
 
                 <div class="tag_container">
                     <span v-for="(opt, index) in selectedOptions" :key="index" class="tag">
-                        {{ opt }}
+                        {{ opt.name }}
                         <button class="remove_btn" @click="removeOption(index)">✕</button>
                     </span>
                 </div>
