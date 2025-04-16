@@ -1,47 +1,83 @@
 <script setup>
 import { defineProps, defineEmits, ref } from "vue";
+import { useInventoryStore } from "@/stores/useInventoryStore.js";
 
+// props & emits
 const props = defineProps({
   isOpen: Boolean,
 });
+const emit = defineEmits(["close", "registerInventory"]);
 
-const emit = defineEmits(["close"]);
+// pinia store
+const inventoryStore = useInventoryStore();
 
-const unitCategory = ref("");
+// 입력 필드 상태
+const name = ref("");
+const unit = ref("");
+const miniquantity = ref(0);
+const unitCategory = ref("Kg"); // 단위 접미사 선택
 
-const inventoryName = ref("");
-
+// 유통기한 관련
 const selectedDays = ref("1");
-const customDays = ref("");
 const isCustomInput = ref(false);
+const customDays = ref("");
 
-const days = [
+// 유통기한 선택 옵션
+const expiryDate = [
   { label: "1일", value: "1" },
   { label: "3일", value: "3" },
   { label: "5일", value: "5" },
 ];
 
+// 유통기한 선택
 const selectDay = (value) => {
   selectedDays.value = value;
   isCustomInput.value = false;
   customDays.value = "";
 };
 
+// 직접입력 활성화
 const enableCustomInput = () => {
   selectedDays.value = "custom";
   isCustomInput.value = true;
 };
 
+// 직접입력 해제
 const disableCustomInput = () => {
   if (!customDays.value) {
     isCustomInput.value = false;
-    selectedDays.value = "1"; // 기본값 1일로 설정
+    selectedDays.value = "1";
+  }
+};
+
+// 등록 처리
+const registerInventory = async () => {
+  // 등록할 데이터 세팅
+  inventoryStore.setInventoryDetail({
+    name: name.value,
+    unit: `${unit.value} ${unitCategory.value}`, // 예: "100g", "1 Kg"
+    miniquantity: miniquantity.value,
+    expiryDate:
+      selectedDays.value === "custom" ? customDays.value : selectedDays.value,
+  });
+
+  try {
+    await inventoryStore.registerStoreInventory();
+    emit("registerInventory"); // 성공 시 모달 닫기
+  } catch (error) {
+    console.error("등록 실패:", error);
+    // 에러 알림 처리 추가 가능
   }
 };
 </script>
 
 <template>
-  <div v-if="isOpen" class="register_modal_container" @click.self="emit('close')" style="z-index: 2000;">
+  <div
+    v-if="isOpen"
+    class="register_modal_container"
+    @click.self="emit('close')"
+    style="z-index: 2000"
+  >
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
@@ -55,7 +91,7 @@ const disableCustomInput = () => {
             <p class="title_warn">(필수)</p>
           </div>
           <p class="sub_title">상품의 정확한 이름을 입력해 주세요.</p>
-          <input type="text" v-model="inventoryName" placeholder="마늘" />
+          <input type="text" v-model="name" placeholder="마늘" />
         </div>
 
         <div class="input_group">
@@ -65,7 +101,12 @@ const disableCustomInput = () => {
               <p class="title_warn">(필수)</p>
             </div>
             <div class="unit_container">
-              <input type="text" v-model="minimumQuantity" placeholder="5" class="min_qty_input" />
+              <input
+                type="text"
+                v-model="unit"
+                placeholder="5"
+                class="min_qty_input"
+              />
               <select v-model="unitCategory" class="unit_select">
                 <option value="Kg">Kg</option>
                 <option value="g">g</option>
@@ -80,7 +121,12 @@ const disableCustomInput = () => {
         <div class="input_group">
           <div class="modal_title2 between">
             <label>최소수량</label>
-            <input type="text" v-model="minimumQuantity" placeholder="5" class="min_qty_input" />
+            <input
+              type="text"
+              v-model="miniquantity"
+              placeholder="5"
+              class="min_qty_input"
+            />
           </div>
           <p class="sub_title">
             최소 보유하고 있어야하는 재고의 수를 입력해 주세요.
@@ -91,26 +137,42 @@ const disableCustomInput = () => {
             <label>유통기한</label>
           </div>
           <div class="button_group">
-            <v-btn v-for="day in days" :key="day.value" :class="{ selected_btn: selectedDays === day.value }"
-              @click="selectDay(day.value)" variant="outlined">
+            <v-btn
+              v-for="day in expiryDate"
+              :key="day.value"
+              :class="{ selected_btn: selectedDays === day.value }"
+              @click="selectDay(day.value)"
+              variant="outlined"
+            >
               {{ day.label }}
             </v-btn>
 
             <!-- 직접입력 버튼 -->
-            <v-btn v-if="!isCustomInput" :class="{ selected_btn: selectedDays === 'custom' }" @click="enableCustomInput"
-              variant="outlined">
+            <v-btn
+              v-if="!isCustomInput"
+              :class="{ selected_btn: expiryDate === 'custom' }"
+              @click="enableCustomInput"
+              variant="outlined"
+            >
               직접입력
             </v-btn>
 
-            <v-text-field v-else v-model="customDays" class="custom_input" variant="outlined" density="compact"
-              hide-details @blur="disableCustomInput"></v-text-field>
+            <v-text-field
+              v-else
+              v-model="expiryDate"
+              class="custom_input"
+              variant="outlined"
+              density="compact"
+              hide-details
+              @blur="disableCustomInput"
+            ></v-text-field>
 
             <span class="fixed_text">일 까지</span>
           </div>
         </div>
       </div>
       <div class="modal_footer">
-        <button class="confirm_btn" @click="emit('close')">등록</button>
+        <button class="confirm_btn" @click="registerInventory">등록</button>
       </div>
     </div>
   </div>
@@ -435,7 +497,9 @@ const disableCustomInput = () => {
   /* 드롭다운 크기 */
   appearance: none;
   /* 기본 스타일 제거 */
-  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
+  background: white
+    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
   background-size: 16px;
 }
 
