@@ -1,13 +1,15 @@
 <script setup>
-import { defineProps, defineEmits, ref } from 'vue';
+import { defineProps, defineEmits, ref, watch, onMounted } from 'vue';
+import { api } from '@/api'; // API 호출을 위한 axios 인스턴스 import
 
 const props = defineProps({
-    isOpen: Boolean
+    isOpen: Boolean,
+    category: Object
 });
 
 const emit = defineEmits(['close']);
 
-const menuName = ref('');
+const categoryName = ref('');
 const category = ref('');
 const optionList = ['면 추가', '밥 추가', '치즈 추가', '고기 추가'];
 const optionName = ref('');
@@ -24,7 +26,20 @@ const removeOption = (index) => {
     selectedOptions.value.splice(index, 1);
 };
 
-
+const getCategory = async () => {
+    if (!props.category) return;
+    try {
+        const res = await api.getCategory({ categoryId: props.category });
+        console.log('카테고리 정보:', res.data);
+        categoryName.value = res.data.data.name;
+        // 여기에 옵션 등 추가 데이터도 있으면 같이 세팅
+    } catch (error) {
+        console.error('카테고리 정보 로드 실패:', error);
+    }
+};
+watch(() => props.category, (newVal) => {
+    if (newVal) getCategory();
+});
 </script>
 
 <template>
@@ -42,20 +57,7 @@ const removeOption = (index) => {
                         <p class="title_warn">(필수)</p>
                     </div>
                     <p class="sub_title"> 판매 시 사용하는 카테고리명을 입력해주세요</p>
-                    <input type="text" v-model="menuName" placeholder="카테고리1" />
-                </div>
-
-
-
-                <div class="input_group">
-                    <label>옵션</label>
-                    <p class="sub_title"> 카테고리에서 사용가능한 옵션을 선택해주세요.</p>
-                    <select v-model="category">
-                        <option value="">카테고리를 선택해 주세요.</option>
-                        <option value="">탕류</option>
-                        <option value="">사이드</option>
-                        <option value="">선택없음</option>
-                    </select>
+                    <input type="text" v-model="categoryName" placeholder="카테고리1" />
                 </div>
 
                 <div class="input_group">

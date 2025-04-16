@@ -54,4 +54,9 @@ export const api = {
       data: data,
     });
   },
+  getCategory(data) {
+    return instance.get("/category/detail", {
+      params: data,
+    });
+  },
 };

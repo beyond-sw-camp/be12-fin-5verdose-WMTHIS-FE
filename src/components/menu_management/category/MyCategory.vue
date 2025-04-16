@@ -10,13 +10,17 @@ const isRegisterModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isDeleteConfirmOpen = ref(false);
 const isDeleteAlertOpen = ref(false); // 삭제 항목 선택 안내 모달
+const selectedCategory = ref(null);
 const openRegisterModal = () => { isRegisterModalOpen.value = true; };
 const closeRegisterModal = () => { isRegisterModalOpen.value = false; };
 
-const openEditModal = () => { isEditModalOpen.value = true; };
+const openEditModal = (item) => {
+    isEditModalOpen.value = true;
+    selectedCategory.value = item.id;
+};
 const closeEditModal = () => { isEditModalOpen.value = false; };
 
-const menu_items = ref([
+const category_items = ref([
 ]);
 
 const select_all = ref(false);
@@ -24,19 +28,20 @@ const isBlocked = computed(() => false);
 
 const toggle_select_all = () => {
     if (!isBlocked.value) {
-        menu_items.value.forEach(item => (item.selected = select_all.value));
+        category_items.value.forEach(item => (item.selected = select_all.value));
     }
 };
 
-watch(menu_items, (new_items) => {
+watch(category_items, (new_items) => {
     select_all.value = new_items.every(item => item.selected);
 }, { deep: true });
+
 
 
 // 삭제 확인 모달 열기
 const openDeleteConfirm = () => {
     if (!isBlocked.value) {
-        const selectedItems = menu_items.value.some(item => item.selected);
+        const selectedItems = category_items.value.some(item => item.selected);
         if (selectedItems) {
             isDeleteConfirmOpen.value = true;
         } else {
@@ -58,7 +63,7 @@ const closeDeleteAlert = () => {
 const deleteSelectedItems = async () => {
     isDeleteConfirmOpen.value = false;
 
-    const selectedNames = menu_items.value
+    const selectedNames = category_items.value
         .filter(item => item.selected)
         .map(item => item.name);
 
@@ -69,7 +74,7 @@ const deleteSelectedItems = async () => {
             console.log("삭제 응답:", res.data);
 
             // UI 업데이트
-            menu_items.value = menu_items.value.filter(item => !item.selected);
+            category_items.value = category_items.value.filter(item => !item.selected);
 
             // 선택 전체 체크박스도 초기화
             select_all.value = false;
@@ -83,7 +88,7 @@ const deleteSelectedItems = async () => {
 const fetchCategoryList = () => {
     api.getCategoryList()
         .then(res => {
-            menu_items.value = res;
+            category_items.value = res;
             console.log('카테고리 목록 갱신됨:', res);
         })
         .catch(error => {
@@ -127,20 +132,20 @@ onMounted(() => {
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(item, index) in menu_items" :key="index" :class="{ 'selected-row': item.selected }">
+                <tr v-for="(item, index) in category_items" :key="index" :class="{ 'selected-row': item.selected }">
                     <td>
                         <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
                     </td>
                     <td>{{ item.name }}</td>
                     <td>
-                        <button class="detail_btn" @click="openEditModal">수정</button>
+                        <button class="detail_btn" @click="openEditModal(item)">수정</button>
                     </td>
                 </tr>
             </tbody>
         </table>
 
         <CategoryRegisterModal :isOpen="isRegisterModalOpen" @close="closeRegisterModal" @refresh="fetchCategoryList" />
-        <CategoryEditModal :isOpen="isEditModalOpen" @close="closeEditModal" />
+        <CategoryEditModal :isOpen="isEditModalOpen" :category="selectedCategory" @close="closeEditModal" />
         <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
         <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
     </div>
