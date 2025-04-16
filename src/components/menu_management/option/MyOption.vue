@@ -136,8 +136,9 @@ onMounted(() => {
             </tbody>
         </table>
 
-        <OptionRegisterModal :isOpen="isRegisterModalOpen" @close="closeRegisterModal" />
-        <OptionEditModal :isOpen="isEditModalOpen" :optionId="selectedOptionId" @close="isEditModalOpen = false" />
+        <OptionRegisterModal :isOpen="isRegisterModalOpen" @close="closeRegisterModal" @refresh="fetchOptionList" />
+        <OptionEditModal :isOpen="isEditModalOpen" :optionId="selectedOptionId" @close="isEditModalOpen = false"
+            @refresh="fetchOptionList" />
 
         <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
         <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />

@@ -67,6 +67,8 @@ const handleRegisterOption = async () => {
     const success = await api.registerOption(requestData);
     if (success) {
         alert('옵션 등록 성공');
+
+        emit('refresh');
         emit('close');
     } else {
         alert('옵션 등록 실패');

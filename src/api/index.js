@@ -104,6 +104,18 @@ export const api = {
         return false;
       });
   },
+  updateOption(requestData) {
+    return instance
+      .post("/option/update", requestData)
+      .then((res) => {
+        console.log("deleteOptions res", res);
+        return res.data.code === 200;
+      })
+      .catch((error) => {
+        console.error("Error in deleteOptions:", error);
+        return false;
+      });
+  },
   getOptionById(optionId) {
     return instance
       .get(`/option/${optionId}`)

@@ -31,11 +31,12 @@ const fetchOptionData = async (optionId) => {
         // 기본값 바인딩
         optionName.value = data.name;
         price.value = data.price.toString();
+        console.log(data.optionValues);
 
 
         ingredients.value = data.optionValues.map((val) => ({
-            name: getInventoryNameById(val.inventoryId),
-            amount: val.quantity.toString(),
+            name: '재료이름',//getInventoryNameById(val.inventoryId),
+            amount: val.quantity,
             unit: 'g', // TODO: 백엔드에서 단위 정보가 안 오면 기본값으로 'g' 사용
         }));
     } catch (error) {
@@ -43,7 +44,6 @@ const fetchOptionData = async (optionId) => {
         alert('옵션 정보를 불러오는 데 실패했습니다.');
     }
 };
-
 watch(
     () => props.isOpen,
     (newVal) => {
@@ -72,22 +72,26 @@ const addIngredient = () => {
 const removeIngredient = (index) => {
     ingredients.value.splice(index, 1);
 };
-const handleRegisterOption = async () => {
+const updateOption = async () => {
+
     const requestData = {
+        optionId: props.optionId,
         name: optionName.value,
         price: parseInt(price.value),
         inventoryQuantities: ingredients.value.map((ingredient) => ({
-            inventoryId: getInventoryIdByName(ingredient.name),
-            quantity: parseFloat(ingredient.amount),
+            inventoryId: 1, //getInventoryIdByName(ingredient.name),
+            quantity: ingredient.amount,
         })),
     };
 
-    const success = await api.registerOption(requestData);
+    const success = await api.updateOption(requestData);
     if (success) {
-        alert('옵션 등록 성공');
+        alert('옵션 수정 성공');
+
+        emit('refresh');
         emit('close');
     } else {
-        alert('옵션 등록 실패');
+        alert('옵션 수정 실패');
     }
 };
 </script>
@@ -144,7 +148,7 @@ const handleRegisterOption = async () => {
                 </div>
             </div>
             <div class="modal_footer">
-                <button class="confirm_btn" @click="emit('close')">수정</button>
+                <button class="confirm_btn" @click=updateOption>수정</button>
             </div>
         </div>
     </div>
