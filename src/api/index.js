@@ -292,6 +292,7 @@ export const api = {
       console.error("API 요청 실패", error);
       throw error;
     }
+  },
   getMenuList() {
     return instance
       .get("/menu/list")
