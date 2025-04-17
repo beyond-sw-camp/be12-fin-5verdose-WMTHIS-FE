@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, defineEmits, ref, onMounted } from 'vue';
+import { defineProps, defineEmits, ref, onMounted, computed } from 'vue';
 import { api } from '@/api'; // API 호출을 위한 axios 인스턴스
 const props = defineProps({
     isOpen: Boolean
@@ -11,17 +11,16 @@ const activeTab = ref('단일메뉴'); // 기본 선택된 탭
 const menuName = ref('');
 const ingredientName = ref('');
 const ingredientAmount = ref('');
-const ingredientUnit = ref('');
 const ingredients = ref([
-    { storeInventoryId: 1, name: '고추장', amount: '50', unit: 'g' },
-    { storeInventoryId: 2, name: '토마토', amount: '10', unit: 'g' },
-    { storeInventoryId: 3, name: '삼겹살', amount: '50', unit: 'g' }
 ]);
 const category = ref('');
 const categoryList = ref([]);
-
-const ingredientOptions = ['고추장', '토마토', '삼겹살', '양파', '파'];
-const unitOptions = ['g', 'kg', 'ml', 'L', 'EA'];
+const selectedUnit = computed(() => {
+    const selected = ingredientOptions.value.find(item => item.name === ingredientName.value.name);
+    console.log('selected', ingredientName.value);
+    return selected ? selected.unit : '';
+});
+const ingredientOptions = ref([]);
 const price = ref(0); // 가격을 위한 ref 추가
 
 // 카테고리 목록 로딩
@@ -35,16 +34,17 @@ const loadCategories = async () => {
 };
 
 
-const addIngredient = () => {
-    if (ingredientName.value && ingredientAmount.value && ingredientUnit.value) {
+const addIngredient = (id) => {
+    console.log('id', id);
+    if (ingredientName.value && ingredientAmount.value) {
         ingredients.value.push({
-            name: ingredientName.value,
+            id: ingredientName.value.id,
+            name: ingredientName.value.name,
             amount: ingredientAmount.value,
-            unit: ingredientUnit.value
+            unit: selectedUnit.value,
         });
         ingredientName.value = '';
         ingredientAmount.value = '';
-        ingredientUnit.value = '';
     }
 };
 
@@ -54,14 +54,16 @@ const removeIngredient = (index) => {
 
 const registerMenu = async () => {
     if (menuName.value && category.value && price.value) {
+        console.log(ingredients.value);
         // 백엔드에 보내는 데이터
         const data = {
             name: menuName.value,
             categoryId: category.value.id,
             price: price.value,
             ingredients: ingredients.value.map(ingredient => ({
-                storeInventoryId: ingredient.storeInventoryId,
+                storeInventoryId: ingredient.id,
                 quantity: ingredient.amount
+
             }))
         }
         console.log('등록할 메뉴 데이터:', data);
@@ -77,10 +79,24 @@ const registerMenu = async () => {
         alert('모든 필드를 입력해주세요.');
     }
 };
+const getStoreInventoryList = async () => {
+    const result = await api.getStoreInventoryList();
+    if (result) {
+        ingredientOptions.value = result.map(item => ({
+            id: item.id,
+            name: item.name,
+            unit: item.unit,
+        }));
+        console.log('재고 목록:', ingredientOptions.value);
+    } else {
+        alert("재고 목록을 불러오는 데 실패했습니다.");
+    }
+};
 
 
 onMounted(() => {
     loadCategories();
+    getStoreInventoryList();
 });
 </script>
 
@@ -117,14 +133,11 @@ onMounted(() => {
                     <div class="ingredient_inputs">
                         <select v-model="ingredientName">
                             <option value="" disabled selected>재료 선택</option>
-                            <option v-for="item in ingredientOptions" :key="item" :value="item">{{ item }}</option>
+                            <option v-for="item in ingredientOptions" :key="item" :value="item">{{ item.name }}</option>
                         </select>
                         <input type="number" v-model="ingredientAmount" min="1" placeholder="수량" />
-                        <select v-model="ingredientUnit">
-                            <option value="" disabled selected>단위 선택</option>
-                            <option v-for="unit in unitOptions" :key="unit" :value="unit">{{ unit }}</option>
-                        </select>
-                        <button class="add_btn" @click="addIngredient">추가</button>
+                        <label>{{ selectedUnit }}</label>
+                        <button class="add_btn" @click="addIngredient()">추가</button>
                     </div>
                 </div>
 

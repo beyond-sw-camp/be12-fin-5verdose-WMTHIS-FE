@@ -10,11 +10,15 @@ const isModalOpen = ref(false);
 const isDetailModalOpen = ref(false);
 const isDeleteConfirmOpen = ref(false);
 const isDeleteAlertOpen = ref(false); // 삭제 항목 선택 안내 모달
-
+const selectedMenu = ref(null); // 선택된 메뉴 항목
 const openModal = () => { isModalOpen.value = true; };
 const closeModal = () => { isModalOpen.value = false; };
 
-const openDetailModal = () => { isDetailModalOpen.value = true; };
+const openDetailModal = (item) => {
+    selectedMenu.value = item; // 선택된 메뉴 항목을 저장합니다.
+    console.log("상세보기 항목:", item);
+    isDetailModalOpen.value = true;
+};
 const closeDetailModal = () => { isDetailModalOpen.value = false; };
 
 const menu_items = ref([]);
@@ -60,12 +64,20 @@ const closeDeleteAlert = () => {
 };
 
 // 삭제 실행
-const deleteSelectedItems = () => {
+const deleteSelectedItems = async () => {
     isDeleteConfirmOpen.value = false;
+    const selectedIds = menu_items.value
+        .filter(item => item.selected)
+        .map(item => item.id);
+    console.log("삭제할 메뉴 ID:", selectedIds);
+    const response = await api.deleteMenus(selectedIds);
+    console.log("삭제 응답:", response);
+
     menu_items.value = menu_items.value.filter(item => !item.selected);
 };
 const fetchMenus = async (page = 0) => {
     const response = await api.getMenuList(page, pageSize);
+    console.log("메뉴 목록 응답:", response);
     if (response && response.content) {
         menu_items.value = response.content.map(item => ({
             ...item,
@@ -155,7 +167,7 @@ onMounted(() => {
 
         <!-- 모달 컴포넌트들 -->
         <MenuRegisterModal :isOpen="isModalOpen" @close="closeModal" />
-        <MenuDetailModal :isOpen="isDetailModalOpen" @close="closeDetailModal" />
+        <MenuDetailModal :isOpen="isDetailModalOpen" :menu="selectedMenu" @close="closeDetailModal" />
         <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
         <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
     </div>
