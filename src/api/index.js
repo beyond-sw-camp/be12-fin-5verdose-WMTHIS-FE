@@ -242,4 +242,16 @@ export const api = {
         return false;
       });
   },
+  getStoreInventoryList() {
+    return instance
+      .get("/storeInventory/getList")
+      .then((res) => {
+        if (res.data.code !== 200) return false;
+        return res.data.data;
+      })
+      .catch((error) => {
+        console.error("Error in getStoreInventoryList: ", error);
+        return false;
+      });
+  },
 };
