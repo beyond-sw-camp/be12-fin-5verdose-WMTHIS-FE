@@ -65,7 +65,9 @@ const registerInventory = async () => {
   const result = await inventoryStore.registerStoreInventory(
     storeInventoryData
   );
-
+  if (result) {
+    emit("registerInventory", storeInventoryData);
+  }
   if (result) {
     emit("registerInventory"); // 성공 시 모달 닫기
   } else {

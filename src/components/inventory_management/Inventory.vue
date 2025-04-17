@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, onMounted } from "vue";
 import InventoryRegisterModal from "@/components/inventory_management/InventoryRegisterModal.vue";
 import InventoryModifyModal from "@/components/inventory_management/InventoryModifyModal.vue";
 import DeleteConfirmModal from "@/components/alerts/DeleteConfirmModal.vue";
@@ -25,62 +25,39 @@ const modalType = ref("register");
 const closeModal = () => {
   isModalOpen.value = false;
 };
+onMounted(() => {
+  const savedItems = localStorage.getItem("inventory_items");
+  if (savedItems) {
+    inventory_items.value = JSON.parse(savedItems);
+  }
+});
 
 const closeDetailModal = () => {
   isDetailModalOpen.value = false;
 };
+const addNewInventoryItem = (item) => {
+  if (!item) return;
 
-const inventory_items = ref([
-  {
-    name: "마늘",
-    unit: "2kg",
-    quantity: "1개",
-    Expirationdate: "입고일로부터 1일",
+  const newItem = {
+    name: item.name,
+    unit: item.unit,
+    quantity: item.miniquantity + "개",
+    Expirationdate: `입고일로부터 ${item.expiryDate}일`,
     selected: false,
-  },
-  {
-    name: "앞다리살",
-    unit: "300g",
-    quantity: "1개",
-    Expirationdate: "입고일로부터 3일",
-    selected: false,
-  },
-  {
-    name: "토마토",
-    unit: "1kg",
-    quantity: "1개",
-    Expirationdate: "입고일로부터 5일",
-    selected: false,
-  },
-  {
-    name: "양배추",
-    unit: "2kg",
-    quantity: "1개",
-    Expirationdate: "입고일로부터 1일",
-    selected: false,
-  },
-  {
-    name: "우유",
-    unit: "1L",
-    quantity: "1개",
-    Expirationdate: "입고일로부터 3일",
-    selected: false,
-  },
-  {
-    name: "올리브유",
-    unit: "1L",
-    quantity: "1개",
-    Expirationdate: "입고일로부터 5일",
-    selected: false,
-  },
-  {
-    name: "새우",
-    unit: "500g",
-    quantity: "1개",
-    Expirationdate: "입고일로부터 1일",
-    selected: false,
-  },
-]);
+  };
+
+  inventory_items.value.push(newItem);
+
+  // 🧠 로컬스토리지에 저장
+  localStorage.setItem(
+    "inventory_items",
+    JSON.stringify(inventory_items.value)
+  );
+
+  closeModal();
+};
+
+const inventory_items = ref([]);
 
 const select_all = ref(false);
 const isBlocked = computed(
@@ -156,7 +133,12 @@ const deleteSelectedItems = () => {
       <thead>
         <tr>
           <th>
-            <input type="checkbox" v-model="select_all" @change="toggle_select_all" class="circle_checkbox" />
+            <input
+              type="checkbox"
+              v-model="select_all"
+              @change="toggle_select_all"
+              class="circle_checkbox"
+            />
           </th>
           <th>재고명</th>
           <th>용량/단위</th>
@@ -166,9 +148,17 @@ const deleteSelectedItems = () => {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(item, index) in inventory_items" :key="index" :class="{ selected_row: item.selected }">
+        <tr
+          v-for="(item, index) in inventory_items"
+          :key="index"
+          :class="{ selected_row: item.selected }"
+        >
           <td>
-            <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
+            <input
+              type="checkbox"
+              v-model="item.selected"
+              class="circle_checkbox"
+            />
           </td>
           <td class="bold_text">{{ item.name }}</td>
           <td>{{ item.unit }}</td>
@@ -184,12 +174,25 @@ const deleteSelectedItems = () => {
     </table>
 
     <!-- 모달 컴포넌트들 -->
-    <InventoryRegisterModal v-if="modalType === 'register'" :isOpen="isModalOpen" @close="closeModal" />
+    <InventoryRegisterModal
+      v-if="modalType === 'register'"
+      :isOpen="isModalOpen"
+      @close="closeModal"
+      @registerInventory="addNewInventoryItem"
+    />
 
-    <InventoryModifyModal v-if="modalType === 'modify'" :isOpen="isModalOpen" :item="selectedItem"
-      @close="closeModal" />
+    <InventoryModifyModal
+      v-if="modalType === 'modify'"
+      :isOpen="isModalOpen"
+      :item="selectedItem"
+      @close="closeModal"
+    />
 
-    <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
+    <DeleteConfirmModal
+      :isOpen="isDeleteConfirmOpen"
+      @confirm="deleteSelectedItems"
+      @cancel="closeDeleteConfirm"
+    />
     <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
   </div>
 </template>
