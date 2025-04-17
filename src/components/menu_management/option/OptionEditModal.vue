@@ -1,13 +1,13 @@
 <script setup>
-import { defineProps, defineEmits, ref } from 'vue';
-
+import { defineProps, defineEmits, ref, watch } from 'vue';
+import { api } from '@/api'; // API 호출을 위한 axios 인스턴스 import
 const props = defineProps({
-    isOpen: Boolean
+    isOpen: Boolean,
+    optionId: Number
 });
 
 const emit = defineEmits(['close']);
-
-const activeTab = ref('단일메뉴'); // 기본 선택된 탭
+const price = ref('');
 const optionName = ref('');
 const ingredientName = ref('');
 const ingredientAmount = ref('');
@@ -18,6 +18,40 @@ const ingredients = ref([
     { name: '삼겹살', amount: '50', unit: 'g' }
 ]);
 const category = ref('');
+
+const fetchOptionData = async (optionId) => {
+    try {
+        console.log('옵션 ID:', optionId);
+        const data = await api.getOptionById(optionId); // 이게 진짜 option 데이터
+        if (!data) {
+            throw new Error("옵션 데이터 없음");
+        }
+        console.log('옵션 데이터:', data);
+
+        // 기본값 바인딩
+        optionName.value = data.name;
+        price.value = data.price.toString();
+        console.log(data.optionValues);
+
+
+        ingredients.value = data.optionValues.map((val) => ({
+            name: '재료이름',//getInventoryNameById(val.inventoryId),
+            amount: val.quantity,
+            unit: 'g', // TODO: 백엔드에서 단위 정보가 안 오면 기본값으로 'g' 사용
+        }));
+    } catch (error) {
+        console.error('옵션 조회 실패:', error);
+        alert('옵션 정보를 불러오는 데 실패했습니다.');
+    }
+};
+watch(
+    () => props.isOpen,
+    (newVal) => {
+        if (newVal && props.optionId) {
+            fetchOptionData(props.optionId);
+        }
+    }
+);
 
 const ingredientOptions = ['고추장', '토마토', '삼겹살', '양파', '파'];
 const unitOptions = ['g', 'kg', 'ml', 'L', 'EA'];
@@ -37,6 +71,28 @@ const addIngredient = () => {
 
 const removeIngredient = (index) => {
     ingredients.value.splice(index, 1);
+};
+const updateOption = async () => {
+
+    const requestData = {
+        optionId: props.optionId,
+        name: optionName.value,
+        price: parseInt(price.value),
+        inventoryQuantities: ingredients.value.map((ingredient) => ({
+            inventoryId: 1, //getInventoryIdByName(ingredient.name),
+            quantity: ingredient.amount,
+        })),
+    };
+
+    const success = await api.updateOption(requestData);
+    if (success) {
+        alert('옵션 수정 성공');
+
+        emit('refresh');
+        emit('close');
+    } else {
+        alert('옵션 수정 실패');
+    }
 };
 </script>
 
@@ -88,22 +144,11 @@ const removeIngredient = (index) => {
                 <div class="input_group">
                     <label>가격</label>
                     <p class="sub_title">옵션의 가격을 입력해주세요.</p>
-                    <input type="number" min="1" placeholder="(ex) 50000" />
-                </div>
-
-                <div class="input_group">
-                    <label>카테고리</label>
-                    <p class="sub_title"> 메뉴가 속한 카테고리를 입력해 주세요.</p>
-                    <select v-model="category">
-                        <option value="">카테고리를 선택해 주세요.</option>
-                        <option value="">탕류</option>
-                        <option value="">사이드</option>
-                        <option value="">선택없음</option>
-                    </select>
+                    <input type="number" v-model="price" min="1" placeholder="(ex) 50000" />
                 </div>
             </div>
             <div class="modal_footer">
-                <button class="confirm_btn" @click="emit('close')">수정</button>
+                <button class="confirm_btn" @click=updateOption>수정</button>
             </div>
         </div>
     </div>
