@@ -87,7 +87,21 @@ export const api = {
         return false;
       });
   },
-    
+
+  login(data) {
+    console.log("Login data", data);
+    return instance
+      .post("/user/login", data)
+      .then((res) => {
+        console.log("LoginRes", res);
+        return res.data.code === 200; // 성공 여부 반환
+      })
+      .catch((error) => {
+        console.error("Error in Login:", error);
+        return false;
+      });
+  },
+
   registerCategory(data) {
     console.log("registerCategory data", data);
     return instance
@@ -204,9 +218,9 @@ export const api = {
   },
   getMenuList() {
     return instance
-      .get('/menu/list')
+      .get("/menu/list")
       .then((res) => {
-        if(res.data.code !== 200) {
+        if (res.data.code !== 200) {
           return false;
         }
         return res.data.data;
@@ -214,35 +228,34 @@ export const api = {
       .catch((error) => {
         console.error("Error in getMenuList: ", error);
         return false;
-      })
+      });
   },
   registerMenu(data) {
     return instance
-    .post('menu/register',data)
-    .then((res) => {
-      if(res.data.code !== 200) {
+      .post("menu/register", data)
+      .then((res) => {
+        if (res.data.code !== 200) {
+          return false;
+        }
+        return res.data.data;
+      })
+      .catch((error) => {
+        console.error("Error in registerMenu:", error);
         return false;
-      }
-      return res.data.data;
-    })
-    .catch((error) => {
-      console.error("Error in registerMenu:", error);
-      return false;
-    })
+      });
   },
   updateMenu(data) {
     return instance
-    .post('menu/update',data)
-    .then((res) => {
-      if(res.data.code !== 200) {
+      .post("menu/update", data)
+      .then((res) => {
+        if (res.data.code !== 200) {
+          return false;
+        }
+        return res.data.data;
+      })
+      .catch((error) => {
+        console.error("Error in updateMenu:", error);
         return false;
-      }
-      return res.data.data;
-    })
-    .catch((error) => {
-      console.error("Error in updateMenu:", error);
-      return false;
-    })
-  }
-
+      });
+  },
 };

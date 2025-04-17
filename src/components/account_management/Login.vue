@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-
+import { api } from "@/api/index";
 const router = useRouter();
 const email = ref('');
 const password = ref('');
@@ -19,20 +19,32 @@ const handleLogin = async () => {
     isLoading.value = true;
     errorMessage.value = '';
 
-    // 실제 구현에서는 API 호출로 로그인 처리
-    await new Promise(resolve => setTimeout(resolve, 1000)); // 로딩 시뮬레이션
+    const data = {
+      email: email.value,
+      password: password.value,
+    };
 
-    // 로그인 성공 시 로컬 스토리지에 아이디 저장 (아이디 저장 체크 시)
-    if (rememberMe.value) {
-      localStorage.setItem('savedEmail', email.value);
+    // ✅ 로그인 API 호출
+    const response = await api.login(data);
+
+    // 로그인 성공 처리
+    if (response) {
+      // 로그인 성공 시 로컬 스토리지에 아이디 저장 (아이디 저장 체크 시)
+      if (rememberMe.value) {
+        localStorage.setItem('savedEmail', email.value);
+      } else {
+        localStorage.removeItem('savedEmail');
+      }
+
+      // 로그인 성공 후 대시보드로 이동
+      router.push({ name: 'dashboard' });
     } else {
-      localStorage.removeItem('savedEmail');
+      // 로그인 실패 시 에러 메시지 표시
+      errorMessage.value = response.message || '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.';
     }
-
-    // 로그인 성공 후 대시보드로 이동
-    router.push({ name: 'dashboard' });
   } catch (error) {
-    errorMessage.value = '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.';
+    // API 호출 실패 시 에러 메시지 표시
+    errorMessage.value = error.response?.data?.message || '로그인 중 오류가 발생했습니다.';
     console.error('로그인 오류:', error);
   } finally {
     isLoading.value = false;
