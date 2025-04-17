@@ -1,8 +1,6 @@
-// src/stores/useInventoryStore.js
 import { defineStore } from "pinia";
-import { api } from "@/api"; // api.js에서 export 된 모든 함수들 가져오기
+import { api } from "@/api";
 
-// Pinia store
 export const useInventoryStore = defineStore("inventoryStore", {
   state: () => ({
     inventoryDetail: {
@@ -14,14 +12,33 @@ export const useInventoryStore = defineStore("inventoryStore", {
   }),
 
   actions: {
-    // registerStoreInventory 함수 정의
     async registerStoreInventory(storeInventoryData) {
       try {
-        const result = await api.registerInventory(storeInventoryData); // api.registerInventory 호출
-        return result; // 성공 시 반환
+        const result = await api.registerInventory(storeInventoryData);
+        return result;
       } catch (error) {
         console.error("registerStoreInventory 실패:", error);
-        return false; // 실패 시 false 반환
+        return false;
+      }
+    },
+
+    async updateInventory(storeInventoryData) {
+      try {
+        const result = await api.updateInventory(storeInventoryData);
+        return result;
+      } catch (error) {
+        console.error("storeInventory 실패:", error);
+        return false;
+      }
+    },
+
+    async totalStoreInventory(storeInventoryData) {
+      try {
+        const result = await api.totalStoreInventory(storeInventoryData); // 이 부분 수정
+        return result;
+      } catch (error) {
+        console.error("Error in totalStoreInventory:", error);
+        return false;
       }
     },
 
