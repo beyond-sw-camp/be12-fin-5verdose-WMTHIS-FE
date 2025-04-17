@@ -1,6 +1,6 @@
 <script setup>
-import { defineProps, defineEmits, ref } from 'vue';
-
+import { defineProps, defineEmits, ref, onMounted } from 'vue';
+import { api } from '@/api'; // API 호출을 위한 axios 인스턴스
 const props = defineProps({
     isOpen: Boolean
 });
@@ -13,14 +13,27 @@ const ingredientName = ref('');
 const ingredientAmount = ref('');
 const ingredientUnit = ref('');
 const ingredients = ref([
-    { name: '고추장', amount: '50', unit: 'g' },
-    { name: '토마토', amount: '10', unit: 'g' },
-    { name: '삼겹살', amount: '50', unit: 'g' }
+    { storeInventoryId: 1, name: '고추장', amount: '50', unit: 'g' },
+    { storeInventoryId: 2, name: '토마토', amount: '10', unit: 'g' },
+    { storeInventoryId: 3, name: '삼겹살', amount: '50', unit: 'g' }
 ]);
 const category = ref('');
+const categoryList = ref([]);
 
 const ingredientOptions = ['고추장', '토마토', '삼겹살', '양파', '파'];
 const unitOptions = ['g', 'kg', 'ml', 'L', 'EA'];
+const price = ref(0); // 가격을 위한 ref 추가
+
+// 카테고리 목록 로딩
+const loadCategories = async () => {
+    const result = await api.getCategoryList();
+    if (result) {
+        categoryList.value = result;
+    } else {
+        alert("카테고리 목록을 불러오는 데 실패했습니다.");
+    }
+};
+
 
 const addIngredient = () => {
     if (ingredientName.value && ingredientAmount.value && ingredientUnit.value) {
@@ -38,6 +51,37 @@ const addIngredient = () => {
 const removeIngredient = (index) => {
     ingredients.value.splice(index, 1);
 };
+
+const registerMenu = async () => {
+    if (menuName.value && category.value && price.value) {
+        // 백엔드에 보내는 데이터
+        const data = {
+            name: menuName.value,
+            categoryId: category.value.id,
+            price: price.value,
+            ingredients: ingredients.value.map(ingredient => ({
+                storeInventoryId: ingredient.storeInventoryId,
+                quantity: ingredient.amount
+            }))
+        }
+        console.log('등록할 메뉴 데이터:', data);
+        const response = await api.registerMenu(data); // API 호출
+        console.log('API 응답:', response);
+        if (response) {
+
+            emit('close'); // 모달 닫기
+        } else {
+            alert('메뉴 등록에 실패했습니다. 다시 시도해주세요.');
+        }
+    } else {
+        alert('모든 필드를 입력해주세요.');
+    }
+};
+
+
+onMounted(() => {
+    loadCategories();
+});
 </script>
 
 <template>
@@ -54,7 +98,7 @@ const removeIngredient = (index) => {
 
                     <div class="tab_menu">
                         <button :class="{ active: activeTab === '단일메뉴' }" @click="activeTab = '단일메뉴'">단일메뉴</button>
-                        <button :class="{ active: activeTab === '세트메뉴' }" @click="activeTab = '세트메뉴'">세트메뉴</button>
+                        <!--<button :class="{ active: activeTab === '세트메뉴' }" @click="activeTab = '세트메뉴'">세트메뉴</button>-->
                     </div>
                 </div>
                 <div class="input_group">
@@ -95,21 +139,19 @@ const removeIngredient = (index) => {
                     <label>카테고리</label>
                     <p class="sub_title"> 메뉴가 속한 카테고리를 입력해 주세요.</p>
                     <select v-model="category">
-                        <option value="">카테고리를 선택해 주세요.</option>
-                        <option value="5900원 메뉴">탕류</option>
-                        <option value="프리미엄 메뉴">사이드</option>
-                        <option value="프리미엄 메뉴">선택없음</option>
+                        <option value="" disabled selected>카테고리 선택</option>
+                        <option v-for="item in categoryList" :key="item" :value="item">{{ item.name }}</option>
                     </select>
                 </div>
 
                 <div class="input_group">
                     <label>가격</label>
                     <p class="sub_title">메뉴에 가격을 입력해주세요.</p>
-                    <input type="number" min="1" placeholder="(ex) 50000" />
+                    <input type="number" v-model="price" min="1" placeholder="(ex) 50000" />
                 </div>
             </div>
             <div class="modal_footer">
-                <button class="confirm_btn" @click="emit('close')">등록</button>
+                <button class="confirm_btn" @click=registerMenu>등록</button>
             </div>
         </div>
     </div>

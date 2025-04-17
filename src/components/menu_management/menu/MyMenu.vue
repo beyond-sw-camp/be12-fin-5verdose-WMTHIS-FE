@@ -1,5 +1,6 @@
 <script setup>
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, onMounted } from 'vue';
+import { api } from '@/api'; // api.js에서 api 객체를 가져옵니다.
 import MenuRegisterModal from '@/components/menu_management/menu/MenuRegisterModal.vue';
 import MenuDetailModal from '@/components/menu_management/menu/MenuDetailModal.vue';
 import DeleteConfirmModal from '@/components/alerts/DeleteConfirmModal.vue';
@@ -16,12 +17,10 @@ const closeModal = () => { isModalOpen.value = false; };
 const openDetailModal = () => { isDetailModalOpen.value = true; };
 const closeDetailModal = () => { isDetailModalOpen.value = false; };
 
-const menu_items = ref([
-    { name: "알리오올리오", category: '파스타', ingredient: "당근 50g 외 3개", selected: false },
-    { name: "들깨 크림 뇨끼", category: '파스타', ingredient: "당근 20g 외 1개", selected: false },
-    { name: "토마토 파스타", category: '파스타', ingredient: "토마토 80g 외 2개", selected: false },
-    { name: "봉골레 파스타", category: '파스타', ingredient: "조개 100g 외 3개", selected: false }
-]);
+const menu_items = ref([]);
+const currentPage = ref(0); // 현재 페이지
+const totalPages = ref(1); // 총 페이지 수
+const pageSize = 10; // 페이지당 항목 수
 
 const select_all = ref(false);
 const isBlocked = computed(() => isDeleteConfirmOpen.value || isDeleteAlertOpen.value);
@@ -65,6 +64,32 @@ const deleteSelectedItems = () => {
     isDeleteConfirmOpen.value = false;
     menu_items.value = menu_items.value.filter(item => !item.selected);
 };
+const fetchMenus = async (page = 0) => {
+    const response = await api.getMenuList(page, pageSize);
+    if (response && response.content) {
+        menu_items.value = response.content.map(item => ({
+            ...item,
+            selected: false
+        }));
+        currentPage.value = response.number;
+        totalPages.value = response.totalPages;
+        console.log("메뉴 목록:", menu_items.value);
+    } else {
+        alert("메뉴 목록을 불러오는 데 실패했습니다.");
+        menu_items.value = [];
+    }
+};
+
+const goToPage = (page) => {
+    if (page >= 0 && page < totalPages.value) {
+        fetchMenus(page);
+    }
+};
+
+onMounted(() => {
+    fetchMenus(0);
+});
+
 </script>
 
 <template>
@@ -106,13 +131,27 @@ const deleteSelectedItems = () => {
                     </td>
                     <td class="bold-text">{{ item.name }}</td>
                     <td>{{ item.category }}</td>
-                    <td>{{ item.ingredient }}</td>
+                    <td>{{ item.ingredients }}</td>
                     <td>
                         <button class="detail_btn" @click="openDetailModal(item)">상세</button>
                     </td>
                 </tr>
             </tbody>
         </table>
+        <div class="pagination_container">
+            <button :disabled="currentPage === 0" @click="goToPage(currentPage - 1)">
+                ◀ 이전
+            </button>
+
+            <span v-for="page in totalPages" :key="page" @click="goToPage(page - 1)"
+                :class="{ 'page-number': true, 'active': currentPage === page - 1 }">
+                {{ page }}
+            </span>
+
+            <button :disabled="currentPage === totalPages - 1" @click="goToPage(currentPage + 1)">
+                다음 ▶
+            </button>
+        </div>
 
         <!-- 모달 컴포넌트들 -->
         <MenuRegisterModal :isOpen="isModalOpen" @close="closeModal" />
@@ -299,5 +338,24 @@ const deleteSelectedItems = () => {
     height: 8px;
     background: white;
     border-radius: 50%;
+}
+
+.pagination_container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+    gap: 0.5rem;
+}
+
+.page-number {
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.page-number.active {
+    background-color: #ffcc00;
+    font-weight: bold;
 }
 </style>

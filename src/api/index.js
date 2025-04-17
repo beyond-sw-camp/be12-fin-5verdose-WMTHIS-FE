@@ -87,7 +87,7 @@ export const api = {
         return false;
       });
   },
-    
+
   registerCategory(data) {
     console.log("registerCategory data", data);
     return instance
@@ -202,47 +202,44 @@ export const api = {
         return false;
       });
   },
-  getMenuList() {
+  getMenuList(page = 0, size = 10) {
     return instance
-      .get('/menu/list')
+      .get(`/menu/getList?page=${page}&size=${size}`)
       .then((res) => {
-        if(res.data.code !== 200) {
-          return false;
-        }
+        if (res.data.code !== 200) return false;
         return res.data.data;
       })
       .catch((error) => {
         console.error("Error in getMenuList: ", error);
         return false;
-      })
+      });
   },
   registerMenu(data) {
     return instance
-    .post('menu/register',data)
-    .then((res) => {
-      if(res.data.code !== 200) {
+      .post("menu/register", data)
+      .then((res) => {
+        if (res.data.code !== 200) {
+          return false;
+        }
+        return res.data.data;
+      })
+      .catch((error) => {
+        console.error("Error in registerMenu:", error);
         return false;
-      }
-      return res.data.data;
-    })
-    .catch((error) => {
-      console.error("Error in registerMenu:", error);
-      return false;
-    })
+      });
   },
   updateMenu(data) {
     return instance
-    .post('menu/update',data)
-    .then((res) => {
-      if(res.data.code !== 200) {
+      .post("menu/update", data)
+      .then((res) => {
+        if (res.data.code !== 200) {
+          return false;
+        }
+        return res.data.data;
+      })
+      .catch((error) => {
+        console.error("Error in updateMenu:", error);
         return false;
-      }
-      return res.data.data;
-    })
-    .catch((error) => {
-      console.error("Error in updateMenu:", error);
-      return false;
-    })
-  }
-
+      });
+  },
 };
