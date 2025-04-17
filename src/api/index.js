@@ -88,6 +88,20 @@ export const api = {
       });
   },
 
+  login(data) {
+    console.log("Login data", data);
+    return instance
+      .post("/user/login", data)
+      .then((res) => {
+        console.log("LoginRes", res);
+        return res.data.code === 200; // 성공 여부 반환
+      })
+      .catch((error) => {
+        console.error("Error in Login:", error);
+        return false;
+      });
+  },
+
   registerCategory(data) {
     console.log("registerCategory data", data);
     return instance
@@ -207,6 +221,84 @@ export const api = {
       .get(`/menu/getList?page=${page}&size=${size}`)
       .then((res) => {
         if (res.data.code !== 200) return false;
+        return res.data.data;
+      })
+      .catch((error) => {
+        console.error("Error in getMenuList: ", error);
+        return false;
+      });
+  },
+  registerInventory(storeInventoryData) {
+    console.log("registerInventory storeInventoryData", storeInventoryData);
+    return instance
+      .post("/inventory/registerStoreInventory", storeInventoryData)
+      .then((res) => {
+        console.log("registerRes", res);
+        console.log("code:", res.data.code);
+
+        return res.data.code === 200 ? res.data.data : false; // 성공 시 데이터 반환
+      })
+      .catch((error) => {
+        console.error("Error in registerInventory:", error);
+        return false;
+      });
+  },
+  updateInventory(storeInventoryData) {
+    console.log("updateInventory storeInventoryData", storeInventoryData);
+
+    try {
+      const res = instance.put(
+        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
+        storeInventoryData
+      );
+      console.log("updateRes", res);
+      console.log("code:", res.data.code);
+
+      if (res.data.code === 200) {
+        return res.data.data;
+      } else {
+        return 404;
+      }
+    } catch (error) {
+      console.error("Error in updateInventory:", error);
+      return 404;
+    }
+  },
+
+  async SearchInventory(storeInventoryData) {
+    try {
+      const res = await instance.get(
+        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
+        storeInventoryData
+      );
+      console.log("searchRes", res);
+      console.log("code:", res.data.code);
+
+      if (res.data.code === 200) {
+        return res.data.data; // 데이터를 반환
+      } else {
+        return 404; // 오류 처리
+      }
+    } catch (error) {
+      console.error("Error in searchInventory:", error);
+      return 404; // 오류 처리
+    }
+  },
+  async totalStoreInventory(storeInventoryData) {
+    try {
+      const response = await axios.post("/api/inventory", storeInventoryData); // API 요청 예시
+      return response;
+    } catch (error) {
+      console.error("API 요청 실패", error);
+      throw error;
+    }
+  getMenuList() {
+    return instance
+      .get("/menu/list")
+      .then((res) => {
+        if (res.data.code !== 200) {
+          return false;
+        }
         return res.data.data;
       })
       .catch((error) => {
