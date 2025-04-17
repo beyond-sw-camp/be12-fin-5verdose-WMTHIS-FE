@@ -117,7 +117,7 @@ export const api = {
         return false;
       });
   },
-  getCategoryList() {
+  getCategoryList(page = 0, size = 10) {
     console.log("getCategoryList");
     return instance
       .get("/category/getList")
@@ -191,7 +191,7 @@ export const api = {
   },
   updateOption(requestData) {
     return instance
-      .post("/option/update", requestData)
+      .put("/option", requestData)
       .then((res) => {
         console.log("deleteOptions res", res);
         return res.data.code === 200;
@@ -216,7 +216,8 @@ export const api = {
         return false;
       });
   },
-  getMenuList(page = 0, size = 10) {
+  getMenuList(page = 0, size = 5) {
+    console.log("메뉴목록 요청", page, "size", size);
     return instance
       .get(`/menu/getList?page=${page}&size=${size}`)
       .then((res) => {
@@ -292,20 +293,6 @@ export const api = {
       console.error("API 요청 실패", error);
       throw error;
     }
-  },
-  getMenuList() {
-    return instance
-      .get("/menu/getList")
-      .then((res) => {
-        if (res.data.code !== 200) {
-          return false;
-        }
-        return res.data.data;
-      })
-      .catch((error) => {
-        console.error("Error in getMenuList: ", error);
-        return false;
-      });
   },
   getMenuDetail(menuId) {
     console.log("getMenuDetail menuId", menuId);

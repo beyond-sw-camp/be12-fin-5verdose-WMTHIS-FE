@@ -24,7 +24,7 @@ const closeDetailModal = () => { isDetailModalOpen.value = false; };
 const menu_items = ref([]);
 const currentPage = ref(0); // 현재 페이지
 const totalPages = ref(1); // 총 페이지 수
-const pageSize = 10; // 페이지당 항목 수
+const pageSize = 4; // 페이지당 항목 수
 
 const select_all = ref(false);
 const isBlocked = computed(() => isDeleteConfirmOpen.value || isDeleteAlertOpen.value);
@@ -76,6 +76,7 @@ const deleteSelectedItems = async () => {
     menu_items.value = menu_items.value.filter(item => !item.selected);
 };
 const fetchMenus = async (page = 0) => {
+    console.log("메뉴 목록 요청:", page, pageSize);
     const response = await api.getMenuList(page, pageSize);
     console.log("메뉴 목록 응답:", response);
     if (response && response.content) {
@@ -83,8 +84,8 @@ const fetchMenus = async (page = 0) => {
             ...item,
             selected: false
         }));
-        currentPage.value = response.number;
-        totalPages.value = response.totalPages;
+        currentPage.value = response.page.number;
+        totalPages.value = response.page.totalPages;
         console.log("메뉴 목록:", menu_items.value);
     } else {
         alert("메뉴 목록을 불러오는 데 실패했습니다.");
@@ -93,6 +94,8 @@ const fetchMenus = async (page = 0) => {
 };
 
 const goToPage = (page) => {
+    console.log(currentPage.value, totalPages.value);
+    console.log("페이지 이동:", page);
     if (page >= 0 && page < totalPages.value) {
         fetchMenus(page);
     }

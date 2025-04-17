@@ -51,17 +51,16 @@ const removeIngredient = (index) => {
 
 const handleRegisterOption = async () => {
 
-    console.log('category.value', category.value);
+
     const requestData = {
         name: optionName.value,
         price: parseInt(price.value),
-        categoryId: category.value,
         inventoryQuantities: ingredients.value.map((ingredient) => ({
             inventoryId: ingredient.id,
             quantity: parseFloat(ingredient.amount),
         })),
     };
-
+    console.log('등록할 옵션 데이터:', requestData);
     const success = await api.registerOption(requestData);
     if (success) {
         alert('옵션 등록 성공');

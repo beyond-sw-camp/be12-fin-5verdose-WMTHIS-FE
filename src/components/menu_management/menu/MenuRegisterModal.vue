@@ -27,7 +27,7 @@ const price = ref(0); // 가격을 위한 ref 추가
 const loadCategories = async () => {
     const result = await api.getCategoryList();
     if (result) {
-        categoryList.value = result;
+        categoryList.value = result.content;
     } else {
         alert("카테고리 목록을 불러오는 데 실패했습니다.");
     }
@@ -53,7 +53,7 @@ const removeIngredient = (index) => {
 };
 
 const registerMenu = async () => {
-    if (menuName.value && category.value && price.value) {
+    if (menuName.value && price.value) {
         console.log(ingredients.value);
         // 백엔드에 보내는 데이터
         const data = {
