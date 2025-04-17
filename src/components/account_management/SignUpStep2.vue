@@ -2,43 +2,75 @@
 import { ref, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Logo from '@/assets/image/icon.png'; // 로고 이미지 import
+import { useSignupStore } from '@/stores/useSignupStore';
+import { api } from "@/api/index";
 
+const signupStore = useSignupStore();
+const businessNumber = ref('');
+const phoneNumber = ref('');
+const ssn = computed(() => {
+  if (!idNumberFront.value || !idNumberBack.value) {
+    return '';
+  }
+  return `${idNumberFront.value}-${idNumberBack.value}`;
+});
+
+const idNumberFront = ref('');
+const idNumberBack = ref('');
+const isVerified = ref(false);
 // 변수 선언
 const router = useRouter();
 const logoImage = ref(Logo); // 로고 이미지 참조 추가
-const businessNumber = ref('');
-const phoneNumber = ref('');
 const verificationCode = ref('');
-const idNumberFront = ref('');
-const idNumberBack = ref('');
 const isVerificationSent = ref(false);
 const verificationTimer = ref(180); // 3분 타이머 (초 단위)
 const timerInterval = ref(null);
 const errorMessage = ref('');
 
+const isCompleteButtonEnabled = computed(() => {
+  return (
+    businessNumber.value.trim() !== '' &&
+    phoneNumber.value.trim() !== '' &&
+    verificationCode.value.trim() !== '' &&
+    idNumberFront.value.trim() !== '' &&
+    idNumberBack.value.trim() !== '' &&
+    isVerified.value // 인증 완료 여부
+  );
+});
+
 // 인증번호 발송
-const sendVerificationCode = () => {
+const sendVerificationCode = async () => {
   if (!phoneNumber.value) {
     errorMessage.value = '휴대폰 번호를 입력해주세요.';
     return;
   }
 
-  // 실제 구현에서는 API 호출로 인증번호 발송
-  isVerificationSent.value = true;
-  errorMessage.value = '';
+  try {
+    // ✅ 휴대폰 인증 API 호출
+    await api.phoneSend(phoneNumber.value.replace(/-/g, ''));
 
-  // 타이머 시작
-  verificationTimer.value = 180;
-  if (timerInterval.value) clearInterval(timerInterval.value);
+    // 성공 시 처리
+    isVerificationSent.value = true;
+    errorMessage.value = '';
+    alert('인증번호가 전송되었습니다.');
 
-  timerInterval.value = setInterval(() => {
-    if (verificationTimer.value > 0) {
-      verificationTimer.value--;
-    } else {
-      clearInterval(timerInterval.value);
-      isVerificationSent.value = false;
-    }
-  }, 1000);
+    // 타이머 시작
+    verificationTimer.value = 180;
+    if (timerInterval.value) clearInterval(timerInterval.value);
+
+    timerInterval.value = setInterval(() => {
+      if (verificationTimer.value > 0) {
+        verificationTimer.value--;
+      } else {
+        clearInterval(timerInterval.value);
+        isVerificationSent.value = false;
+      }
+    }, 1000);
+  } catch (err) {
+    // 실패 시 에러 메시지 출력
+    errorMessage.value = '인증번호 전송에 실패했습니다. 다시 시도해주세요.';
+    console.error(err);
+  }
 };
 
 // 타이머 포맷팅 (mm:ss)
@@ -87,9 +119,37 @@ const handlePhoneNumberInput = (e) => {
   const formattedValue = formatPhoneNumber(e.target.value);
   phoneNumber.value = formattedValue;
 };
+const verifyPhoneCode = async () => {
+  if (!phoneNumber.value) {
+    errorMessage.value = '휴대폰 번호를 입력해주세요.';
+    return;
+  }
 
+  if (!verificationCode.value) {
+    errorMessage.value = '인증번호를 입력해주세요.';
+    return;
+  }
+
+  try {
+    // ✅ 휴대폰 인증 확인 API 호출
+    const response = await api.phoneAuth(verificationCode.value, phoneNumber.value.replace(/-/g, ''));
+
+    // 성공 시 처리
+    if (response) {
+      alert('인증이 완료되었습니다.');
+      errorMessage.value = '';
+      isVerified.value = true; // 인증 완료 상태로 변경
+    } else {
+      errorMessage.value = '인증번호가 올바르지 않습니다.';
+    }
+  } catch (err) {
+    // 실패 시 에러 메시지 출력
+    errorMessage.value = '인증에 실패했습니다. 다시 시도해주세요.';
+    console.error(err);
+  }
+};
 // 완료 버튼 클릭
-const submit = () => {
+const submit = async () => {
   // 유효성 검사
   if (!businessNumber.value || businessNumber.value.replace(/[^0-9]/g, '').length !== 10) {
     errorMessage.value = '유효한 사업자 번호를 입력해주세요.';
@@ -107,7 +167,7 @@ const submit = () => {
   }
 
   if (!idNumberFront.value || idNumberFront.value.length !== 6) {
-    errorMessage.value = '주민번호 앞 6자리를 입력해주세요.';
+    errorMessage.value = '주민번호 앞 6자리를 입력해주세요.'; Phone
     return;
   }
 
@@ -116,15 +176,30 @@ const submit = () => {
     return;
   }
 
-  // 실제 구현에서는 회원가입 완료 API 호출
-  console.log('Form submitted', {
+  // Step2 정보 저장
+  signupStore.setStep2Data({
     businessNumber: businessNumber.value,
-    phoneNumber: phoneNumber.value,
-    verificationCode: verificationCode.value,
-    idNumber: `${idNumberFront.value}-${idNumberBack.value}******`
+    phoneNumber: phoneNumber.value.replace(/-/g, ''),
+    ssn: ssn.value,
   });
 
-  router.push({ name: 'signupDone' });
+  // 최종 API에 넘길 formData 구성
+  const formData = {
+    name: signupStore.name,
+    email: signupStore.email,
+    password: signupStore.password,
+    businessNumber: signupStore.businessNumber,
+    phoneNumber: signupStore.phoneNumber,
+    ssn: signupStore.ssn,
+  };
+
+  const response = await api.signUp(formData);
+
+  if (response) {
+    router.push({ name: 'signupDone' });
+  } else {
+    alert(response.error || "회원가입에 실패하였습니다.");
+  }
 };
 
 // 컴포넌트 언마운트 시 타이머 정리
@@ -133,6 +208,10 @@ onUnmounted(() => {
     clearInterval(timerInterval.value);
   }
 });
+
+const goBack = () => {
+  router.push({ name: 'signup1' });
+};
 </script>
 
 <template>
@@ -159,20 +238,26 @@ onUnmounted(() => {
 
       <div class="form-group">
         <label for="phone-number">휴대폰 번호</label>
-        <input type="tel" id="phone-number" v-model="phoneNumber" @input="handlePhoneNumberInput" class="form-input"
-          placeholder="휴대폰 번호를 입력하세요" maxlength="13" />
+
+        <div class="verification-container">
+          <input type="tel" id="phone-number" v-model="phoneNumber" @input="handlePhoneNumberInput" class="form-input"
+            placeholder="휴대폰 번호를 입력하세요" maxlength="13" :disabled="isVerified" />
+          <button type="button" class="verification-btn" @click="sendVerificationCode" :disabled="isVerified">
+            {{ isVerificationSent ? '재발송' : '전송' }}
+          </button>
+        </div>
       </div>
 
       <div class="form-group verification-group">
         <label for="verification-code">인증번호</label>
         <div class="verification-container">
           <input type="text" id="verification-code" v-model="verificationCode" class="form-input verification-input"
-            placeholder="인증번호 입력" maxlength="6" />
-          <button type="button" class="verification-btn" @click="sendVerificationCode">
-            {{ isVerificationSent ? '재발송' : '인증' }}
+            placeholder="인증번호 입력" maxlength="6" :disabled="isVerified" />
+          <button type="button" class="verification-btn" @click="verifyPhoneCode" :disabled="isVerified">
+            인증번호 확인
           </button>
         </div>
-        <div v-if="isVerificationSent" class="verification-timer">
+        <div v-if="isVerificationSent && !isVerified" class="verification-timer">
           인증번호 유효시간: <span class="timer">{{ formattedTimer }}</span>
         </div>
       </div>
@@ -188,8 +273,12 @@ onUnmounted(() => {
           <span class="id-masked">******</span>
         </div>
       </div>
+      <!-- 뒤로 가기 버튼 -->
+      <button type="button" class="back-button" @click="goBack">
+        뒤로 가기
+      </button>
 
-      <button type="submit" class="complete-button">
+      <button type="submit" class="complete-button" :disabled="!isCompleteButtonEnabled">
         완료
       </button>
     </form>
@@ -283,7 +372,7 @@ onUnmounted(() => {
 
 .verification-btn {
   padding: 0 15px;
-  height: 46px;
+  height: 48px;
   background-color: #B8C0C8;
   border: none;
   border-radius: 5px;
@@ -369,5 +458,48 @@ onUnmounted(() => {
     max-width: 400px;
     margin: 0 auto;
   }
+}
+
+.back-button {
+  width: 100%;
+  padding: 14px;
+  background-color: #d3d3d3;
+  color: #333;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+  height: 56px;
+}
+
+.back-button:hover {
+  background-color: #b0b0b0;
+}
+
+.form-input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  color: #999;
+}
+
+.verification-btn:disabled,
+.complete-button:disabled {
+  background-color: #d3d3d3;
+  cursor: not-allowed;
+  color: #999;
+}
+
+.verification-btn:disabled:hover,
+.complete-button:disabled:hover {
+  background-color: #d3d3d3;
+}
+
+.complete-button:disabled {
+  background-color: #d3d3d3;
+  cursor: not-allowed;
+  color: #999;
 }
 </style>
