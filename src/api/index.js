@@ -295,7 +295,7 @@ export const api = {
   },
   getMenuList() {
     return instance
-      .get("/menu/list")
+      .get("/menu/getList")
       .then((res) => {
         if (res.data.code !== 200) {
           return false;
