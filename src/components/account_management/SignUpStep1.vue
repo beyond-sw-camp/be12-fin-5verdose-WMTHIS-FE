@@ -257,12 +257,17 @@ onUnmounted(() => {
           비밀번호가 일치하지 않습니다.
         </div>
       </div>
-      <button type="submit" class="next-button" :disabled="!isNextButtonEnabled">
-        다음
-      </button>
-      <button type="button" class="reset-button" @click="resetForm">
-        초기화
-      </button>
+      <div class="button_layout">
+        <button type="submit" class="next-button" :disabled="!isNextButtonEnabled">
+          다음
+        </button>
+        <button type="button" class="reset-button" @click="resetForm">
+          초기화
+        </button>
+        <button type="button" class="next-button" @click="router.push({ name: 'login' })">
+          로그인 화면으로
+        </button>
+      </div>
     </form>
   </div>
 </template>
@@ -274,13 +279,13 @@ onUnmounted(() => {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   width: 100%;
   max-width: 400px;
-  padding: 40px 30px;
+  padding: 20px 30px;
 }
 
 .logo-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .logo {
@@ -292,7 +297,7 @@ onUnmounted(() => {
   font-size: 24px;
   font-weight: bold;
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 10px;
   color: #333;
 }
 
@@ -309,7 +314,7 @@ onUnmounted(() => {
 .signup-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
 }
 
 .form-group {
@@ -462,5 +467,10 @@ onUnmounted(() => {
 
 .reset-button:hover {
   background-color: #c0392b;
+}
+
+.button_layout {
+  justify-content: space-between;
+  margin-top: 20px;
 }
 </style>

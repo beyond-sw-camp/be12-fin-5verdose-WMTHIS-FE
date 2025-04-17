@@ -410,7 +410,7 @@ const goBack = () => {
 }
 
 .id-back {
-  width: 60px;
+  width: 65px;
 }
 
 .id-separator {

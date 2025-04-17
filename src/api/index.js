@@ -102,6 +102,20 @@ export const api = {
       });
   },
 
+  updatePassword(data) {
+    console.log("Update password data", data);
+    return instance
+      .put("/user/updatepassword", data)
+      .then((res) => {
+        console.log("Update password Res", res);
+        return res.data.code === 200; // 성공 여부 반환
+      })
+      .catch((error) => {
+        console.error("Error in Update Password:", error);
+        return false;
+      });
+  },
+
   registerCategory(data) {
     console.log("registerCategory data", data);
     return instance

@@ -2,6 +2,10 @@
 import { ref, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Logo from '@/assets/image/icon.png'; // 로고 이미지 import
+import { api } from "@/api/index";
+import { useFindFwdStore } from '../../stores/useFindPwdStore';
+
+const findPwdStore = useFindFwdStore();
 
 // 변수 선언
 const router = useRouter();
@@ -13,29 +17,75 @@ const verificationTimer = ref(180); // 3분 타이머 (초 단위)
 const timerInterval = ref(null);
 const errorMessage = ref('');
 
+const isVerified = ref(false);
 // 인증번호 발송
-const sendVerificationCode = () => {
+
+const isNextButtonEnabled = computed(() => {
+    return isVerified.value;
+});
+const sendVerificationCode = async () => {
     if (!email.value) {
         errorMessage.value = '이메일을 입력해주세요.';
         return;
     }
 
-    // 실제 구현에서는 API 호출로 인증번호 발송
-    isVerificationSent.value = true;
-    errorMessage.value = '';
+    try {
+        // ✅ 이메일 인증번호 전송 API 호출
+        await api.emailSend(email.value);
 
-    // 타이머 시작
-    verificationTimer.value = 180;
-    if (timerInterval.value) clearInterval(timerInterval.value);
+        // 성공 시 처리
+        isVerificationSent.value = true;
+        errorMessage.value = '';
+        alert('인증번호가 전송되었습니다.');
 
-    timerInterval.value = setInterval(() => {
-        if (verificationTimer.value > 0) {
-            verificationTimer.value--;
+        // 타이머 시작
+        verificationTimer.value = 180;
+        if (timerInterval.value) clearInterval(timerInterval.value);
+
+        timerInterval.value = setInterval(() => {
+            if (verificationTimer.value > 0) {
+                verificationTimer.value--;
+            } else {
+                clearInterval(timerInterval.value);
+                isVerificationSent.value = false;
+            }
+        }, 1000);
+    } catch (err) {
+        // 실패 시 에러 메시지 출력
+        errorMessage.value = err.response?.data?.message || '인증번호 전송에 실패했습니다. 다시 시도해주세요.';
+        console.error(err);
+    }
+};
+
+const verifyCode = async () => {
+    if (!verificationCode.value) {
+        errorMessage.value = '인증번호를 입력해주세요.';
+        return;
+    }
+
+    try {
+        // ✅ 이메일 인증번호 확인 API 호출
+        const response = await api.emailAuth(verificationCode.value, email.value);
+
+        // 성공 시 처리
+        if (response) {
+            alert('인증이 완료되었습니다.');
+            errorMessage.value = '';
+            isVerified.value = true; // 인증 완료 상태로 변경
+
+            // 타이머 멈추기
+            if (timerInterval.value) {
+                clearInterval(timerInterval.value);
+                timerInterval.value = null;
+            }
         } else {
-            clearInterval(timerInterval.value);
-            isVerificationSent.value = false;
+            errorMessage.value = response.message || '인증번호가 올바르지 않습니다.';
         }
-    }, 1000);
+    } catch (err) {
+        // 실패 시 에러 메시지 출력
+        errorMessage.value = err.response?.data?.message || '인증에 실패했습니다. 다시 시도해주세요.';
+        console.error(err);
+    }
 };
 
 // 타이머 포맷팅 (mm:ss)
@@ -57,7 +107,7 @@ const submit = () => {
         return;
     }
 
-    // 실제 구현에서는 인증번호 검증 후 다음 단계로 이동
+    findPwdStore.setStep1Data({ email: email.value });
     router.push({ name: 'findpwd2' });
 };
 
@@ -87,26 +137,35 @@ onUnmounted(() => {
         <form @submit.prevent="submit" class="recovery-form">
             <div class="form-group">
                 <label for="email">이메일</label>
-                <input type="email" id="email" v-model="email" class="form-input" placeholder="가입한 이메일을 입력하세요"
-                    autocomplete="email" />
+                <div class="verification-container">
+                    <input type="email" id="email" v-model="email" class="form-input" placeholder="가입한 이메일을 입력하세요"
+                        autocomplete="email" :disabled="isVerified" />
+                    <button type="button" class="verification-btn" @click="sendVerificationCode" :disabled="isVerified">
+                        {{ isVerificationSent ? '재발송' : '전송' }}
+                    </button>
+                </div>
             </div>
 
             <div class="form-group verification-group">
                 <label for="verification-code">인증번호</label>
                 <div class="verification-container">
                     <input type="text" id="verification-code" v-model="verificationCode"
-                        class="form-input verification-input" placeholder="인증번호 입력" maxlength="6" />
-                    <button type="button" class="verification-btn" @click="sendVerificationCode">
-                        {{ isVerificationSent ? '재발송' : '인증' }}
+                        class="form-input verification-input" placeholder="인증번호 입력" maxlength="6"
+                        :disabled="isVerified" />
+                    <button type="button" class="verification-btn" @click="verifyCode" :disabled="isVerified">
+                        인증번호 확인
                     </button>
                 </div>
-                <div v-if="isVerificationSent" class="verification-timer">
+                <div v-if="isVerificationSent && !isVerified" class="verification-timer">
                     인증번호 유효시간: <span class="timer">{{ formattedTimer }}</span>
                 </div>
             </div>
 
-            <button type="submit" class="next-button">
+            <button type="submit" class="next-button" :disabled="!isNextButtonEnabled">
                 다음
+            </button>
+            <button type="button" class="next-button" @click="router.push({ name: 'login' })">
+                로그인 화면으로
             </button>
         </form>
     </div>
@@ -259,5 +318,23 @@ onUnmounted(() => {
         max-width: 400px;
         margin: 0 auto;
     }
+}
+
+.form-input:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+    color: #999;
+}
+
+.verification-btn:disabled {
+    background-color: #d3d3d3;
+    cursor: not-allowed;
+    color: #999;
+}
+
+.next-button:disabled {
+    background-color: #d3d3d3;
+    cursor: not-allowed;
+    color: #999;
 }
 </style>
