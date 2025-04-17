@@ -16,7 +16,7 @@ const isVerificationSent = ref(false);
 const verificationTimer = ref(180); // 3분 타이머 (초 단위)
 const timerInterval = ref(null);
 const errorMessage = ref('');
-
+const isLoading = ref(false); // 로딩 상태
 const isVerified = ref(false);
 // 인증번호 발송
 
@@ -29,13 +29,19 @@ const sendVerificationCode = async () => {
         return;
     }
 
+    if (isLoading.value) {
+        return; // 이미 로딩 중이면 중복 호출 방지
+    }
+
     try {
-        // ✅ 이메일 인증번호 전송 API 호출
+        isLoading.value = true; // 로딩 시작
+        errorMessage.value = '';
+
+        // ✅ 이메일 인증 API 호출
         await api.emailSend(email.value);
 
         // 성공 시 처리
         isVerificationSent.value = true;
-        errorMessage.value = '';
         alert('인증번호가 전송되었습니다.');
 
         // 타이머 시작
@@ -54,6 +60,8 @@ const sendVerificationCode = async () => {
         // 실패 시 에러 메시지 출력
         errorMessage.value = err.response?.data?.message || '인증번호 전송에 실패했습니다. 다시 시도해주세요.';
         console.error(err);
+    } finally {
+        isLoading.value = false; // 로딩 종료
     }
 };
 
@@ -140,8 +148,10 @@ onUnmounted(() => {
                 <div class="verification-container">
                     <input type="email" id="email" v-model="email" class="form-input" placeholder="가입한 이메일을 입력하세요"
                         autocomplete="email" :disabled="isVerified" />
-                    <button type="button" class="verification-btn" @click="sendVerificationCode" :disabled="isVerified">
-                        {{ isVerificationSent ? '재발송' : '전송' }}
+                    <button type="button" class="verification-btn" @click="sendVerificationCode"
+                        :disabled="isLoading || isVerified">
+                        <span v-if="isLoading">전송 중</span>
+                        <span v-else>{{ isVerificationSent ? '재발송' : '전송' }}</span>
                     </button>
                 </div>
             </div>
