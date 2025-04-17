@@ -12,33 +12,39 @@ const detailAddress = ref('');
 const storePhone = ref('');
 const errorMessage = ref('');
 
-// 휴대폰 번호 포맷팅 (02-XXXX-XXXX 또는 010-XXXX-XXXX)
+// 휴대폰 번호 포맷팅 (지역번호 및 휴대폰 번호 처리)
 const formatPhoneNumber = (value) => {
     if (!value) return '';
-    value = value.replace(/[^0-9]/g, '');
+    value = value.replace(/[^0-9]/g, ''); // 숫자만 남기기
 
-    if (value.length <= 2) {
-        return value;
-    } else if (value.length <= 3) {
-        // 휴대폰 번호인 경우 (010, 011 등)
-        return value;
-    } else if (value.length <= 6) {
-        // 지역번호가 2자리인 경우 (02-XXX)
-        if (value.startsWith('02')) {
+    if (value.startsWith('02')) {
+        // 지역번호가 02인 경우
+        if (value.length <= 2) {
+            return value;
+        } else if (value.length <= 5) {
             return value.slice(0, 2) + '-' + value.slice(2);
+        } else if (value.length <= 9) {
+            return value.slice(0, 2) + '-' + value.slice(2, 5) + '-' + value.slice(5);
+        } else {
+            return value.slice(0, 2) + '-' + value.slice(2, 5) + '-' + value.slice(5, 9);
         }
-        // 휴대폰 번호 또는 3자리 지역번호
-        else {
+    } else if (value.startsWith('010')) {
+        // 휴대폰 번호인 경우
+        if (value.length <= 3) {
+            return value;
+        } else if (value.length <= 7) {
             return value.slice(0, 3) + '-' + value.slice(3);
+        } else {
+            return value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7, 11);
         }
     } else {
-        // 지역번호가 2자리인 경우 (02-XXXX-XXXX)
-        if (value.startsWith('02')) {
-            return value.slice(0, 2) + '-' + value.slice(2, 6) + '-' + value.slice(6, 10);
-        }
-        // 휴대폰 번호 또는 3자리 지역번호
-        else {
-            return value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7, 11);
+        // 다른 지역번호 (3자리 지역번호)
+        if (value.length <= 3) {
+            return value;
+        } else if (value.length <= 7) {
+            return value.slice(0, 3) + '-' + value.slice(3);
+        } else {
+            return value.slice(0, 3) + '-' + value.slice(3, 6) + '-' + value.slice(6, 10);
         }
     }
 };
@@ -114,19 +120,20 @@ const submit = () => {
 
             <div class="form-group">
                 <label for="store-address">매장 주소</label>
-                <input type="text" id="store-address" v-model="storeAddress" class="form-input"
-                    placeholder="매장 주소를 입력하세요" readonly />
-            </div>
 
-            <div class="form-group address-group">
-                <label for="detail-address">상세 주소</label>
                 <div class="address-container">
-                    <input type="text" id="detail-address" v-model="detailAddress" class="form-input address-input"
-                        placeholder="상세 주소를 입력하세요" />
+                    <input type="text" id="store-address" v-model="storeAddress" class="form-input"
+                        placeholder="매장 주소를 입력하세요" readonly />
                     <button type="button" class="search-btn" @click="searchAddress">
                         검색
                     </button>
                 </div>
+            </div>
+
+            <div class="form-group address-group">
+                <label for="detail-address">상세 주소</label>
+                <input type="text" id="detail-address" v-model="detailAddress" class="form-input address-input"
+                    placeholder="상세 주소를 입력하세요" />
             </div>
 
             <div class="form-group">
