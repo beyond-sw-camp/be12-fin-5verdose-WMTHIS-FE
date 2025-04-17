@@ -216,6 +216,18 @@ export const api = {
         return false;
       });
   },
+  getMenuList(page = 0, size = 10) {
+    return instance
+      .get(`/menu/getList?page=${page}&size=${size}`)
+      .then((res) => {
+        if (res.data.code !== 200) return false;
+        return res.data.data;
+      })
+      .catch((error) => {
+        console.error("Error in getMenuList: ", error);
+        return false;
+      });
+  },
   registerInventory(storeInventoryData) {
     console.log("registerInventory storeInventoryData", storeInventoryData);
     return instance
@@ -294,6 +306,21 @@ export const api = {
         return false;
       });
   },
+  getMenuDetail(menuId) {
+    console.log("getMenuDetail menuId", menuId);
+    return instance
+      .get(`/menu/${menuId}`)
+      .then((res) => {
+        console.log("getMenuDetail res", res);
+        if (res.data.code !== 200) return false;
+        return res.data.data;
+      })
+      .catch((err) => {
+        console.error(err);
+        return null;
+      });
+  },
+
   registerMenu(data) {
     return instance
       .post("menu/register", data)
@@ -310,7 +337,7 @@ export const api = {
   },
   updateMenu(data) {
     return instance
-      .post("menu/update", data)
+      .put("/menu/update", data)
       .then((res) => {
         if (res.data.code !== 200) {
           return false;
@@ -319,6 +346,32 @@ export const api = {
       })
       .catch((error) => {
         console.error("Error in updateMenu:", error);
+        return false;
+      });
+  },
+  getStoreInventoryList() {
+    return instance
+      .get("/inventory/storeInventory/getList")
+      .then((res) => {
+        if (res.data.code !== 200) return false;
+        return res.data.data;
+      })
+      .catch((error) => {
+        console.error("Error in getStoreInventoryList: ", error);
+        return false;
+      });
+  },
+  deleteMenus(menuIdList) {
+    return instance
+      .delete("/menu", {
+        data: menuIdList,
+      })
+      .then((res) => {
+        console.log("deleteMenus res", res);
+        return res.data.code === 200;
+      })
+      .catch((error) => {
+        console.error("Error in deleteMenus:", error);
         return false;
       });
   },
