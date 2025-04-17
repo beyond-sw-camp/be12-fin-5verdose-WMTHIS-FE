@@ -2,10 +2,10 @@
 import { ref, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Logo from '@/assets/image/icon.png'; // 로고 이미지 import
-import { useUserStore } from '../../stores/useUserStore';
+import { useSignupStore } from '@/stores/useSignupStore';
 import { api } from "@/api/index";
 
-const userStore = useUserStore();
+const signupStore = useSignupStore();
 const businessNumber = ref('');
 const phoneNumber = ref('');
 const ssn = computed(() => {
@@ -128,7 +128,7 @@ const submit = async () => {
   }
 
   // Step2 정보 저장
-  userStore.setStep2Data({
+  signupStore.setStep2Data({
     businessNumber: businessNumber.value,
     phoneNumber: phoneNumber.value,
     ssn: ssn.value,
@@ -136,12 +136,12 @@ const submit = async () => {
 
   // 최종 API에 넘길 formData 구성
   const formData = {
-    name: userStore.name,
-    email: userStore.email,
-    password: userStore.password,
-    businessNumber: userStore.businessNumber,
-    phoneNumber: userStore.phoneNumber,
-    ssn: userStore.ssn,
+    name: signupStore.name,
+    email: signupStore.email,
+    password: signupStore.password,
+    businessNumber: signupStore.businessNumber,
+    phoneNumber: signupStore.phoneNumber,
+    ssn: signupStore.ssn,
   };
 
   const response = await api.signUp(formData);

@@ -2,9 +2,9 @@
 import { ref, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Logo from '@/assets/image/icon.png'; // 로고 이미지 import
-import { useUserStore } from '../../stores/useUserStore';
+import { useSignupStore } from '@/stores/useSignupStore';
 
-const userStore = useUserStore();
+const userStore = useSignupStore();
 
 const username = ref('');
 const email = ref('');
