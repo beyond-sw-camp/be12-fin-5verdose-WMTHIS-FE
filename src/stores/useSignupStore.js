@@ -9,9 +9,6 @@ export const useSignupStore = defineStore("user", {
     phoneNumber: "",
     ssn: "",
   }),
-  persist: {
-    storage: sessionStorage,
-  },
   actions: {
     // Step 1 데이터 저장
     setStep1Data({ name, email, password }) {

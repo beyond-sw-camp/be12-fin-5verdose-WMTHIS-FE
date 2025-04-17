@@ -31,4 +31,60 @@ export const api = {
         return false;
       });
   },
+
+  emailSend(data) {
+    console.log("EmailSend data", data);
+    return instance
+      .post("/email/sendcode", { emailUrl: data })
+      .then((res) => {
+        console.log("emailSendRes", res);
+        return res.data.code === 200; // 성공 여부 반환
+      })
+      .catch((error) => {
+        console.error("Error in emailSend:", error);
+        return false;
+      });
+  },
+
+  emailAuth(code, emailUrl) {
+    console.log("EmailAuth data", code, emailUrl);
+    return instance
+      .post("/email/authcode", { code, emailUrl })
+      .then((res) => {
+        console.log("emailAuthRes", res);
+        return res.data.code === 200; // 성공 여부 반환
+      })
+      .catch((error) => {
+        console.error("Error in emailAuth:", error);
+        return false;
+      });
+  },
+
+  phoneSend(data) {
+    console.log("SMS Send data", data);
+    return instance
+      .post("/user/smssend", { phoneNum: data })
+      .then((res) => {
+        console.log("smsSendRes", res);
+        return res.data.code === 200; // 성공 여부 반환
+      })
+      .catch((error) => {
+        console.error("Error in SMS Send:", error);
+        return false;
+      });
+  },
+
+  phoneAuth(code, phoneNum) {
+    console.log("PhoneAuth data", code, phoneNum);
+    return instance
+      .post("/user/phoneverify", { code, phoneNum })
+      .then((res) => {
+        console.log("PhoneAuthRes", res);
+        return res.data.code === 200; // 성공 여부 반환
+      })
+      .catch((error) => {
+        console.error("Error in PhoneAuth:", error);
+        return false;
+      });
+  },
 };
