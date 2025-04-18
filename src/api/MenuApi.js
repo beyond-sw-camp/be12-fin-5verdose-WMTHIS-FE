@@ -148,6 +148,20 @@ export const api = {
         return false;
       });
   },
+
+  getPOSMenuList() {
+    return instance
+      .get("/menu/getPOSList")
+      .then((res) => {
+        console.log("getMenuList res", res);
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in getMenuList: ", error);
+        return false;
+      });
+  },
+
   registerInventory(storeInventoryData) {
     console.log("registerInventory storeInventoryData", storeInventoryData);
     return instance

@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import POSOption from './POSOption.vue';
+import { api } from '@/api/MenuAPI.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -22,10 +23,26 @@ const showPaymentCompleteModal = ref(false);
 // 주문 목록
 const orderList = ref([]);
 
+const fetchMenuItems = async () => {
+    try {
+        const response = await api.getPOSMenuList();
+        if (response && response.data) {
+            menu_items.value = response.data; // API 응답 데이터를 menu_items에 저장
+            console.log('Menu items loaded:', menu_items.value);
+        } else {
+            console.error('메뉴 데이터를 가져오는 데 실패했습니다.');
+            menu_items.value = []; // 실패 시 빈 배열로 설정
+        }
+    } catch (error) {
+        console.error('Error in fetchMenuItems:', error);
+        menu_items.value = []; // 실패 시 빈 배열로 설정
+    }
+};
 // 컴포넌트 마운트 시 주문 정보 로드
 onMounted(() => {
     loadOrderInfo();
     loadExistingOrders();
+    fetchMenuItems();
 });
 
 // 라우트 변경 감지
@@ -100,24 +117,7 @@ const getDeliveryServiceName = (serviceCode) => {
     }
 };
 
-const menu_items = ref([
-    { id: 1, name: '알리오올리오', price: 10000, quantity: 1 },
-    { id: 2, name: '토마토 파스타', price: 11000, quantity: 1 },
-    { id: 3, name: '크림 파스타', price: 12000, quantity: 1 },
-    { id: 4, name: '봉골레 파스타', price: 13000, quantity: 1 },
-    { id: 5, name: '까르보나라', price: 12000, quantity: 1 },
-    { id: 6, name: '해산물 파스타', price: 15000, quantity: 1 },
-    { id: 7, name: '마르게리타 피자', price: 15000, quantity: 1 },
-    { id: 8, name: '페퍼로니 피자', price: 16000, quantity: 1 },
-    { id: 9, name: '하와이안 피자', price: 16000, quantity: 1 },
-    { id: 10, name: '콤비네이션 피자', price: 17000, quantity: 1 },
-    { id: 11, name: '고르곤졸라 피자', price: 18000, quantity: 1 },
-    { id: 12, name: '시저 샐러드', price: 8000, quantity: 1 },
-    { id: 13, name: '그린 샐러드', price: 7000, quantity: 1 },
-    { id: 14, name: '콜라', price: 2000, quantity: 1 },
-    { id: 15, name: '사이다', price: 2000, quantity: 1 },
-    { id: 16, name: '에이드', price: 4000, quantity: 1 },
-]);
+const menu_items = ref([]);
 
 const currentPage = ref(1); // 현재 페이지
 const itemsPerPage = 16; // 한 페이지에 표시할 아이템 개수
@@ -127,6 +127,11 @@ const totalPages = computed(() => Math.ceil(menu_items.value.length / itemsPerPa
 
 // 현재 페이지의 아이템만 보여주도록 필터링
 const paginatedMenuItems = computed(() => {
+    if (!menu_items.value || !Array.isArray(menu_items.value)) {
+        // 아직 로드 안 되었거나 잘못된 데이터일 경우
+        return Array(itemsPerPage).fill(null); // null로 16개 채워서 리턴
+    }
+
     const start = (currentPage.value - 1) * itemsPerPage;
     const items = menu_items.value.slice(start, start + itemsPerPage);
 
@@ -286,7 +291,7 @@ const processPayment = () => {
                     :class="{ 'empty-item': !item }">
                     <div v-if="item">
                         <div class="menu_name">{{ item.name }}</div>
-                        <div class="menu_price">{{ item.price.toLocaleString() }}원</div>
+                        <div class="menu_price">{{ item?.price?.toLocaleString() || '가격 없음' }}원</div>
                     </div>
                 </div>
             </div>
