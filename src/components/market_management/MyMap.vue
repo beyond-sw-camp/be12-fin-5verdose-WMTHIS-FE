@@ -52,6 +52,11 @@ function initMap() {
     };
 
     const map = new kakao.maps.Map(mapContainer, mapOption);
+    const myMarker = new kakao.maps.Marker({
+      map,
+      position: new kakao.maps.LatLng(lat, lng),
+      title: "내 위치",
+    });
     normalImage = new kakao.maps.MarkerImage(
       "/src/assets/image/bluePing.png",
       new kakao.maps.Size(30, 30) // 일반 사이즈
