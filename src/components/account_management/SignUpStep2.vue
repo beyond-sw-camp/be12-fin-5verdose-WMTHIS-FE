@@ -5,6 +5,7 @@ import Logo from '@/assets/image/icon.png'; // 로고 이미지 import
 import { useSignupStore } from '@/stores/useSignupStore';
 import { api } from "@/api/index";
 
+const isLoading = ref(false);
 const signupStore = useSignupStore();
 const businessNumber = ref('');
 const phoneNumber = ref('');
@@ -45,13 +46,19 @@ const sendVerificationCode = async () => {
     return;
   }
 
+  if (isLoading.value) {
+    return; // 이미 로딩 중이면 중복 호출 방지
+  }
+
   try {
+    isLoading.value = true; // 로딩 시작
+    errorMessage.value = '';
+
     // ✅ 휴대폰 인증 API 호출
     await api.phoneSend(phoneNumber.value.replace(/-/g, ''));
 
     // 성공 시 처리
     isVerificationSent.value = true;
-    errorMessage.value = '';
     alert('인증번호가 전송되었습니다.');
 
     // 타이머 시작
@@ -70,6 +77,8 @@ const sendVerificationCode = async () => {
     // 실패 시 에러 메시지 출력
     errorMessage.value = '인증번호 전송에 실패했습니다. 다시 시도해주세요.';
     console.error(err);
+  } finally {
+    isLoading.value = false; // 로딩 종료
   }
 };
 
@@ -242,8 +251,10 @@ const goBack = () => {
         <div class="verification-container">
           <input type="tel" id="phone-number" v-model="phoneNumber" @input="handlePhoneNumberInput" class="form-input"
             placeholder="휴대폰 번호를 입력하세요" maxlength="13" :disabled="isVerified" />
-          <button type="button" class="verification-btn" @click="sendVerificationCode" :disabled="isVerified">
-            {{ isVerificationSent ? '재발송' : '전송' }}
+          <button type="button" class="verification-btn" @click="sendVerificationCode"
+            :disabled="isLoading || isVerified">
+            <span v-if="isLoading">전송 중</span>
+            <span v-else>{{ isVerificationSent ? '재발송' : '전송' }}</span>
           </button>
         </div>
       </div>
@@ -410,7 +421,7 @@ const goBack = () => {
 }
 
 .id-back {
-  width: 60px;
+  width: 65px;
 }
 
 .id-separator {

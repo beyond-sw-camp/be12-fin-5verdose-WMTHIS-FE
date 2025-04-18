@@ -102,120 +102,34 @@ export const api = {
       });
   },
 
-  registerCategory(data) {
-    console.log("registerCategory data", data);
+  updatePassword(data) {
+    console.log("Update password data", data);
     return instance
-      .post("/category/register", data)
+      .put("/user/updatepassword", data)
       .then((res) => {
-        console.log("registerRes", res);
-        console.log("code:", res.data.code);
-
-        return res.data.code === 200; // 성공 시 true 반환;
-      })
-      .catch((error) => {
-        console.error("Error in registerCategory:", error);
-        return false;
-      });
-  },
-  getCategoryList() {
-    console.log("getCategoryList");
-    return instance
-      .get("/category/getList")
-      .then((res) => {
-        console.log("registerRes", res);
-        console.log("code:", res.data.code);
-        if (res.data.code !== 200) {
-          return false; // 실패 시 false 반환;
-        }
-        return res.data.data; // 성공 시 데이터 반환
-      })
-      .catch((error) => {
-        console.error("Error in getCategoryList:", error);
-        return false;
-      });
-  },
-  deleteCategory(data) {
-    return instance.delete("/category/delete", {
-      data: data,
-    });
-  },
-  getCategory(data) {
-    return instance.get("/category/detail", {
-      params: data,
-    });
-  },
-  registerOption(data) {
-    console.log("registerOption data", data);
-    return instance
-      .post("/option/register", data)
-      .then((res) => {
-        console.log("registerRes", res);
+        console.log("Update password Res", res);
         return res.data.code === 200; // 성공 여부 반환
       })
       .catch((error) => {
-        console.error("Error in registerOption:", error);
+        console.error("Error in Update Password:", error);
         return false;
       });
   },
-  getOptionList() {
-    console.log("getOptionList");
+
+  registerStore(data) {
+    console.log("Register store data", data);
     return instance
-      .get("/option/list")
+      .post("/store/register", data)
       .then((res) => {
-        console.log("registerRes", res);
-        console.log("code:", res.data.code);
-        if (res.data.code !== 200) {
-          return false; // 실패 시 false 반환;
-        }
-        return res.data.data; // 성공 시 데이터 반환
+        console.log("Store registration response:", res);
+        return res.data;
       })
       .catch((error) => {
-        console.error("Error in getOptionList:", error);
-        return false;
+        console.error("Error in Store Registration:", error);
+        throw error;
       });
   },
-  updateCategory(payload) {
-    return axios.put("/api/category/update", payload);
-  },
-  deleteOptions(optionIdList) {
-    return instance
-      .post("/option/delete/batch", optionIdList)
-      .then((res) => {
-        console.log("deleteOptions res", res);
-        return res.data.code === 200;
-      })
-      .catch((error) => {
-        console.error("Error in deleteOptions:", error);
-        return false;
-      });
-  },
-  updateOption(requestData) {
-    return instance
-      .post("/option/update", requestData)
-      .then((res) => {
-        console.log("deleteOptions res", res);
-        return res.data.code === 200;
-      })
-      .catch((error) => {
-        console.error("Error in deleteOptions:", error);
-        return false;
-      });
-  },
-  getOptionById(optionId) {
-    return instance
-      .get(`/option/${optionId}`)
-      .then((res) => {
-        console.log("getOptionById res", res);
-        if (res.data.code !== 200) {
-          return false;
-        }
-        return res.data.data;
-      })
-      .catch((error) => {
-        console.error("Error in getOptionById:", error);
-        return false;
-      });
-  },
+
   registerInventory(storeInventoryData) {
     console.log("registerInventory storeInventoryData", storeInventoryData);
     return instance
@@ -275,11 +189,13 @@ export const api = {
   async totalStoreInventory(storeInventoryData) {
     try {
       const response = await axios.post("/api/inventory", storeInventoryData); // API 요청 예시
+      console.log("totalStoreInventoryRes", response);
       return response;
     } catch (error) {
       console.error("API 요청 실패", error);
       throw error;
     }
+
   },
   getMenuList() {
     return instance
@@ -322,5 +238,6 @@ export const api = {
         console.error("Error in updateMenu:", error);
         return false;
       });
+
   },
 };
