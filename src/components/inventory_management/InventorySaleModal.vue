@@ -1,6 +1,7 @@
 <script setup>
 import { defineProps, defineEmits, ref, watch, onMounted } from "vue";
 import { api } from "@/api/MenuApi.js";
+import { marketApi } from "@/api/MarketApi";
 
 const props = defineProps({
   isOpen: Boolean,
@@ -13,6 +14,24 @@ const ingredients = ref([]); // 재료 목록 저장하는 변수
 const price = ref(""); // 희망가격
 const quantity = ref(""); // 수량
 const content = ref(""); // 물품 설명
+const imagePaths = ref([]); // 서버에서 반환한 경로 저장
+
+watch(files, async (newFiles) => {
+  if (!newFiles || newFiles.length === 0) return;
+
+  const formData = new FormData();
+  for (const file of newFiles) {
+    formData.append("files", file); // 다중 파일이면 name은 동일하게
+  }
+
+  try {
+    const response = await marketApi.uploadImages(formData);
+    console.log("Uploaded image paths:", response);
+    imagePaths.value = response.data; // ex) ['uploads/abc.jpg', 'uploads/def.jpg']
+  } catch (error) {
+    console.error("이미지 업로드 실패", error);
+  }
+});
 
 // 최대 3장까지 업로드 허용s
 const maxFileRule = (value) => {
@@ -34,6 +53,16 @@ const fetchIngredients = async () => {
 };
 const register = async () => {
 
+  const data = {
+    inventoryId: ingredient.value.id,
+    quantity: quantity.value,
+    price: price.value,
+    content: content.value,
+    imageUrls: imagePaths.value,
+  }
+  console.log("Registering inventory sale with data:", data);
+  emit("close");
+  //const response = await marketApi.registerInventorySale();
 }
 
 watch(
@@ -111,7 +140,6 @@ onMounted(() => {
               <input type="text" v-model="quantity" placeholder="5" class="min-qty-input" />
               <span class="unit-text">Kg</span>
             </div>
-
           </div>
         </div>
 
@@ -139,7 +167,7 @@ onMounted(() => {
         </div>
       </div>
       <div class="modal_footer">
-        <button class="confirm_btn" @click="emit('close')">수정</button>
+        <button class="confirm_btn" @click=register>수정</button>
       </div>
     </div>
   </div>
