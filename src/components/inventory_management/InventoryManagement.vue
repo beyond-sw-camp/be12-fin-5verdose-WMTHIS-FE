@@ -285,6 +285,10 @@ const addInventoryItem = (item) => {
           </tbody>
         </table>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+
+>>>>>>> a889276a79413a4f3bd3a9a50ebbdc8fdfa76d74
         <InventoryStoreModal
           v-if="isStoreOpen"
           :isOpen="isStoreOpen"
@@ -306,15 +310,27 @@ const addInventoryItem = (item) => {
           :isOpen="isModalOpen"
           @close="closeModal"
         />
+<<<<<<< HEAD
 =======
         <InventoryStoreModal v-if="modalType === 'store'" :isOpen="isModalOpen" @close="closeModal" />
         <InventoryCorrectionModal v-if="modalType === 'correction'" :isOpen="isModalOpen" @close="closeModal" />
         <InventorySaleModal v-if="modalType === 'sale'" :isOpen="isModalOpen" @close="closeModal" />
         <InventoryParticularModal v-if="modalType === 'particular'" :isOpen="isModalOpen" @close="closeModal" />
 >>>>>>> origin/main
+=======
+>>>>>>> a889276a79413a4f3bd3a9a50ebbdc8fdfa76d74
 
-        <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
-        <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
+        <DeleteConfirmModal
+          :isOpen="isDeleteConfirmOpen"
+          @confirm="deleteSelectedItems"
+          @cancel="closeDeleteConfirm"
+        />
+        <DeleteAlertModal
+          :isOpen="isDeleteAlertOpen"
+          @close="closeDeleteAlert"
+        />
+
+
       </div>
     </v-col>
   </v-row>
