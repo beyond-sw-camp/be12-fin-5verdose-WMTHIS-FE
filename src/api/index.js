@@ -117,15 +117,21 @@ export const api = {
         return false;
       });
   },
-  getCategoryList(page = 0, size = 10) {
+  getCategoryList(page = 0, size = 10, keyword = "") {
     console.log("getCategoryList");
+
+    let url = `/category/getList?page=${page}&size=${size}`;
+    if (keyword && keyword.trim() !== "") {
+      url += `&keyword=${encodeURIComponent(keyword)}`;
+    }
+
     return instance
-      .get(`/category/getList?page=${page}&size=${size}`)
+      .get(url)
       .then((res) => {
         console.log("registerRes", res);
         console.log("code:", res.data.code);
         if (res.data.code !== 200) {
-          return false; // 실패 시 false 반환;
+          return false; // 실패 시 false 반환
         }
         return res.data.data; // 성공 시 데이터 반환
       })

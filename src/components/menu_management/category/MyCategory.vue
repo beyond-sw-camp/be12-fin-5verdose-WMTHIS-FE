@@ -6,6 +6,8 @@ import DeleteConfirmModal from '@/components/alerts/DeleteConfirmModal.vue';
 import DeleteAlertModal from '@/components/alerts/DeleteAlertModal.vue';
 import CategoryEditModal from '@/components/menu_management/category/CategoryEditModal.vue';
 
+
+const searchKeyword = ref('');
 const isRegisterModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isDeleteConfirmOpen = ref(false);
@@ -72,9 +74,10 @@ const deleteSelectedItems = async () => {
 };
 
 const fetchCategoryList = async (page = 0) => {
+    console.log(searchKeyword.value);
     try {
-        const res = await api.getCategoryList(page, pageSize);
-        if (res && res.content) {
+        const res = await api.getCategoryList(page, pageSize, searchKeyword.value);
+        if (res) {
             category_items.value = res.content.map(item => ({
                 ...item,
                 selected: false,
@@ -107,8 +110,9 @@ onMounted(() => {
         <h1 class="page_title">카테고리 관리</h1>
         <div class="search_container">
             <div class="search_box">
-                <input type="text" class="search_input" placeholder="카테고리 검색" />
-                <button class="search_btn">
+                <input type="text" v-model="searchKeyword" class="search_input" placeholder="카테고리 검색"
+                    @input="fetchCategoryList(0)" />
+                <button class="search_btn" @Click="fetchCategoryList(0)">
                     <img src="@/assets/image/search_button.png" class="search_icon">
                 </button>
             </div>
