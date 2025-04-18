@@ -7,7 +7,7 @@ const props = defineProps({
   isOpen: Boolean,
 });
 const emit = defineEmits(["close", "registerInventory"]);
-
+const quantity = ref(0);
 // pinia store
 const inventoryStore = useInventoryStore();
 
@@ -55,7 +55,8 @@ const registerInventory = async () => {
   // 등록할 데이터 세팅
   const storeInventoryData = {
     name: name.value,
-    unit: `${unit.value} ${unitCategory.value}`, // 예: "100g", "1 Kg"
+    quantity: quantity.value, // 예: "5", "10"
+    unit: `${unitCategory.value}`, // 예: "100g", "1 Kg"
     miniquantity: miniquantity.value,
     expiryDate:
       selectedDays.value === "custom" ? customDays.value : selectedDays.value,
@@ -103,16 +104,10 @@ const registerInventory = async () => {
         <div class="input_group">
           <div class="input_row">
             <div class="input_label_group">
-              <label>용량/단위</label>
+              <label>단위</label>
               <p class="title_warn">(필수)</p>
             </div>
             <div class="unit_container">
-              <input
-                type="text"
-                v-model="unit"
-                placeholder="5"
-                class="min_qty_input"
-              />
               <select v-model="unitCategory" class="unit_select">
                 <option value="Kg">Kg</option>
                 <option value="g">g</option>

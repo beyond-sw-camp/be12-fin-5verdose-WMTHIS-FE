@@ -1,5 +1,7 @@
 <script setup>
-import { defineProps, defineEmits, ref } from "vue";
+import { defineProps, defineEmits, ref, watch, onMounted } from "vue";
+import { api } from "@/api/MenuApi.js";
+import { marketApi } from "@/api/MarketApi";
 
 const props = defineProps({
   isOpen: Boolean,
@@ -7,78 +9,87 @@ const props = defineProps({
 
 const emit = defineEmits(["close"]);
 const files = ref([]);
+const ingredient = ref(""); // 선택된 재료명
+const ingredients = ref([]); // 재료 목록 저장하는 변수
+const price = ref(""); // 희망가격
+const quantity = ref(""); // 수량
+const content = ref(""); // 물품 설명
+const imagePaths = ref([]); // 서버에서 반환한 경로 저장
 
-// 최대 3장까지 업로드 허용
+watch(files, async (newFiles) => {
+  if (!newFiles || newFiles.length === 0) return;
+
+  const formData = new FormData();
+  for (const file of newFiles) {
+    formData.append("files", file); // 다중 파일이면 name은 동일하게
+  }
+
+  try {
+    const response = await marketApi.uploadImages(formData);
+    console.log("Uploaded image paths:", response);
+    imagePaths.value = response.data; // ex) ['uploads/abc.jpg', 'uploads/def.jpg']
+  } catch (error) {
+    console.error("이미지 업로드 실패", error);
+  }
+});
+
+// 최대 3장까지 업로드 허용s
 const maxFileRule = (value) => {
   if (!value) return true;
   return value.length <= 3 || "최대 3장까지 등록할 수 있어요.";
 };
-const category = ref("");
-const activeTab = ref("단일메뉴"); // 기본 선택된 탭
-const inventoryName = ref("");
-const ingredientName = ref("");
-const ingredientAmount = ref("");
-const ingredientUnit = ref("");
-const ingredients = ref([
-  { name: "고추장", amount: "50", unit: "g" },
-  { name: "토마토", amount: "10", unit: "g" },
-  { name: "삼겹살", amount: "50", unit: "g" },
-]);
-const selectedDays = ref("1");
-const customDays = ref("");
-const isCustomInput = ref(false);
-
-const days = [
-  { label: "1일", value: "1" },
-  { label: "3일", value: "3" },
-  { label: "5일", value: "5" },
-];
-
-const selectDay = (value) => {
-  selectedDays.value = value;
-  isCustomInput.value = false;
-  customDays.value = "";
-};
-
-const enableCustomInput = () => {
-  selectedDays.value = "custom";
-  isCustomInput.value = true;
-};
-
-const disableCustomInput = () => {
-  if (!customDays.value) {
-    isCustomInput.value = false;
-    selectedDays.value = "1"; // 기본값 1일로 설정
+const fetchIngredients = async () => {
+  try {
+    const response = await api.getStoreInventoryList();
+    ingredients.value = response.map(item => ({
+      id: item.id,
+      name: item.name,
+      unit: item.unit,
+    }));
+    console.log("Fetched ingredients:", ingredients.value);
+  } catch (error) {
+    console.error("Error fetching ingredients:", error);
   }
 };
-const ingredientOptions = ["고추장", "토마토", "삼겹살", "양파", "파"];
-const unitOptions = ["g", "kg", "ml", "L", "EA"];
+const register = async () => {
 
-const addIngredient = () => {
-  if (ingredientName.value && ingredientAmount.value && ingredientUnit.value) {
-    ingredients.value.push({
-      name: ingredientName.value,
-      amount: ingredientAmount.value,
-      unit: ingredientUnit.value,
-    });
-    ingredientName.value = "";
-    ingredientAmount.value = "";
-    ingredientUnit.value = "";
+  const data = {
+    inventoryId: ingredient.value.id,
+    quantity: quantity.value,
+    price: price.value,
+    content: content.value,
+    imageUrls: imagePaths.value,
   }
-};
+  console.log("Registering inventory sale with data:", data);
+  emit("close");
+  //const response = await marketApi.registerInventorySale();
+}
 
-const removeIngredient = (index) => {
-  ingredients.value.splice(index, 1);
-};
+watch(
+  () => props.isOpen,
+  (newVal) => {
+    if (newVal) {
+      // 모달이 열릴 때 재료 목록을 가져옴
+      console.log("Modal opened, fetching ingredients...");
+      fetchIngredients();
+    } else {
+      // 모달이 닫힐 때 입력값 초기화
+      ingredient.value = "";
+      price.value = "";
+      quantity.value = "";
+      files.value = [];
+    }
+  }
+);
+onMounted(() => {
+  // 컴포넌트가 마운트될 때 재료 목록을 가져옴
+  console.log("Component mounted, fetching ingredients...");
+  fetchIngredients();
+});
 </script>
 
 <template>
-  <div
-    v-if="isOpen"
-    class="sale_modal_container"
-    @click.self="emit('close')"
-    style="z-index: 2000"
-  >
+  <div v-if="isOpen" class="sale_modal_container" @click.self="emit('close')" style="z-index: 2000">
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
@@ -94,17 +105,11 @@ const removeIngredient = (index) => {
               <label>재고명</label>
               <p class="title_warn">(필수)</p>
             </div>
-            <p class="sub_title">판매 시 사용하는 물품명을 선택해주세요.</p>
+            <p class="sub_title">판매할 재고명을 선택해주세요.</p>
             <div class="unit-container">
-              <select
-                v-model="category"
-                class="unit-select"
-                style="width: 250px"
-              >
-                <option value="마늘">마늘</option>
-                <option value="토마토">토마토</option>
-                <option value="양배추">양배추</option>
-                <option value="새우">새우</option>
+              <select v-model="ingredient" class="unit-select" style="width: 200px">
+                <option value="" disabled selected>재료 선택</option>
+                <option v-for="item in ingredients" :key="item" :value="item">{{ item.name }}</option>
               </select>
             </div>
           </div>
@@ -117,13 +122,7 @@ const removeIngredient = (index) => {
             </div>
             <p class="sub_title">물품의 희망가격을 입력해주세요.</p>
             <div class="unit-container">
-              <input
-                type="text"
-                v-model="minimumQuantity"
-                style="width: 200px"
-                placeholder="3000"
-                class="min-qty-input"
-              />
+              <input type="text" v-model="price" style="width: 200px" placeholder="3000" class="min-qty-input" />
               <p>원</p>
             </div>
           </div>
@@ -138,15 +137,9 @@ const removeIngredient = (index) => {
 
             <!-- 오른쪽: 수량 입력 + 단위 -->
             <div class="input-inline-row">
-              <input
-                type="text"
-                v-model="Minimumquantity"
-                placeholder="5"
-                class="min-qty-input"
-              />
+              <input type="text" v-model="quantity" placeholder="5" class="min-qty-input" />
               <span class="unit-text">Kg</span>
             </div>
-      
           </div>
         </div>
 
@@ -159,16 +152,8 @@ const removeIngredient = (index) => {
             가능해요.)
           </p>
           <div class="unit-container">
-            <v-file-input
-              v-model="files"
-              variant="outlined"
-              accept="image/*"
-              multiple
-              :counter="true"
-              :rules="[maxFileRule]"
-              :show-size="true"
-              hide-details="auto"
-            />
+            <v-file-input v-model="files" variant="outlined" accept="image/*" multiple :counter="true"
+              :rules="[maxFileRule]" :show-size="true" hide-details="auto" />
           </div>
           <div class="input_group">
             <div class="modal_title2">
@@ -176,13 +161,13 @@ const removeIngredient = (index) => {
             </div>
             <p class="sub_title">물품의 상태를 자세히 설명해주세요.</p>
             <div class="unit-container">
-              <v-textarea variant="outlined"></v-textarea>
+              <v-textarea v-model="content" variant="outlined"></v-textarea>
             </div>
           </div>
         </div>
       </div>
       <div class="modal_footer">
-        <button class="confirm_btn" @click="emit('close')">수정</button>
+        <button class="confirm_btn" @click=register>수정</button>
       </div>
     </div>
   </div>
@@ -227,6 +212,7 @@ const removeIngredient = (index) => {
 
 /* 모달 안의 스크롤 영역 */
 .modal_content {
+  width: auto;
   position: relative;
   overflow-y: auto;
   flex: 1;
@@ -515,9 +501,7 @@ const removeIngredient = (index) => {
   /* 드롭다운 크기 */
   appearance: none;
   /* 기본 스타일 제거 */
-  background: white
-    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
-    no-repeat right 10px center;
+  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
   background-size: 16px;
 }
 
@@ -586,7 +570,8 @@ const removeIngredient = (index) => {
   /* 오른쪽 정렬 */
   align-items: center;
 
-  gap: 8px; /* 입력창과 단위 사이 간격 */
+  gap: 8px;
+  /* 입력창과 단위 사이 간격 */
   text-align: right;
 
 

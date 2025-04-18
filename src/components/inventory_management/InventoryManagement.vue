@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, onMounted } from "vue";
 import InventoryCorrectionModal from "@/components/inventory_management/InventoryCorrectionModal.vue";
 import InventoryStoreModal from "@/components/inventory_management/InventoryStoreModal.vue";
 import DeleteConfirmModal from "@/components/alerts/DeleteConfirmModal.vue";
@@ -9,6 +9,7 @@ import InventoryParticularModal from "@/components/inventory_management/Inventor
 import InventorySaleModal from "@/components/inventory_management/InventorySaleModal.vue";
 
 const tab = ref("exp");
+const isStoreOpen = ref(false);
 const selectedFilter = ref("만료");
 const stockStatus = ref("필요");
 const isModalOpen = ref(false);
@@ -16,15 +17,18 @@ const isDetailModalOpen = ref(false);
 const isDeleteConfirmOpen = ref(false);
 const isDeleteAlertOpen = ref(false);
 const modalType = ref("");
-
+const selectedItem = ref(null);
+const handleInventoryRegistered = (data) => {
+  console.log("입고 완료된 재고 데이터:", data);
+  // 입고 후 테이블 갱신 등 처리
+};
 const openParticularModal = () => {
   modalType.value = "particular";
   isModalOpen.value = true;
 };
 
 const openStoreModal = () => {
-  modalType.value = "store";
-  isModalOpen.value = true;
+  isStoreOpen.value = true;
 };
 
 const openSaleModal = () => {
@@ -46,6 +50,29 @@ const closeDetailModal = () => (isDetailModalOpen.value = false);
 watch(selectedFilter, (newVal) => {
   stockStatus.value = newVal;
 });
+
+const searchKeyword = ref("");
+const inventory_items = ref([]);
+
+const select_all = ref(false);
+const isBlocked = computed(
+  () => isDeleteConfirmOpen.value || isDeleteAlertOpen.value
+);
+const toggle_select_all = () => {
+  if (!isBlocked.value)
+    inventory_items.value.forEach((item) => (item.selected = select_all.value));
+};
+
+watch(
+  inventory_items,
+  (newItems, oldItems) => {
+    console.log("Updated inventory items:", newItems);
+    console.log("Previous inventory items:", oldItems);
+
+    localStorage.setItem("inventory_items", JSON.stringify(newItems));
+  },
+  { deep: true }
+);
 const filteredItems = computed(() => {
   let items = inventory_items.value;
 
@@ -71,87 +98,23 @@ const filteredItems = computed(() => {
   return items;
 });
 
-const searchKeyword = ref("");
-const inventory_items = ref([
-  {
-    name: "마늘",
-    quantity: "1개",
-    totalquantity: "3개",
-    status: "만료",
-    orderNeed: "1",
-    selected: false,
-  },
-  {
-    name: "토마토",
-    quantity: "3개",
-    totalquantity: "7개",
-    status: "유효",
-    orderNeed: "2",
-    selected: false,
-  },
-  {
-    name: "양배추",
-    quantity: "1개",
-    totalquantity: "1개",
-    status: "만료",
-    orderNeed: "1",
-    selected: false,
-  },
-  {
-    name: "우유",
-    quantity: "3개",
-    totalquantity: "9개",
-    status: "임박",
-    orderNeed: "-",
-    selected: false,
-  },
-  {
-    name: "올리브유",
-    quantity: "1개",
-    totalquantity: "3개",
-    status: "만료",
-    orderNeed: "1",
-    selected: false,
-  },
-  {
-    name: "새우",
-    quantity: "5개",
-    totalquantity: "5개",
-    status: "유효",
-    orderNeed: "-",
-    selected: false,
-  },
-  {
-    name: "방울토마토",
-    quantity: "2개",
-    totalquantity: "3개",
-    status: "임박",
-    orderNeed: "2",
-    selected: false,
-  },
-  {
-    name: "닭가슴살",
-    quantity: "5개",
-    totalquantity: "15개",
-    status: "만료",
-    orderNeed: "13",
-    selected: false,
-  },
-]);
+// 최초 로딩 시 로컬스토리지에서 불러오기
+onMounted(() => {
+  const savedItems = localStorage.getItem("inventory_items");
+  if (savedItems) {
+    try {
+      inventory_items.value = JSON.parse(savedItems);
+    } catch (e) {
+      console.error("로컬스토리지에서 재고 불러오기 실패:", e);
+    }
+  }
+});
 
-const select_all = ref(false);
-const isBlocked = computed(
-  () => isDeleteConfirmOpen.value || isDeleteAlertOpen.value
-);
-const toggle_select_all = () => {
-  if (!isBlocked.value)
-    inventory_items.value.forEach((item) => (item.selected = select_all.value));
-};
-
+// 변경 감지해서 저장
 watch(
   inventory_items,
-  (new_items) => {
-    select_all.value = new_items.every((item) => item.selected);
+  (newItems) => {
+    localStorage.setItem("inventory_items", JSON.stringify(newItems));
   },
   { deep: true }
 );
@@ -170,6 +133,16 @@ const deleteSelectedItems = () => {
   isDeleteConfirmOpen.value = false;
   inventory_items.value = inventory_items.value.filter(
     (item) => !item.selected
+  );
+};
+const addInventoryItem = (item) => {
+  console.log("입고 완료된 재고 데이터:", item);
+  inventory_items.value.push(item);
+
+  // 로컬스토리지에 저장
+  localStorage.setItem(
+    "inventory_items",
+    JSON.stringify(inventory_items.value)
   );
 };
 </script>
@@ -399,6 +372,27 @@ const deleteSelectedItems = () => {
             </tr>
           </tbody>
         </table>
+        <InventoryStoreModal
+          v-if="isStoreOpen"
+          :isOpen="isStoreOpen"
+          @close="isStoreOpen = false"
+          @totalInventory="addInventoryItem"
+        />
+        <InventoryCorrectionModal
+          v-if="modalType === 'correction'"
+          :isOpen="isModalOpen"
+          @close="closeModal"
+        />
+        <InventorySaleModal
+          v-if="modalType === 'sale'"
+          :isOpen="isModalOpen"
+          @close="closeModal"
+        />
+        <InventoryParticularModal
+          v-if="modalType === 'particular'"
+          :isOpen="isModalOpen"
+          @close="closeModal"
+        />
         <InventoryStoreModal
           v-if="modalType === 'store'"
           :isOpen="isModalOpen"
@@ -702,7 +696,9 @@ const deleteSelectedItems = () => {
 .left_panel {
   margin-right: 65px;
 }
+
 .shift_tabs {
-  margin-left: 50px; /* px 값으로 조절 가능 */
+  margin-left: 50px;
+  /* px 값으로 조절 가능 */
 }
 </style>

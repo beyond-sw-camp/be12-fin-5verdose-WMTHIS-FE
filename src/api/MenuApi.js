@@ -148,7 +148,6 @@ export const api = {
         return false;
       });
   },
-
   getPOSMenuList() {
     return instance
       .get("/menu/getPOSList")
