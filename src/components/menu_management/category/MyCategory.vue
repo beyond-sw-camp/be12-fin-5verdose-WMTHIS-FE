@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
-import { api } from '@/api'; // API 호출을 위한 axios 인스턴스 import
+import { api } from '@/api';
 import CategoryRegisterModal from '@/components/menu_management/category/CategoryRegisterModal.vue';
 import DeleteConfirmModal from '@/components/alerts/DeleteConfirmModal.vue';
 import DeleteAlertModal from '@/components/alerts/DeleteAlertModal.vue';
@@ -9,8 +9,9 @@ import CategoryEditModal from '@/components/menu_management/category/CategoryEdi
 const isRegisterModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isDeleteConfirmOpen = ref(false);
-const isDeleteAlertOpen = ref(false); // 삭제 항목 선택 안내 모달
+const isDeleteAlertOpen = ref(false);
 const selectedCategory = ref(null);
+
 const openRegisterModal = () => { isRegisterModalOpen.value = true; };
 const closeRegisterModal = () => { isRegisterModalOpen.value = false; };
 
@@ -20,11 +21,13 @@ const openEditModal = (item) => {
 };
 const closeEditModal = () => { isEditModalOpen.value = false; };
 
-const category_items = ref([
-]);
+const category_items = ref([]);
+const currentPage = ref(0);
+const totalPages = ref(1);
+const pageSize = 10;
 
 const select_all = ref(false);
-const isBlocked = computed(() => false);
+const isBlocked = computed(() => isDeleteConfirmOpen.value || isDeleteAlertOpen.value);
 
 const toggle_select_all = () => {
     if (!isBlocked.value) {
@@ -36,7 +39,6 @@ watch(category_items, (new_items) => {
     select_all.value = new_items.every(item => item.selected);
 }, { deep: true });
 
-// 삭제 확인 모달 열기
 const openDeleteConfirm = () => {
     if (!isBlocked.value) {
         const selectedItems = category_items.value.some(item => item.selected);
@@ -48,34 +50,19 @@ const openDeleteConfirm = () => {
     }
 };
 
-// 삭제 확인 모달 닫기
-const closeDeleteConfirm = () => {
-    isDeleteConfirmOpen.value = false;
-};
-
-// 삭제 경고 모달 닫기
-const closeDeleteAlert = () => {
-    isDeleteAlertOpen.value = false;
-};
+const closeDeleteConfirm = () => { isDeleteConfirmOpen.value = false; };
+const closeDeleteAlert = () => { isDeleteAlertOpen.value = false; };
 
 const deleteSelectedItems = async () => {
     isDeleteConfirmOpen.value = false;
-
-    const selectedIds = category_items.value
-        .filter(item => item.selected)
-        .map(item => item.id);
+    const selectedIds = category_items.value.filter(item => item.selected).map(item => item.id);
 
     try {
         const res = await api.deleteCategory({ ids: selectedIds });
-
         if (res.data.code === 200) {
-            console.log("삭제 응답:", res.data);
-
-            // UI 업데이트
             category_items.value = category_items.value.filter(item => !item.selected);
-
-            // 선택 전체 체크박스도 초기화
             select_all.value = false;
+            fetchCategoryList(currentPage.value);
         } else {
             console.error("삭제 중 에러:", res.data.message);
         }
@@ -83,21 +70,34 @@ const deleteSelectedItems = async () => {
         console.error("API 호출 실패:", err);
     }
 };
-const fetchCategoryList = () => {
-    api.getCategoryList()
-        .then(res => {
-            category_items.value = res;
-            console.log('카테고리 목록 갱신됨:', res);
-        })
-        .catch(error => {
-            console.error('카테고리 목록 불러오기 실패:', error);
-        });
+
+const fetchCategoryList = async (page = 0) => {
+    try {
+        const res = await api.getCategoryList(page, pageSize);
+        if (res && res.content) {
+            category_items.value = res.content.map(item => ({
+                ...item,
+                selected: false,
+            }));
+            currentPage.value = res.page.number;
+            totalPages.value = res.page.totalPages;
+        }
+    } catch (error) {
+        console.error('카테고리 목록 불러오기 실패:', error);
+    }
+};
+
+const goToPage = (page) => {
+    if (page >= 0 && page < totalPages.value) {
+        fetchCategoryList(page);
+    }
 };
 
 onMounted(() => {
-    fetchCategoryList();
+    fetchCategoryList(0);
 });
 </script>
+
 
 
 
@@ -140,8 +140,23 @@ onMounted(() => {
                     </td>
                 </tr>
             </tbody>
+
         </table>
 
+        <div class="pagination_container">
+            <button :disabled="currentPage === 0" @click="goToPage(currentPage - 1)">
+                ◀ 이전
+            </button>
+
+            <span v-for="page in totalPages" :key="page" @click="goToPage(page - 1)"
+                :class="{ 'page-number': true, 'active': currentPage === page - 1 }">
+                {{ page }}
+            </span>
+
+            <button :disabled="currentPage === totalPages - 1" @click="goToPage(currentPage + 1)">
+                다음 ▶
+            </button>
+        </div>
         <CategoryRegisterModal :isOpen="isRegisterModalOpen" @close="closeRegisterModal" @refresh="fetchCategoryList" />
         <CategoryEditModal :isOpen="isEditModalOpen" :category="selectedCategory" @close="closeEditModal"
             @refresh="fetchCategoryList" />
@@ -318,5 +333,24 @@ onMounted(() => {
 .register_btn:hover,
 .delete_btn:hover {
     background-color: #98A8B8;
+}
+
+.pagination_container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+    gap: 0.5rem;
+}
+
+.page-number {
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.page-number.active {
+    background-color: #ffcc00;
+    font-weight: bold;
 }
 </style>

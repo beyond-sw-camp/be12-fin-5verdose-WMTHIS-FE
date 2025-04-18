@@ -12,8 +12,7 @@ const activeTab = ref('단일메뉴'); // 기본 선택된 탭
 const menuName = ref('');
 const ingredientName = ref('');
 const ingredientAmount = ref('');
-const ingredients = ref([
-]);
+const ingredients = ref([]);
 const category = ref('');
 const categoryList = ref([]);
 const selectedUnit = computed(() => {
@@ -33,7 +32,7 @@ watch(() => props.menu, (newVal) => {
 const loadCategories = async () => {
     const result = await api.getCategoryList();
     if (result) {
-        categoryList.value = result;
+        categoryList.value = result.content;
     } else {
         alert("카테고리 목록을 불러오는 데 실패했습니다.");
     }

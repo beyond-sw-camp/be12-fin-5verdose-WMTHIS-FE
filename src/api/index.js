@@ -117,10 +117,10 @@ export const api = {
         return false;
       });
   },
-  getCategoryList() {
+  getCategoryList(page = 0, size = 10) {
     console.log("getCategoryList");
     return instance
-      .get("/category/getList")
+      .get(`/category/getList?page=${page}&size=${size}`)
       .then((res) => {
         console.log("registerRes", res);
         console.log("code:", res.data.code);
@@ -157,17 +157,18 @@ export const api = {
         return false;
       });
   },
-  getOptionList() {
-    console.log("getOptionList");
+  getOptionList(page = 0, size = 10, keyword = "") {
+    let url = `/option/list?page=${page}&size=${size}`;
+    if (keyword && keyword.trim() !== "") {
+      url += `&keyword=${encodeURIComponent(keyword)}`;
+    }
     return instance
-      .get("/option/list")
+      .get(url)
       .then((res) => {
-        console.log("registerRes", res);
-        console.log("code:", res.data.code);
         if (res.data.code !== 200) {
-          return false; // 실패 시 false 반환;
+          return false;
         }
-        return res.data.data; // 성공 시 데이터 반환
+        return res.data.data;
       })
       .catch((error) => {
         console.error("Error in getOptionList:", error);
@@ -191,7 +192,7 @@ export const api = {
   },
   updateOption(requestData) {
     return instance
-      .post("/option/update", requestData)
+      .put("/option", requestData)
       .then((res) => {
         console.log("deleteOptions res", res);
         return res.data.code === 200;
@@ -216,7 +217,8 @@ export const api = {
         return false;
       });
   },
-  getMenuList(page = 0, size = 10) {
+  getMenuList(page = 0, size = 5) {
+    console.log("메뉴목록 요청", page, "size", size);
     return instance
       .get(`/menu/getList?page=${page}&size=${size}`)
       .then((res) => {
@@ -292,20 +294,6 @@ export const api = {
       console.error("API 요청 실패", error);
       throw error;
     }
-  },
-  getMenuList() {
-    return instance
-      .get("/menu/list")
-      .then((res) => {
-        if (res.data.code !== 200) {
-          return false;
-        }
-        return res.data.data;
-      })
-      .catch((error) => {
-        console.error("Error in getMenuList: ", error);
-        return false;
-      });
   },
   getMenuDetail(menuId) {
     console.log("getMenuDetail menuId", menuId);

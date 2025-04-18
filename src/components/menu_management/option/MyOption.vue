@@ -1,11 +1,12 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import { api } from '@/api'; // API 호출을 위한 axios 인스턴스 import
+import { debounce } from 'lodash';
 import OptionRegisterModal from '@/components/menu_management/option/OptionRegisterModal.vue';
 import OptionEditModal from '@/components/menu_management/option/OptionEditModal.vue';
 import DeleteConfirmModal from '@/components/alerts/DeleteConfirmModal.vue';
 import DeleteAlertModal from '@/components/alerts/DeleteAlertModal.vue';
-
+const searchKeyword = ref('');
 const isRegisterModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isDeleteConfirmOpen = ref(false);
@@ -15,7 +16,7 @@ const openRegisterModal = () => { isRegisterModalOpen.value = true; };
 const closeRegisterModal = () => { isRegisterModalOpen.value = false; };
 
 const openEditModal = (id) => {
-    selectedOptionId.value = id; // 선택된 옵션 ID 저장 
+    selectedOptionId.value = id; // 선택된 옵션 ID 저장
     isEditModalOpen.value = true;
 };
 const closeEditModal = () => { isEditModalOpen.value = false; };
@@ -74,25 +75,40 @@ const deleteSelectedItems = () => {
     option_items.value = option_items.value.filter(item => !item.selected);
 };
 
-const fetchOptionList = async () => {
-    await api.getOptionList()
+const currentPage = ref(0);
+const totalPages = ref(1);
+const pageSize = 10;
+
+
+// 페이지 이동 함수 [페이지네이션]
+
+const goToPage = (page) => {
+    if (page >= 0 && page < totalPages.value) {
+        fetchOptionList(page);
+    }
+};
+
+const fetchOptionList = debounce(async (page = 0) => {
+    console.log("erer", searchKeyword.value);
+    await api.getOptionList(page, pageSize, searchKeyword.value)
         .then(res => {
-            // selected 필드 추가해서 갱신
             option_items.value = res.content.map(item => ({
                 ...item,
                 selected: false
             }));
-            console.log('옵션 목록:', option_items.value);
-            console.log('옵션 목록 갱신됨:', res.content);
+            console.log('옵션 목록:', res.page);
+
+            currentPage.value = res.page.number;
+            totalPages.value = res.page.totalPages;
         })
         .catch(error => {
             console.error('옵션 목록 불러오기 실패:', error);
         });
-};
+}, 300);
 
 
 onMounted(() => {
-    fetchOptionList();
+    fetchOptionList(0);
 });
 </script>
 
@@ -101,8 +117,9 @@ onMounted(() => {
         <h1 class="page_title">옵션 관리</h1>
         <div class="search_container">
             <div class="search_box">
-                <input type="text" class="search_input" placeholder="옵션 검색" />
-                <button class="search_btn">
+                <input type="text" v-model="searchKeyword" class="search_input" placeholder="옵션 검색"
+                    @input="fetchOptionList(0)" />
+                <button class="search_btn" @click="fetchOptionList(0)">
                     <img src="@/assets/image/search_button.png" class="search_icon">
                 </button>
             </div>
@@ -135,6 +152,21 @@ onMounted(() => {
                 </tr>
             </tbody>
         </table>
+
+        <div class="pagination_container">
+            <button :disabled="currentPage === 0" @click="goToPage(currentPage - 1)">
+                ◀ 이전
+            </button>
+
+            <span v-for="page in totalPages" :key="page" @click="goToPage(page - 1)"
+                :class="{ 'page-number': true, 'active': currentPage === page - 1 }">
+                {{ page }}
+            </span>
+
+            <button :disabled="currentPage === totalPages - 1" @click="goToPage(currentPage + 1)">
+                다음 ▶
+            </button>
+        </div>
 
         <OptionRegisterModal :isOpen="isRegisterModalOpen" @close="closeRegisterModal" @refresh="fetchOptionList" />
         <OptionEditModal :isOpen="isEditModalOpen" :optionId="selectedOptionId" @close="isEditModalOpen = false"
@@ -313,5 +345,24 @@ onMounted(() => {
 .register_btn:hover,
 .delete_btn:hover {
     background-color: #98A8B8;
+}
+
+.pagination_container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+    gap: 0.5rem;
+}
+
+.page-number {
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.page-number.active {
+    background-color: #ffcc00;
+    font-weight: bold;
 }
 </style>
