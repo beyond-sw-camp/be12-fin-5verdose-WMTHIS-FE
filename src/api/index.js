@@ -195,5 +195,49 @@ export const api = {
       console.error("API 요청 실패", error);
       throw error;
     }
+
+  },
+  getMenuList() {
+    return instance
+      .get("/menu/list")
+      .then((res) => {
+        if (res.data.code !== 200) {
+          return false;
+        }
+        return res.data.data;
+      })
+      .catch((error) => {
+        console.error("Error in getMenuList: ", error);
+        return false;
+      });
+  },
+  registerMenu(data) {
+    return instance
+      .post("menu/register", data)
+      .then((res) => {
+        if (res.data.code !== 200) {
+          return false;
+        }
+        return res.data.data;
+      })
+      .catch((error) => {
+        console.error("Error in registerMenu:", error);
+        return false;
+      });
+  },
+  updateMenu(data) {
+    return instance
+      .post("menu/update", data)
+      .then((res) => {
+        if (res.data.code !== 200) {
+          return false;
+        }
+        return res.data.data;
+      })
+      .catch((error) => {
+        console.error("Error in updateMenu:", error);
+        return false;
+      });
+
   },
 };
