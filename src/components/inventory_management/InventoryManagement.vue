@@ -141,10 +141,7 @@ const addInventoryItem = (item) => {
 
         <!-- 세로 구분선 -->
         <v-col cols="12" md="1" class="d-flex justify-center">
-          <div
-            class="divider"
-            style="width: 2px; background-color: #ccc; height: 100%"
-          ></div>
+          <div class="divider" style="width: 2px; background-color: #ccc; height: 100%"></div>
         </v-col>
 
         <!-- 발주 필요 재고 -->
@@ -156,30 +153,17 @@ const addInventoryItem = (item) => {
       </v-row>
 
       <!-- 탭 -->
-      <v-tabs
-        v-model="tab"
-        class="custom_tabs shift_tabs"
-        background-color="transparent"
-        show-arrows
-      >
-        <v-tab
-          variant="text"
-          value="exp"
-          :class="{
-            selected_tab: tab === 'exp',
-            default_tab: tab !== 'exp',
-          }"
-        >
+      <v-tabs v-model="tab" class="custom_tabs shift_tabs" background-color="transparent" show-arrows>
+        <v-tab variant="text" value="exp" :class="{
+          selected_tab: tab === 'exp',
+          default_tab: tab !== 'exp',
+        }">
           유통기한
         </v-tab>
-        <v-tab
-          variant="text"
-          value="order"
-          :class="{
-            selected_tab: tab === 'order',
-            default_tab: tab !== 'order',
-          }"
-        >
+        <v-tab variant="text" value="order" :class="{
+          selected_tab: tab === 'order',
+          default_tab: tab !== 'order',
+        }">
           발주필요재고
         </v-tab>
       </v-tabs>
@@ -190,46 +174,26 @@ const addInventoryItem = (item) => {
         <v-window-item value="exp">
           <v-row class="mt-3">
             <v-col cols="5">
-              <v-btn
-                class="filter_btn"
-                :class="{ selected: selectedFilter === '전체' }"
-                block
-                depressed
-                @click="selectedFilter = '전체'"
-              >
+              <v-btn class="filter_btn" :class="{ selected: selectedFilter === '전체' }" block depressed
+                @click="selectedFilter = '전체'">
                 전체
               </v-btn>
             </v-col>
             <v-col cols="5">
-              <v-btn
-                class="filter_btn"
-                :class="{ selected: selectedFilter === '만료' }"
-                block
-                depressed
-                @click="selectedFilter = '만료'"
-              >
+              <v-btn class="filter_btn" :class="{ selected: selectedFilter === '만료' }" block depressed
+                @click="selectedFilter = '만료'">
                 만료
               </v-btn>
             </v-col>
             <v-col cols="5">
-              <v-btn
-                class="filter_btn"
-                :class="{ selected: selectedFilter === '임박' }"
-                block
-                depressed
-                @click="selectedFilter = '임박'"
-              >
+              <v-btn class="filter_btn" :class="{ selected: selectedFilter === '임박' }" block depressed
+                @click="selectedFilter = '임박'">
                 임박
               </v-btn>
             </v-col>
             <v-col cols="5">
-              <v-btn
-                class="filter_btn"
-                :class="{ selected: selectedFilter === '유효' }"
-                block
-                depressed
-                @click="selectedFilter = '유효'"
-              >
+              <v-btn class="filter_btn" :class="{ selected: selectedFilter === '유효' }" block depressed
+                @click="selectedFilter = '유효'">
                 유효
               </v-btn>
             </v-col>
@@ -240,24 +204,14 @@ const addInventoryItem = (item) => {
         <v-window-item value="order">
           <v-row class="mt-3">
             <v-col cols="5">
-              <v-btn
-                class="filter_btn"
-                :class="{ selected: selectedFilter === '필요' }"
-                block
-                depressed
-                @click="selectedFilter = '필요'"
-              >
+              <v-btn class="filter_btn" :class="{ selected: selectedFilter === '필요' }" block depressed
+                @click="selectedFilter = '필요'">
                 필요
               </v-btn>
             </v-col>
             <v-col cols="5">
-              <v-btn
-                class="filter_btn"
-                :class="{ selected: selectedFilter === '충분' }"
-                block
-                depressed
-                @click="selectedFilter = '충분'"
-              >
+              <v-btn class="filter_btn" :class="{ selected: selectedFilter === '충분' }" block depressed
+                @click="selectedFilter = '충분'">
                 충분
               </v-btn>
             </v-col>
@@ -266,15 +220,12 @@ const addInventoryItem = (item) => {
       </v-window>
     </v-col>
     <v-col cols="auto" class="d-flex justify-center">
-      <div
-        class="divider"
-        style="
+      <div class="divider" style="
           width: 2px;
           background-color: #ccc;
           height: 100%;
           margin-left: -75px;
-        "
-      ></div>
+        "></div>
     </v-col>
     <!-- 오른쪽: 재고 테이블 -->
     <v-col cols="3" md="8" style="max-width: 1200px">
@@ -283,12 +234,7 @@ const addInventoryItem = (item) => {
 
         <div class="search_container">
           <div class="search_box">
-            <input
-              type="text"
-              class="search_input"
-              placeholder="재료명 검색"
-              v-model="searchKeyword"
-            />
+            <input type="text" class="search_input" placeholder="재료명 검색" v-model="searchKeyword" />
             <button class="search_btn">
               <img src="@/assets/image/search_button.png" class="search_icon" />
             </button>
@@ -304,12 +250,7 @@ const addInventoryItem = (item) => {
           <thead>
             <tr>
               <th>
-                <input
-                  type="checkbox"
-                  v-model="select_all"
-                  @change="toggle_select_all"
-                  class="circle_checkbox"
-                />
+                <input type="checkbox" v-model="select_all" @change="toggle_select_all" class="circle_checkbox" />
               </th>
               <th>재고명</th>
               <th>수량</th>
@@ -320,17 +261,9 @@ const addInventoryItem = (item) => {
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="(item, index) in filteredItems"
-              :key="index"
-              :class="{ 'selected-row': item.selected }"
-            >
+            <tr v-for="(item, index) in filteredItems" :key="index" :class="{ 'selected-row': item.selected }">
               <td>
-                <input
-                  type="checkbox"
-                  v-model="item.selected"
-                  class="circle_checkbox"
-                />
+                <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
               </td>
               <td class="bold-text">{{ item.name }}</td>
               <td>{{ item.quantity }}</td>
@@ -351,6 +284,7 @@ const addInventoryItem = (item) => {
             </tr>
           </tbody>
         </table>
+<<<<<<< HEAD
         <InventoryStoreModal
           v-if="isStoreOpen"
           :isOpen="isStoreOpen"
@@ -372,16 +306,15 @@ const addInventoryItem = (item) => {
           :isOpen="isModalOpen"
           @close="closeModal"
         />
+=======
+        <InventoryStoreModal v-if="modalType === 'store'" :isOpen="isModalOpen" @close="closeModal" />
+        <InventoryCorrectionModal v-if="modalType === 'correction'" :isOpen="isModalOpen" @close="closeModal" />
+        <InventorySaleModal v-if="modalType === 'sale'" :isOpen="isModalOpen" @close="closeModal" />
+        <InventoryParticularModal v-if="modalType === 'particular'" :isOpen="isModalOpen" @close="closeModal" />
+>>>>>>> origin/main
 
-        <DeleteConfirmModal
-          :isOpen="isDeleteConfirmOpen"
-          @confirm="deleteSelectedItems"
-          @cancel="closeDeleteConfirm"
-        />
-        <DeleteAlertModal
-          :isOpen="isDeleteAlertOpen"
-          @close="closeDeleteAlert"
-        />
+        <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
+        <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
       </div>
     </v-col>
   </v-row>
@@ -655,7 +588,9 @@ const addInventoryItem = (item) => {
 .left_panel {
   margin-right: 65px;
 }
+
 .shift_tabs {
-  margin-left: 50px; /* px 값으로 조절 가능 */
+  margin-left: 50px;
+  /* px 값으로 조절 가능 */
 }
 </style>
