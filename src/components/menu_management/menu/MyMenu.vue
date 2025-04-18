@@ -1,11 +1,12 @@
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue';
-import { api } from '@/api'; // api.js에서 api 객체를 가져옵니다.
+import { api } from '@/api/MenuApi.js'; // api.js에서 api 객체를 가져옵니다.
 import MenuRegisterModal from '@/components/menu_management/menu/MenuRegisterModal.vue';
 import MenuDetailModal from '@/components/menu_management/menu/MenuDetailModal.vue';
 import DeleteConfirmModal from '@/components/alerts/DeleteConfirmModal.vue';
 import DeleteAlertModal from '@/components/alerts/DeleteAlertModal.vue';
 
+const searchKeyword = ref('');
 const isModalOpen = ref(false);
 const isDetailModalOpen = ref(false);
 const isDeleteConfirmOpen = ref(false);
@@ -77,9 +78,9 @@ const deleteSelectedItems = async () => {
 };
 const fetchMenus = async (page = 0) => {
     console.log("메뉴 목록 요청:", page, pageSize);
-    const response = await api.getMenuList(page, pageSize);
+    const response = await api.getMenuList(page, pageSize, searchKeyword.value);
     console.log("메뉴 목록 응답:", response);
-    if (response && response.content) {
+    if (response) {
         menu_items.value = response.content.map(item => ({
             ...item,
             selected: false
@@ -114,8 +115,9 @@ onMounted(() => {
         <!-- 검색 바 및 등록/삭제 버튼 -->
         <div class="search_container">
             <div class="search_box">
-                <input type="text" class="search_input" placeholder="메뉴명 검색" />
-                <button class="search_btn">
+                <input type="text" v-model="searchKeyword" class="search_input" placeholder="메뉴명 검색"
+                    @input="fetchMenus(0)" />
+                <button class="search_btn" @click="fetchMenus(0)">
                     <img src="@/assets/image/search_button.png" class="search_icon">
                 </button>
             </div>

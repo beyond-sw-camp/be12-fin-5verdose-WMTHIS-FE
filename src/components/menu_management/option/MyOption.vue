@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
-import { api } from '@/api'; // API 호출을 위한 axios 인스턴스 import
+import { api } from '@/api/MenuApi.js'; // API 호출을 위한 axios 인스턴스 import
 import { debounce } from 'lodash';
 import OptionRegisterModal from '@/components/menu_management/option/OptionRegisterModal.vue';
 import OptionEditModal from '@/components/menu_management/option/OptionEditModal.vue';
