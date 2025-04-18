@@ -98,6 +98,27 @@ const filteredItems = computed(() => {
   return items;
 });
 
+// 최초 로딩 시 로컬스토리지에서 불러오기
+onMounted(() => {
+  const savedItems = localStorage.getItem("inventory_items");
+  if (savedItems) {
+    try {
+      inventory_items.value = JSON.parse(savedItems);
+    } catch (e) {
+      console.error("로컬스토리지에서 재고 불러오기 실패:", e);
+    }
+  }
+});
+
+// 변경 감지해서 저장
+watch(
+  inventory_items,
+  (newItems) => {
+    localStorage.setItem("inventory_items", JSON.stringify(newItems));
+  },
+  { deep: true }
+);
+
 const openDeleteConfirm = () => {
   if (!isBlocked.value) {
     const selectedItems = inventory_items.value.some((item) => item.selected);
