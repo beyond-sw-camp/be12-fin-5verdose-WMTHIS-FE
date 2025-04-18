@@ -2,7 +2,10 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import Logo from '@/assets/image/icon.png'; // 로고 이미지 import
+import { useFindFwdStore } from '../../stores/useFindPwdStore';
+import { api } from "@/api/index";
 
+const findPwdStore = useFindFwdStore();
 // 변수 선언
 const router = useRouter();
 const logoImage = ref(Logo); // 로고 이미지 참조 추가
@@ -17,9 +20,8 @@ const passwordsMatch = computed(() => {
 });
 
 // 완료 버튼 클릭
-const submit = () => {
+const submit = async () => {
     // 유효성 검사
-
     if (!newPassword.value) {
         errorMessage.value = '새 비밀번호를 입력해주세요.';
         return;
@@ -34,8 +36,25 @@ const submit = () => {
         errorMessage.value = '새 비밀번호가 일치하지 않습니다.';
         return;
     }
-    // 비밀번호 변경 완료 후 로그인 페이지로 이동
-    router.push({ name: 'login' });
+
+    try {
+        findPwdStore.setStep2Data({ newPassword: newPassword.value });
+
+        const response = await api.updatePassword({
+            email: findPwdStore.email.email,
+            password: findPwdStore.password.newPassword
+        });
+
+        if (response) {
+            alert('비밀번호가 성공적으로 변경되었습니다.');
+            router.push({ name: 'login' }); // 로그인 페이지로 이동
+        } else {
+            errorMessage.value = '비밀번호 변경에 실패했습니다. 다시 시도해주세요.';
+        }
+    } catch (err) {
+        errorMessage.value = err.response?.data?.message || '비밀번호 변경 중 오류가 발생했습니다.';
+        console.error(err);
+    }
 };
 </script>
 

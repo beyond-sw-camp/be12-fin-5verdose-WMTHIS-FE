@@ -20,7 +20,7 @@ const verificationTimer = ref(180); // 3분 타이머 (초 단위)
 const timerInterval = ref(null);
 const errorMessage = ref('');
 const isVerified = ref(false);
-
+const isLoading = ref(false);
 const resetForm = () => {
   username.value = '';
   email.value = '';
@@ -66,18 +66,24 @@ const sendVerificationCode = async () => {
     return;
   }
 
+  if (isLoading.value) {
+    return; // 이미 로딩 중이면 중복 호출 방지
+  }
+
   try {
+    isLoading.value = true; // 로딩 시작
+    errorMessage.value = '';
+
     // ✅ 이메일 인증 API 호출
     await api.emailSend(email.value);
 
     // 성공 시 처리
     isVerificationSent.value = true;
     errorMessage.value = '';
-
-    alert('이메일이 전송되었습니다.');
+    alert('인증번호가 전송되었습니다.');
 
     // ⏱️ 타이머 3분 설정
-    verificationTimer.value = 180;
+    verificationTimer.value = 300;
 
     if (timerInterval.value) {
       clearInterval(timerInterval.value);
@@ -95,6 +101,8 @@ const sendVerificationCode = async () => {
     // 실패 시 에러 메시지 출력
     errorMessage.value = '인증번호 발송에 실패했습니다. 다시 시도해주세요.';
     console.error(err);
+  } finally {
+    isLoading.value = false; // 로딩 종료
   }
 };
 
@@ -222,8 +230,10 @@ onUnmounted(() => {
         <div class="verification-container">
           <input type="email" id="email" v-model="email" class="form-input" placeholder="이메일을 입력하세요"
             autocomplete="email" :disabled="isVerified" />
-          <button type="button" class="verification-btn" @click="sendVerificationCode" :disabled="isVerified">
-            {{ isVerificationSent ? '재발송' : '전송' }}
+          <button type="button" class="verification-btn" @click="sendVerificationCode"
+            :disabled="isLoading || isVerified">
+            <span v-if="isLoading">전송 중</span>
+            <span v-else>{{ isVerificationSent ? '재발송' : '전송' }}</span>
           </button>
         </div>
       </div>
@@ -257,12 +267,17 @@ onUnmounted(() => {
           비밀번호가 일치하지 않습니다.
         </div>
       </div>
-      <button type="submit" class="next-button" :disabled="!isNextButtonEnabled">
-        다음
-      </button>
-      <button type="button" class="reset-button" @click="resetForm">
-        초기화
-      </button>
+      <div class="button_layout">
+        <button type="submit" class="next-button" :disabled="!isNextButtonEnabled">
+          다음
+        </button>
+        <button type="button" class="reset-button" @click="resetForm">
+          초기화
+        </button>
+        <button type="button" class="next-button" @click="router.push({ name: 'login' })">
+          로그인 화면으로
+        </button>
+      </div>
     </form>
   </div>
 </template>
@@ -274,13 +289,13 @@ onUnmounted(() => {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   width: 100%;
   max-width: 400px;
-  padding: 40px 30px;
+  padding: 20px 30px;
 }
 
 .logo-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .logo {
@@ -292,7 +307,7 @@ onUnmounted(() => {
   font-size: 24px;
   font-weight: bold;
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 10px;
   color: #333;
 }
 
@@ -309,7 +324,7 @@ onUnmounted(() => {
 .signup-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
 }
 
 .form-group {
@@ -462,5 +477,10 @@ onUnmounted(() => {
 
 .reset-button:hover {
   background-color: #c0392b;
+}
+
+.button_layout {
+  justify-content: space-between;
+  margin-top: 20px;
 }
 </style>
