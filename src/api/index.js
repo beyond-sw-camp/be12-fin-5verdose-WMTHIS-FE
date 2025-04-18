@@ -216,7 +216,6 @@ export const api = {
         return false;
       });
   },
-<<<<<<< HEAD
   registerInventory(storeInventoryData) {
     console.log("registerInventory storeInventoryData", storeInventoryData);
     return instance
@@ -281,7 +280,7 @@ export const api = {
       console.error("API 요청 실패", error);
       throw error;
     }
-=======
+  },
   getMenuList() {
     return instance
       .get("/menu/list")
@@ -323,6 +322,5 @@ export const api = {
         console.error("Error in updateMenu:", error);
         return false;
       });
->>>>>>> origin/main
   },
 };
