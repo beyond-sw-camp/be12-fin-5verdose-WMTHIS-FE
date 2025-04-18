@@ -223,11 +223,17 @@ export const api = {
         return false;
       });
   },
-  getMenuList(page = 0, size = 5) {
+  getMenuList(page = 0, size = 5, keyword = "") {
     console.log("메뉴목록 요청", page, "size", size);
+
+    let url = `/menu/getList?page=${page}&size=${size}`;
+    if (keyword && keyword.trim() !== "") {
+      url += `&keyword=${encodeURIComponent(keyword)}`;
+    }
     return instance
-      .get(`/menu/getList?page=${page}&size=${size}`)
+      .get(url)
       .then((res) => {
+        console.log("getMenuList res", res);
         if (res.data.code !== 200) return false;
         return res.data.data;
       })
