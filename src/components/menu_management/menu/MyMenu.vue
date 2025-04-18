@@ -24,7 +24,7 @@ const closeDetailModal = () => { isDetailModalOpen.value = false; };
 const menu_items = ref([]);
 const currentPage = ref(0); // 현재 페이지
 const totalPages = ref(1); // 총 페이지 수
-const pageSize = 4; // 페이지당 항목 수
+const pageSize = 10; // 페이지당 항목 수
 
 const select_all = ref(false);
 const isBlocked = computed(() => isDeleteConfirmOpen.value || isDeleteAlertOpen.value);

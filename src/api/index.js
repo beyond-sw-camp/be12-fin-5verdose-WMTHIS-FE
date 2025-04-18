@@ -120,7 +120,7 @@ export const api = {
   getCategoryList(page = 0, size = 10) {
     console.log("getCategoryList");
     return instance
-      .get("/category/getList")
+      .get(`/category/getList?page=${page}&size=${size}`)
       .then((res) => {
         console.log("registerRes", res);
         console.log("code:", res.data.code);
@@ -157,17 +157,18 @@ export const api = {
         return false;
       });
   },
-  getOptionList() {
-    console.log("getOptionList");
+  getOptionList(page = 0, size = 10, keyword = "") {
+    let url = `/option/list?page=${page}&size=${size}`;
+    if (keyword && keyword.trim() !== "") {
+      url += `&keyword=${encodeURIComponent(keyword)}`;
+    }
     return instance
-      .get("/option/list")
+      .get(url)
       .then((res) => {
-        console.log("registerRes", res);
-        console.log("code:", res.data.code);
         if (res.data.code !== 200) {
-          return false; // 실패 시 false 반환;
+          return false;
         }
-        return res.data.data; // 성공 시 데이터 반환
+        return res.data.data;
       })
       .catch((error) => {
         console.error("Error in getOptionList:", error);
