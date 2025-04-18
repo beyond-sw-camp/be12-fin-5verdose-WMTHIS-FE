@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import Logo from '@/assets/image/icon.png'; // 로고 이미지 import
-
+import { api } from "@/api/index";
 // 변수 선언
 const router = useRouter();
 const logoImage = ref(Logo); // 로고 이미지 참조 추가
@@ -68,7 +68,7 @@ const searchAddress = () => {
 };
 
 // 다음 단계로 이동
-const submit = () => {
+const submit = async () => {
     // 유효성 검사
     if (!storeName.value) {
         errorMessage.value = '매장명을 입력해주세요.';
@@ -85,15 +85,28 @@ const submit = () => {
         return;
     }
 
-    // 실제 구현에서는 가게 등록 API 호출
-    console.log('Store registration submitted', {
-        storeName: storeName.value,
-        storeAddress: storeAddress.value,
-        detailAddress: detailAddress.value,
-        storePhone: storePhone.value
-    });
+    try {
+        // 데이터를 매핑하여 API 호출
+        const requestData = {
+            name: storeName.value,
+            address: `${storeAddress.value} ${detailAddress.value}`, // 주소와 상세 주소를 합침
+            phoneNumber: storePhone.value,
+        };
 
-    router.push({ name: 'storedone' });
+        console.log('Submitting store registration data:', requestData);
+
+        const response = await api.registerStore(requestData);
+
+        if (response) {
+            alert('매장 등록이 완료되었습니다.');
+            router.push({ name: 'storedone' }); // 완료 페이지로 이동
+        } else {
+            errorMessage.value = response.message || '매장 등록에 실패했습니다.';
+        }
+    } catch (err) {
+        errorMessage.value = err.response?.data?.message || '매장 등록 중 오류가 발생했습니다.';
+        console.error('Error during store registration:', err);
+    }
 };
 </script>
 

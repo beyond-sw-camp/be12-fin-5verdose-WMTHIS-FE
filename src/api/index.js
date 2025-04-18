@@ -116,6 +116,20 @@ export const api = {
       });
   },
 
+  registerStore(data) {
+    console.log("Register store data", data);
+    return instance
+      .post("/store/register", data)
+      .then((res) => {
+        console.log("Store registration response:", res);
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in Store Registration:", error);
+        throw error;
+      });
+  },
+
   registerCategory(data) {
     console.log("registerCategory data", data);
     return instance
