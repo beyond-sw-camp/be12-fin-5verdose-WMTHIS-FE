@@ -122,8 +122,8 @@ onMounted(() => {
             </div>
             <p class="sub_title">물품의 희망가격을 입력해주세요.</p>
             <div class="unit-container">
-              <input type="text" v-model="price" style="width: 200px" placeholder="3000" class="min-qty-input" />
-              <p>원</p>
+              <input type="text" v-model="price" style="width: 200px" placeholder="ex) 3000" class="min-qty-input" />
+              <p style="margin-right: 10px;">원</p>
             </div>
           </div>
         </div>
@@ -137,13 +137,13 @@ onMounted(() => {
 
             <!-- 오른쪽: 수량 입력 + 단위 -->
             <div class="input-inline-row">
-              <input type="text" v-model="quantity" placeholder="5" class="min-qty-input" />
-              <span class="unit-text">Kg</span>
+              <input type="text" v-model="quantity" placeholder="ex) 5" class="min-qty-input" />
+              <span class="unit-text" style="margin-left: 10px; margin-right: 10px;">{{ ingredient.unit }}</span>
             </div>
           </div>
         </div>
 
-        <div class="input_group">
+        <div class="input_group" style="margin-right: 10px;">
           <div class="modal_title2">
             <label>사진등록</label>
           </div>
@@ -161,7 +161,7 @@ onMounted(() => {
             </div>
             <p class="sub_title">물품의 상태를 자세히 설명해주세요.</p>
             <div class="unit-container">
-              <v-textarea v-model="content" variant="outlined"></v-textarea>
+              <v-textarea v-model="content" placeholder="상태가 아주 좋아용" variant="outlined"></v-textarea>
             </div>
           </div>
         </div>
