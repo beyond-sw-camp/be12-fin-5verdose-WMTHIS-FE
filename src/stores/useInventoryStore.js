@@ -22,26 +22,28 @@ export const useInventoryStore = defineStore("inventoryStore", {
       }
     },
 
-    async updateInventory(storeInventoryData) {
+    async updateInventory(updatedInventory) {
       try {
-        const result = await api.updateInventory(storeInventoryData);
+        console.log("updatedInventory in store:", updatedInventory); // 디버깅용
+        const result = await api.updateInventory(updatedInventory);
         return result;
       } catch (error) {
-        console.error("storeInventory 실패:", error);
+        console.error(
+          "storeInventory 실패:",
+          error.response || error.message || error
+        );
         return false;
       }
     },
-
     async totalStoreInventory(storeInventoryData) {
       try {
-        const result = await api.totalStoreInventory(storeInventoryData); // 이 부분 수정
+        const result = await api.totalStoreInventory(storeInventoryData);
         return result;
       } catch (error) {
         console.error("Error in totalStoreInventory:", error);
         return false;
       }
     },
-
     async searchInventory(storeInventoryData) {
       try {
         const result = await api.searchInventory(storeInventoryData);

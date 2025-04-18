@@ -1,22 +1,31 @@
 <script setup>
-import { defineProps, defineEmits, ref } from "vue";
+import { defineProps, defineEmits, ref, watch } from "vue";
 import { useInventoryStore } from "@/stores/useInventoryStore";
 
 // props & emits
 const props = defineProps({
   isOpen: Boolean,
 });
-const emit = defineEmits(["close", "registerInventory"]);
+const emit = defineEmits(["close", "registerInventory", "totalInventory"]);
 
 // pinia store
 const inventoryStore = useInventoryStore();
-
+const closeModal = () => {
+  console.log("모달 닫기 호출됨");
+  emit("close");
+};
 // 입력 필드 상태
 const name = ref("");
 const unit = ref("");
 const miniquantity = ref(0);
-const unitCategory = ref("Kg"); // 단위 접미사 선택
-
+const unitCategory = ref("Kg");
+watch(
+  () => props.isOpen,
+  (newVal) => {
+    console.log("isOpen 값 변경:", newVal);
+  },
+  { immediate: true }
+);
 // 유통기한 관련
 const selectedDays = ref("1");
 const isCustomInput = ref(false);
@@ -51,23 +60,34 @@ const disableCustomInput = () => {
   }
 };
 
-// 등록 처리
-const totalInventory = async () => {
-  const storeInventoryData = {
-    name: name.value,
-    unit: `${unit.value} ${unitCategory.value}`,
-    miniquantity: Number(miniquantity.value),
-    expiryDate:
-      selectedDays.value === "custom" ? customDays.value : selectedDays.value,
-  };
+// 입고 처리
+const totalInventory = () => {
+  if (name.value && miniquantity.value > 0) {
+    console.log("입고 데이터:", {
+      name: name.value,
+      unit: unit.value,
+      miniquantity: miniquantity.value,
+      unitCategory: unitCategory.value,
+      expiration: isExpirationDifferent.value
+        ? customDays.value
+        : selectedDays.value,
+      quantity: miniquantity.value,
+    });
 
-  const result = await inventoryStore.totalStoreInventory(storeInventoryData);
+    emit("totalInventory", {
+      name: name.value,
+      unit: unit.value,
+      miniquantity: miniquantity.value,
+      unitCategory: unitCategory.value,
+      expiration: isExpirationDifferent.value
+        ? customDays.value
+        : selectedDays.value,
+      quantity: miniquantity.value,
+    });
 
-  if (result) {
-    emit("totalInventory", storeInventoryData); // 부모에 등록 내용 전달
-    emit("close"); // 등록 후 모달 닫기
+    closeModal(); // 모달 닫기
   } else {
-    console.error("입고 실패");
+    console.error("입고 실패: 유효한 재고명과 수량을 입력하세요");
   }
 };
 </script>
@@ -133,6 +153,7 @@ const totalInventory = async () => {
             최소 보유하고 있어야하는 재고의 수를 입력해 주세요.
           </p>
         </div>
+
         <div class="input_group">
           <div class="modal_title2 flex_between">
             <label>유통기한</label>
@@ -155,8 +176,12 @@ const totalInventory = async () => {
               v-for="day in days"
               :key="day.value"
               :class="[
-                { selected_btn: selectedDays === day.value },
-                { no_opacity_disabled: !isExpirationDifferent },
+                {
+                  selected_btn: selectedDays === day.value,
+                },
+                {
+                  no_opacity_disabled: !isExpirationDifferent,
+                },
               ]"
               @click="selectDay(day.value)"
               variant="outlined"

@@ -7,7 +7,7 @@ const props = defineProps({
   isOpen: Boolean,
 });
 const emit = defineEmits(["close", "registerInventory"]);
-
+const quantity = ref(0);
 // pinia store
 const inventoryStore = useInventoryStore();
 
@@ -55,7 +55,7 @@ const registerInventory = async () => {
   // 등록할 데이터 세팅
   const storeInventoryData = {
     name: name.value,
-
+    quantity: quantity.value, // 예: "5", "10"
     unit: `${unitCategory.value}`, // 예: "100g", "1 Kg"
     miniquantity: miniquantity.value,
     expiryDate:
