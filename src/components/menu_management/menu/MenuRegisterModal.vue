@@ -1,6 +1,6 @@
 <script setup>
 import { defineProps, defineEmits, ref, onMounted, computed } from 'vue';
-import { api } from '@/api'; // API 호출을 위한 axios 인스턴스
+import { api } from '@/api/MenuApi.js'; // API 호출을 위한 axios 인스턴스
 const props = defineProps({
     isOpen: Boolean
 });

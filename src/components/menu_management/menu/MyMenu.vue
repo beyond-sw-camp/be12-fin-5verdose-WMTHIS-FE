@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue';
-import { api } from '@/api'; // api.js에서 api 객체를 가져옵니다.
+import { api } from '@/api/MenuApi.js'; // api.js에서 api 객체를 가져옵니다.
 import MenuRegisterModal from '@/components/menu_management/menu/MenuRegisterModal.vue';
 import MenuDetailModal from '@/components/menu_management/menu/MenuDetailModal.vue';
 import DeleteConfirmModal from '@/components/alerts/DeleteConfirmModal.vue';

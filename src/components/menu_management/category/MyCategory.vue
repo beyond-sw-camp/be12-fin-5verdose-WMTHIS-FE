@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
-import { api } from '@/api';
+import { api } from '@/api/MenuApi.js';
 import CategoryRegisterModal from '@/components/menu_management/category/CategoryRegisterModal.vue';
 import DeleteConfirmModal from '@/components/alerts/DeleteConfirmModal.vue';
 import DeleteAlertModal from '@/components/alerts/DeleteAlertModal.vue';

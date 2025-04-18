@@ -1,6 +1,6 @@
 <script setup>
 import { defineProps, defineEmits, ref, onMounted, computed } from 'vue';
-import { api } from '@/api';
+import { api } from '@/api/MenuApi.js';
 
 const props = defineProps({
     isOpen: Boolean
