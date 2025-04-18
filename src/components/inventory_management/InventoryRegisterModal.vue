@@ -65,7 +65,9 @@ const registerInventory = async () => {
   const result = await inventoryStore.registerStoreInventory(
     storeInventoryData
   );
-
+  if (result) {
+    emit("registerInventory", storeInventoryData);
+  }
   if (result) {
     emit("registerInventory"); // 성공 시 모달 닫기
   } else {
@@ -154,7 +156,7 @@ const registerInventory = async () => {
             <!-- 직접입력 버튼 -->
             <v-btn
               v-if="!isCustomInput"
-              :class="{ selected_btn: expiryDate === 'custom' }"
+              :class="{ 'selected-btn': selectedDays === 'custom' }"
               @click="enableCustomInput"
               variant="outlined"
             >
@@ -163,7 +165,7 @@ const registerInventory = async () => {
 
             <v-text-field
               v-else
-              v-model="expiryDate"
+              v-model="customDays"
               class="custom_input"
               variant="outlined"
               density="compact"
