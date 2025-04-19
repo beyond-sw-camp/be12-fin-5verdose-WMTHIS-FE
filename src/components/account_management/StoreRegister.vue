@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import Logo from '@/assets/image/icon.png'; // 로고 이미지 import
 import { api } from "@/api/index";
+import { loadEnv } from 'vite';
 // 변수 선언
 const router = useRouter();
 const logoImage = ref(Logo); // 로고 이미지 참조 추가
@@ -11,6 +12,8 @@ const storeAddress = ref('');
 const detailAddress = ref('');
 const storePhone = ref('');
 const errorMessage = ref('');
+const storeLatitude = ref('');
+const storeLongitude = ref('');
 
 // 휴대폰 번호 포맷팅 (지역번호 및 휴대폰 번호 처리)
 const formatPhoneNumber = (value) => {
@@ -57,14 +60,29 @@ const handlePhoneInput = (e) => {
 
 // 주소 검색
 const searchAddress = () => {
-    new window.daum.Postcode({
-        oncomplete: function (data) {
-            // 주소 선택 후 callback으로 주소 값을 storeAddress에 할당
-            storeAddress.value = data.address; // 기본 주소
-        },
-        width: '100%',
-        height: '100%',
-    }).open();
+  new window.daum.Postcode({
+    oncomplete: function (data) {
+      const address = data.address;
+      storeAddress.value = address;
+
+      // Kakao Maps 좌표 변환 API 사용
+      const geocoder = new window.kakao.maps.services.Geocoder();
+      geocoder.addressSearch(address, function (result, status) {
+        if (status === window.kakao.maps.services.Status.OK) {
+          const lat = result[0].y;
+          const lng = result[0].x;
+          console.log('위도:', lat, '경도:', lng);
+
+          storeLatitude.value = lat;
+          storeLongitude.value = lng;
+        } else {
+          alert('주소의 좌표를 찾을 수 없습니다.');
+        }
+      });
+    },
+    width: '100%',
+    height: '100%',
+  }).open();
 };
 
 // 다음 단계로 이동
@@ -91,6 +109,8 @@ const submit = async () => {
             name: storeName.value,
             address: `${storeAddress.value} ${detailAddress.value}`, // 주소와 상세 주소를 합침
             phoneNumber: storePhone.value,
+            latitude: storeLatitude.value,
+            longitude: storeLongitude.value
         };
 
         console.log('Submitting store registration data:', requestData);
