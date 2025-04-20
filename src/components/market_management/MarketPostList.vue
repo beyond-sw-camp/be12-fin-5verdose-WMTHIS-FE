@@ -6,6 +6,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/ko';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import MyMapDetailModal from '@/components/market_management/MyMapDetailModal.vue'
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -13,6 +14,8 @@ dayjs.extend(relativeTime);
 dayjs.locale('ko');
 const startDate = ref('');
 const endDate = ref('');
+const selectedSaleId = ref('');
+const saleDetail = ref('');
 
 const filteredItems = computed(() => {
     return [...menu_items.value]
@@ -63,7 +66,7 @@ const toggleSortOrder = () => {
 
 const isDetailModalOpen = ref(false);
 
-const openDetailModal = () => { isDetailModalOpen.value = true; };
+//const openDetailModal = () => { isDetailModalOpen.value = true; };
 const closeDetailModal = () => { isDetailModalOpen.value = false; };
 
 const menu_items = ref([
@@ -100,6 +103,22 @@ const menu_items = ref([
         store: "상도파스타"
     }
 ]);
+
+const openDetailModal = async (item) => {
+    selectedSaleId.value = item.inventorySaleId;
+
+    const response = await marketApi.getDetail(selectedSaleId.value);
+
+    if(!response){
+
+    } else {
+        if(response.code === 200) {
+            saleDetail.value = response.data;
+            isDetailModalOpen.value = true;
+        }
+
+    }
+} 
 
 const fetchInventorySaleList = () => {
     const response = marketApi.getInventorySaleList();
@@ -182,9 +201,7 @@ onMounted(() => {
                 </tr>
             </tbody>
         </table>
-
-        <!-- 모달 컴포넌트들 -->
-        <!--<MenuDetailModal :isOpen="isDetailModalOpen" @close="closeDetailModal" />-->
+        <MyMapDetailModal  v-if="isDetailModalOpen" :item="saleDetail"  @close="closeDetailModal"/>
     </div>
 </template>
 
