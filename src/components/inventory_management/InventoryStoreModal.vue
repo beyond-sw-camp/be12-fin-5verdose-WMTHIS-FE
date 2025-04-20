@@ -22,7 +22,7 @@ const unitCategory = ref("Kg");
 watch(
   () => props.isOpen,
   (newVal) => {
-    console.log("isOpen 값 변경:", newVal);
+    console.log("재고입고:", newVal);
   },
   { immediate: true }
 );

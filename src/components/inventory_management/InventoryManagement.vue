@@ -22,7 +22,8 @@ const handleInventoryRegistered = (data) => {
   console.log("입고 완료된 재고 데이터:", data);
   // 입고 후 테이블 갱신 등 처리
 };
-const openParticularModal = () => {
+const openParticularModal = (item) => {
+  selectedItem.value = item;
   modalType.value = "particular";
   isModalOpen.value = true;
 };
@@ -365,19 +366,40 @@ const addInventoryItem = (item) => {
               </td>
 
               <td>
-                <button @click="openParticularModal" class="particular_btn">
+                <button
+                  @click="openParticularModal(item)"
+                  class="particular_btn"
+                >
                   상세
                 </button>
               </td>
             </tr>
           </tbody>
         </table>
+        <InventoryCorrectionModal
+          v-if="modalType === 'correction'"
+          :isOpen="isModalOpen"
+          @close="closeModal"
+        />
+        <InventoryParticularModal
+          v-if="modalType === 'particular' && isModalOpen && selectedItem"
+          :item="selectedItem"
+          :isOpen="isModalOpen"
+          @close="closeModal"
+        />
         <InventoryStoreModal
           v-if="isStoreOpen"
           :isOpen="isStoreOpen"
           @close="isStoreOpen = false"
           @totalInventory="addInventoryItem"
         />
+
+        <InventorySaleModal
+          v-if="modalType === 'sale'"
+          :isOpen="isModalOpen"
+          @close="closeModal"
+        />
+
         <InventoryCorrectionModal
           v-if="modalType === 'correction'"
           :isOpen="isModalOpen"
@@ -385,31 +407,6 @@ const addInventoryItem = (item) => {
         />
         <InventorySaleModal
           v-if="modalType === 'sale'"
-          :isOpen="isModalOpen"
-          @close="closeModal"
-        />
-        <InventoryParticularModal
-          v-if="modalType === 'particular'"
-          :isOpen="isModalOpen"
-          @close="closeModal"
-        />
-        <InventoryStoreModal
-          v-if="modalType === 'store'"
-          :isOpen="isModalOpen"
-          @close="closeModal"
-        />
-        <InventoryCorrectionModal
-          v-if="modalType === 'correction'"
-          :isOpen="isModalOpen"
-          @close="closeModal"
-        />
-        <InventorySaleModal
-          v-if="modalType === 'sale'"
-          :isOpen="isModalOpen"
-          @close="closeModal"
-        />
-        <InventoryParticularModal
-          v-if="modalType === 'particular'"
           :isOpen="isModalOpen"
           @close="closeModal"
         />
