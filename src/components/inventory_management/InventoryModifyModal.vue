@@ -1,11 +1,11 @@
 <script setup>
-import { defineProps, defineEmits, ref } from "vue";
+import { defineProps, defineEmits, ref, watch, onMounted } from "vue";
 import { useInventoryStore } from "@/stores/useInventoryStore";
 
 // props & emits
 const props = defineProps({
   isOpen: Boolean,
-  item: Object,
+  item: Object, // 수정할 항목 데이터
 });
 const emit = defineEmits(["close", "updateInventory"]);
 
@@ -51,27 +51,54 @@ const disableCustomInput = () => {
   }
 };
 
-// 등록 처리
+// 수정 시 기존 데이터 불러오기
+const loadData = () => {
+  if (props.item) {
+    name.value = props.item.name || "";
+    unit.value = props.item.unit || "";
+    minquantity.value = props.item.miniquantity || 0;
+    unitCategory.value = props.item.unitCategory || "Kg"; // 기본값 설정
+    selectedDays.value = props.item.expiryDate || "1";
+    customDays.value =
+      props.item.expiryDate === "custom" ? props.item.customDays : "";
+  }
+};
+
+// `props.item`이 변경될 때마다 데이터 갱신
+watch(
+  () => props.item,
+  () => {
+    loadData(); // props.item이 변경되면 loadData 함수 호출
+  },
+  { immediate: true } // 처음에 즉시 호출되도록 설정
+);
+
+// 수정 처리
+
 const updateInventory = async () => {
-  // 등록할 데이터 세팅
+  if (!props.item || !props.item.id) {
+    console.error("유효하지 않은 재고 ID입니다.");
+    return;
+  }
+
   const storeInventoryData = {
     inventoryId: props.item.id,
     name: name.value,
-    unit: `${unit.value} ${unitCategory.value}`, // 예: "100g", "1 Kg"
-    miniquantity: minquantity.value, // ref 값 사용
+    unit: `${unit.value} ${unitCategory.value}`,
+    miniquantity: minquantity.value,
     expiryDate:
       selectedDays.value === "custom" ? customDays.value : selectedDays.value,
   };
 
-  // Pinia store의 registerStoreInventory 함수 호출
   const result = await inventoryStore.updateInventory(storeInventoryData);
 
   if (result) {
-    emit("updateInventory"); // 성공 시 모달 닫기
+    emit("updateInventory", storeInventoryData); // 부모로 수정된 데이터 전달
   } else {
     console.error("수정 실패");
-    // 실패 시 알림을 추가하는 로직 추가 가능
   }
+
+  emit("close");
 };
 </script>
 
