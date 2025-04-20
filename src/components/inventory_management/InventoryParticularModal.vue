@@ -1,9 +1,16 @@
 <script setup>
-import { defineProps, defineEmits, ref } from "vue";
+import { defineProps, defineEmits, ref, onMounted } from "vue";
 import InventoryCorrectionModal from "@/components/inventory_management/InventoryCorrectionModal.vue";
 
 const props = defineProps({
   isOpen: Boolean,
+  item: {
+    type: Object,
+    required: true,
+  },
+});
+onMounted(() => {
+  console.log("모달 열림, item 값:", props.item);
 });
 
 const emit = defineEmits(["close"]);
@@ -18,9 +25,15 @@ const isModalOpen = ref(false);
 const closeModal = () => {
   isModalOpen.value = false;
 };
-const openParticularModal = () => {
-  isParticularModalOpen.value = true;
+const selectedItem = ref(null);
+
+const openParticularModal = (item) => {
+  console.log("✅ 상세 보기 클릭됨:", item);
+  selectedItem.value = item;
+  modalType.value = "particular";
+  isModalOpen.value = true;
 };
+
 const openCorrectionModal = (item) => {
   correctionItem.value = item;
   isCorrectionModalOpen.value = false;
@@ -52,84 +65,82 @@ const inventory_items = ref([
 </script>
 
 <template>
-  <v-card>
-    <div v-if="isOpen" class="particular_modal_container" @click.self="emit('close')" style="z-index: 2000;">
-      <div class="modal">
-        <div class="modal_content">
-          <div class="modal_header">
-            <button class="close_btn" @click="emit('close')">✕</button>
+  <div
+    class="particular_modal_container"
+    @click.self="emit('close')"
+    style="z-index: 9999"
+  >
+    <div class="modal">
+      <div class="modal_content">
+        <div class="modal_header">
+          <button class="close_btn" @click="emit('close')">✕</button>
 
-            <h2 class="modal_title">재고 상세</h2>
-          </div>
-          <div class="input_group">
-            <div class="modal_title2">
-              <label>재고명</label>
-            </div>
-            <p class="sub_title">마늘</p>
-          </div>
-
-          <div class="input_group">
-            <div class="input_row">
-              <div class="input_label_group">
-                <label>총수량</label>
-              </div>
-            </div>
-            <p class="sub_title">2Kg</p>
-          </div>
-
-          <div class="input_group">
-            <div class="input_row">
-              <div class="input_label_group">
-                <label>수량</label>
-              </div>
-            </div>
-            <p class="sub_title">2Kg</p>
-          </div>
-
-          <div class="input_group">
-            <div class="input_row">
-              <div class="input_label_group">
-                <label>사용메뉴</label>
-              </div>
-            </div>
-            <p class="sub_title">알리오올리오,감바스</p>
-          </div>
-
-          <table class="inventory_table">
-            <thead>
-              <tr>
-                <th>입고날짜</th>
-                <th>유통기한</th>
-                <th>수량</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(item, index) in inventory_items" :key="index">
-                <td>{{ item.store }}</td>
-                <td>{{ item.totalquantity }}</td>
-                <td>
-                  <span :class="'status ' + item.status">{{
-                    item.status
-                  }}</span>
-                </td>
-                <td>
-                  <button @click="openCorrectionModal(item)" class="delete_btn">
-                    보정
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <h2 class="modal_title">재고 상세</h2>
         </div>
-        <div class="modal_footer">
-          <button class="confirm_btn" @click="emit('close')">확인</button>
+
+        <div class="input_group">
+          <div class="modal_title2"></div>
+          <div class="inventory_info">
+            <p v-if="props.item">
+              <strong>재고명:</strong> {{ props.item.name }}
+            </p>
+            <p v-if="props.item">
+              <strong>총수량:</strong> {{ props.item.totalquantity }}
+            </p>
+            <p v-if="props.item">
+              <strong>현재 수량:</strong> {{ props.item.quantity }}
+            </p>
+          </div>
         </div>
+        <div class="input_group">
+          <div class="input_row">
+            <div class="input_label_group">
+              <label>사용메뉴</label>
+            </div>
+          </div>
+          <p class="sub_title">알리오올리오,감바스</p>
+        </div>
+
+        <table class="inventory_table">
+          <thead>
+            <tr>
+              <th>입고날짜</th>
+              <th>유통기한</th>
+              <th>수량</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(item, index) in inventory_items" :key="index">
+              <td>{{ item.store }}</td>
+              <td>{{ item.totalquantity }}</td>
+              <td>
+                <span :class="'status ' + item.status">{{ item.status }}</span>
+              </td>
+              <td>
+                <button @click="openCorrectionModal(item)" class="delete_btn">
+                  보정
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <InventoryParticularModal v-if="modalType === 'particular'" :isOpen="isModalOpen" @close="closeModal" />
-      <InventoryCorrectionModal v-if="modalType === 'correction'" :isOpen="isModalOpen" @close="closeModal" />
+      <div class="modal_footer">
+        <button class="confirm_btn" @click="emit('close')">확인</button>
+      </div>
     </div>
-  </v-card>
+    <InventoryParticularModal
+      v-if="modalType === 'particular'"
+      :isOpen="isModalOpen"
+      @close="closeModal"
+    />
+    <InventoryCorrectionModal
+      v-if="modalType === 'correction'"
+      :isOpen="isModalOpen"
+      @close="closeModal"
+    />
+  </div>
 </template>
 
 <style scoped>
@@ -145,7 +156,6 @@ const inventory_items = ref([
   opacity: 0;
   animation: fadeIn 0.3s forwards;
 }
-
 .modal_header {
   border-bottom: #ccc solid 1px;
   margin-bottom: 10px;
@@ -168,21 +178,18 @@ const inventory_items = ref([
   transform: translateX(100%);
   animation: slideIn 0.3s forwards;
 }
-
 /* 모달 안의 스크롤 영역 */
 .modal_content {
   position: relative;
   overflow-y: auto;
   flex: 1;
 }
-
 /* 등록 버튼 고정 영역 */
 .modal_footer {
   padding: 16px 20px;
   border-top: 1px solid #eee;
   background-color: #fff;
 }
-
 /* 페이드인 효과 */
 @keyframes fadeIn {
   from {
@@ -212,7 +219,10 @@ const inventory_items = ref([
   margin-bottom: 45px;
   /* 👈 선 아래 전체 여백 (원하시는 만큼 늘리세요) */
 }
-
+.header {
+  position: fixed;
+  z-index: 10000; /* ❗️문제의 원인일 수 있음 */
+}
 .modal_title2 {
   display: flex;
   align-items: center;
@@ -251,6 +261,25 @@ const inventory_items = ref([
   z-index: 10;
 }
 
+.modal-panel {
+  width: 400px; /* 필요에 따라 조절 */
+  height: 100%;
+  background-color: white;
+  padding: 20px;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+}
+.modal-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 400px; /* ← 이게 없으면 화면 일부만 차지함 */
+  height: 100vh;
+  background-color: #fff;
+  z-index: 9999;
+  overflow-y: auto;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
 .modal_title {
   font-size: 22px;
   font-weight: bold;
@@ -270,6 +299,21 @@ const inventory_items = ref([
   font-size: 14px;
   color: #666;
   margin-bottom: 20px;
+}
+.inventory_info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+.info_row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 6px;
 }
 
 .tab_inventory {
@@ -472,7 +516,9 @@ const inventory_items = ref([
   /* 드롭다운 크기 */
   appearance: none;
   /* 기본 스타일 제거 */
-  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
+  background: white
+    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
   background-size: 16px;
 }
 
@@ -514,9 +560,9 @@ const inventory_items = ref([
 
 .input_row {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* 항목 간격을 균등하게 배치 */
   align-items: center;
-  gap: 16px;
+  gap: 20px; /* 항목 간 간격을 설정 */
 }
 
 .delete_btn {
