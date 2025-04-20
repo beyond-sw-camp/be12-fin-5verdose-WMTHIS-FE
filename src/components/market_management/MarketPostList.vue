@@ -1,5 +1,6 @@
 <script setup>
-import { ref, watch, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { marketApi } from '@/api/MarketApi.js';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/ko';
@@ -99,6 +100,30 @@ const menu_items = ref([
         store: "상도파스타"
     }
 ]);
+
+const fetchInventorySaleList = () => {
+    const response = marketApi.getInventorySaleList();
+
+    // 서버 에러일때
+    if(!response) {
+        
+    } else {
+        const code = response.code;
+        if(code === 200) {
+            menu_items.value = response.content.map(item => ({
+                ...item,
+            }))
+        } 
+    
+    }
+}
+
+
+onMounted(() => {
+    // 컴포넌트생성될때 거래내역 목록 가져옴
+    fetchInventorySaleList();
+
+});
 </script>
 <template>
     <div class="body">
@@ -145,12 +170,12 @@ const menu_items = ref([
             </thead>
             <tbody>
                 <tr v-for="(item, index) in filteredItems" :key="index">
-                    <td class="bold_text">{{ item.product }}</td>
+                    <td class="bold_text">{{ item.inventoryName }}</td>
                     <td class="bold_text">{{ item.quantity }}개</td>
-                    <td>{{ getDday(item.expiration) }}</td>
+                    <td>{{ getDday(item.expirationDate) }}</td>
                     <td>{{ item.price.toLocaleString() }}원</td>
-                    <td>{{ getRelativeDate(item.date) }}</td>
-                    <td>{{ item.store }}</td>
+                    <td>{{ getRelativeDate(item.createdDate) }}</td>
+                    <td>{{ item.sellerStoreName }}</td>
                     <td>
                         <button class="detail_btn" @click="openDetailModal(item)">상세</button>
                     </td>
