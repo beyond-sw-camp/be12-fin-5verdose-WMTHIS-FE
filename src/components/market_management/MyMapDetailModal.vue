@@ -1,9 +1,21 @@
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 
 const props = defineProps({
-  item: Object, // 전달된 상품 데이터
+  item: Object,
 });
+
+const form = ref({
+  name: "",
+  storeName: "",
+  price: "",
+  quantity: "",
+  description: "",
+  expirationDate: "",
+  createdAt: "",
+  method: "만나서결제"
+});
+
 
 const price = ref("");
 const quantity = ref("");
@@ -11,19 +23,57 @@ const description = ref("");
 const paymentMethod = ref("만나서결제");
 const emit = defineEmits(["close"]);
 
+watch(() => props.item, (newItem) => {
+  if (newItem) setItemData(newItem);
+}, { immediate: true });
+
+const setItemData = (item) => {
+  form.value.name = item.inventoryName;
+  form.value.storeName = item.sellerStoreName;
+  form.value.price = item.price;
+  form.value.quantity = item.quantity;
+  form.value.description = item.content;
+};
+
+// 구매 요청 보내고 닫기
+const sendTradeRequest = () => {
+
+  const data = {
+    inventorySaleId: item,inventorySaleId,
+    inventoryName: item.inventoryName,
+    quantity: quantity.value,
+    price: price.value,
+    method: paymentMethod.value
+  }
+
+  const response = marketApi.getInventorySaleList();
+
+// 서버 에러일때
+if(!response) {
+    
+} else {
+    const code = response.code;
+    if(code === 200) {
+        
+      handleClosePanel();
+    } 
+
+}
+}
+
 const handleClosePanel = () => {
-  emit("close"); // 부모에게 "닫아줘!" 라고 알림
+  emit("close");
 };
 </script>
 
 <template>
   <div class="detail_modal">
     <div class="title">
-      <h1 class="title_left">{{ item.name }}</h1>
+      <h1 class="title_left">{{ form.value.name }}</h1>
       <div class="title_right">
         <button class="close_btn" @click="handleClosePanel"><img src="@/assets/image/xMark.png"
             class="x_button" /></button>
-        <p class="title_store">{{ item.store }}</p>
+        <p class="title_store">{{ form.value.storeName }}</p>
       </div>
     </div>
 
@@ -32,7 +82,7 @@ const handleClosePanel = () => {
         <label>희망가격 <span style="color: red">(필수)</span></label>
         <div class="detail_message">구입 희망가격을 입력해주세요</div>
       </div>
-      <div><input type="number" class="no_spinner number_insert" v-model="price" /> 원</div>
+      <div><input type="number" class="no_spinner number_insert" v-model="form.value.price" /> 원</div>
     </div>
 
     <div class="price_quantity">
@@ -40,7 +90,7 @@ const handleClosePanel = () => {
         <label>수량 <span style="color: red">(필수)</span></label>
         <div class="detail_message">물품의 수량을 입력해주세요</div>
       </div>
-      <div><input type="number" class="no_spinner number_insert" v-model="quantity" /> {{ item.unit }}</div>
+      <div><input type="number" class="no_spinner number_insert" v-model="form.value.quantity" /> {{ item.unit }}</div>
     </div>
 
     <!-- 이미지 영역 -->
@@ -55,22 +105,22 @@ const handleClosePanel = () => {
     <!-- 설명 -->
     <div class="description_area">
       <label>물품 설명</label>
-      <div class="description_item">{{ item.description }}</div>
+      <div class="description_item">{{ form.value.description }}</div>
     </div>
 
     <!-- 결제 방법 및 날짜 -->
     <div class="payment_section">
       <label>결제방법 <span style="color: red">(필수)</span></label>
-      <select v-model="paymentMethod" class="method_select">
+      <select v-model="form.value.method" class="method_select">
         <option>만나서결제</option>
         <option>계좌이체</option>
       </select>
       <div class="date_info">
         <div>
-          유통기한<span>{{ item.expireDate }} {{ item.expire }}</span>
+          유통기한<span>{{ form.value.expirationDate }} {{ item.expire }}</span>
         </div>
         <div>
-          등록날짜<span>{{ item.regDate }}</span>
+          등록날짜<span>{{ form.value.createdAt }}</span>
         </div>
       </div>
     </div>
