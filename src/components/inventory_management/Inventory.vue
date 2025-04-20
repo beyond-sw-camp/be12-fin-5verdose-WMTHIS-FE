@@ -31,7 +31,10 @@ onMounted(() => {
     inventory_items.value = JSON.parse(savedItems);
   }
 });
-
+const handleUpdateInventory = (updatedItem) => {
+  // 부모에서 selectedItem을 갱신합니다
+  selectedItem = updatedItem;
+};
 const closeDetailModal = () => {
   isDetailModalOpen.value = false;
 };
@@ -182,10 +185,10 @@ const deleteSelectedItems = () => {
     />
 
     <InventoryModifyModal
-      v-if="modalType === 'modify'"
       :isOpen="isModalOpen"
       :item="selectedItem"
       @close="closeModal"
+      @updateInventory="handleUpdateInventory"
     />
 
     <DeleteConfirmModal
