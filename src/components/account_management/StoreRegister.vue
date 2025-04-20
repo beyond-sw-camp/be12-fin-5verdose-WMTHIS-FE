@@ -1,9 +1,8 @@
 <script setup>
-import { ref } from 'vue';
+import { ref,onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Logo from '@/assets/image/icon.png'; // 로고 이미지 import
 import { api } from "@/api/index";
-import { loadEnv } from 'vite';
 // 변수 선언
 const router = useRouter();
 const logoImage = ref(Logo); // 로고 이미지 참조 추가
@@ -58,13 +57,28 @@ const handlePhoneInput = (e) => {
     storePhone.value = formattedValue;
 };
 
+const waitForKakao = () => {
+  return new Promise((resolve) => {
+    const check = () => {
+      if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
+        resolve();
+      } else {
+        setTimeout(check, 100);
+      }
+    };
+    check();
+  });
+};
+
 // 주소 검색
-const searchAddress = () => {
+const searchAddress = async () => {
   new window.daum.Postcode({
-    oncomplete: function (data) {
+    oncomplete: async function (data) {
       const address = data.address;
       storeAddress.value = address;
-
+      console.log(address);
+      await waitForKakao(); // kakao.maps 로드 대기
+      console.log("arrare");
       // Kakao Maps 좌표 변환 API 사용
       const geocoder = new window.kakao.maps.services.Geocoder();
       geocoder.addressSearch(address, function (result, status) {

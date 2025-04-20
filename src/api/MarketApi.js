@@ -36,4 +36,18 @@ export const marketApi = {
         return false;
       });
   },
+  getInventorySaleList() {
+    console.log("getInventorySale list");
+    return instance
+      .get("/inventorySale/getList")
+      .then((res) => {
+        console.log("res", res);
+
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in getInventorySaleList:", error);
+        return false;
+      });
+  },
 };
