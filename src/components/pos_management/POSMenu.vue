@@ -160,8 +160,13 @@ const selectedItem = ref(null);
 
 const openModal = (item) => {
     if (item) {
-        selectedItem.value = item;
+        selectedItem.value = {
+            ...item,
+            category: item.category
+        };
         showModal.value = true;
+    } else {
+        console.error('Invalid item passed to openModal:', item);
     }
 };
 
@@ -346,7 +351,6 @@ const processPayment = () => {
 
         <!-- 메뉴 옵션 모달 -->
         <POSOption v-if="showModal" :selectedItem="selectedItem" @close="closeModal" @addOrder="addOrder" />
-
         <!-- 주문 완료 모달 -->
         <div v-if="showOrderCompleteModal" class="modal_overlay">
             <div class="modal_content order_complete_modal">
