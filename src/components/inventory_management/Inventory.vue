@@ -16,11 +16,10 @@ const openModal = () => {
   isModalOpen.value = true;
 };
 const openDetailModal = (item) => {
-  selectedItem.value = item;
+  selectedItem.value = item; // .value 추가
   modalType.value = "modify";
   isModalOpen.value = true;
 };
-
 const modalType = ref("register");
 const closeModal = () => {
   isModalOpen.value = false;
@@ -32,12 +31,9 @@ onMounted(() => {
   }
 });
 const handleUpdateInventory = (updatedItem) => {
-  // 부모에서 selectedItem을 갱신합니다
-  selectedItem = updatedItem;
+  selectedItem.value = updatedItem;
 };
-const closeDetailModal = () => {
-  isDetailModalOpen.value = false;
-};
+
 const addNewInventoryItem = (item) => {
   if (!item) return;
 
@@ -185,8 +181,9 @@ const deleteSelectedItems = () => {
     />
 
     <InventoryModifyModal
+      v-if="modalType === 'modify'"
       :isOpen="isModalOpen"
-      :item="selectedItem"
+      :item="selectedItem.value"
       @close="closeModal"
       @updateInventory="handleUpdateInventory"
     />
