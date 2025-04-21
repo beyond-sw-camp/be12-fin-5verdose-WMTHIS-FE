@@ -1,26 +1,52 @@
 <script setup>
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import SuccessModal from '@/components/alerts/SuccessModal.vue';
+import { api } from '@/api/index.js';
 
+const isLoading = ref(false);
 // 사용자 정보 상태
 const userProfile = reactive({
-    name: '홍길동',
-    email: 'user@example.com',
-    phone: '010-1234-5678',
-    idNumber: '900101-1******', // 주민등록번호 (뒷자리는 보안상 마스킹)
+    name: '',
+    email: '',
+    phone: '',
+    idNumber: '',
     profileImage: null
 });
-
 // 인증 관련 상태
 const verificationCode = ref('');
 const isVerificationSent = ref(false);
 const isVerified = ref(false);
 const verificationTimer = ref(180); // 3분 타이머 (초 단위)
 const timerInterval = ref(null);
-const isFormEditable = computed(() => isVerified.value);
+const isFormEditable = computed(() => {
+    return false;
+});
+
+const isPasswordEditable = computed(() => {
+    return isVerified.value; // 인증 완료 시 비밀번호 필드만 활성화
+});
+const passwordsMatch = computed(() => {
+    if (!newPassword.value || !confirmPassword.value) return true; // 둘 중 하나가 비어 있으면 true
+    return newPassword.value === confirmPassword.value; // 일치 여부 반환
+});
+
+const isSaveButtonEnabled = computed(() => {
+    // 인증이 완료되었고, 비밀번호 필드 또는 다른 필드가 수정된 경우 저장 버튼 활성화
+    return isVerified.value && (
+        currentPassword.value ||
+        newPassword.value ||
+        confirmPassword.value ||
+        userProfile.name !== originalProfile.name ||
+        userProfile.email !== originalProfile.email ||
+        userProfile.phone !== originalProfile.phone
+    );
+});
+const currentPassword = ref('');
+const newPassword = ref('');
+const confirmPassword = ref('');
 
 // 원본 데이터 백업 (취소 시 복원용)
-const originalProfile = { ...userProfile };
+const originalProfile = reactive({});
 
 // 모달 상태
 const isSuccessModalOpen = ref(false);
@@ -41,35 +67,67 @@ const triggerImageUpload = () => {
     profileImageRef.value.click();
 };
 
+
 // 인증번호 발송
-const sendVerificationCode = () => {
-    // 실제 구현에서는 API 호출로 인증번호 발송
-    isVerificationSent.value = true;
+const sendVerificationCode = async () => {
+    if (isLoading.value) return; // 이미 로딩 중이면 중복 호출 방지
 
-    // 타이머 시작
-    verificationTimer.value = 180;
-    if (timerInterval.value) clearInterval(timerInterval.value);
+    try {
+        isLoading.value = true; // 로딩 시작
+        const phoneNum = userProfile.phone; // 전화번호는 문자열이어야 함
+        const response = await api.phoneSend(phoneNum); // phone 필드에 문자열 전달
 
-    timerInterval.value = setInterval(() => {
-        if (verificationTimer.value > 0) {
-            verificationTimer.value--;
+        if (response) {
+            alert('인증번호가 발송되었습니다.');
+            isVerificationSent.value = true;
+
+            // 타이머 시작
+            verificationTimer.value = 180;
+            if (timerInterval.value) clearInterval(timerInterval.value);
+
+            timerInterval.value = setInterval(() => {
+                if (verificationTimer.value > 0) {
+                    verificationTimer.value--;
+                } else {
+                    clearInterval(timerInterval.value);
+                    isVerificationSent.value = false; // 타이머가 끝나면 재발송 가능
+                }
+            }, 1000);
         } else {
-            clearInterval(timerInterval.value);
-            isVerificationSent.value = false;
+            alert('인증번호 발송에 실패했습니다. 다시 시도해주세요.');
         }
-    }, 1000);
+    } catch (error) {
+        console.error('Error in sendVerificationCode:', error);
+        alert('인증번호 발송 중 오류가 발생했습니다.');
+    } finally {
+        isLoading.value = false; // 로딩 종료
+    }
 };
 
 // 인증번호 확인
-const verifyCode = () => {
-    // 실제 구현에서는 API 호출로 인증번호 검증
-    if (verificationCode.value.length === 6) {
-        isVerified.value = true;
-        clearInterval(timerInterval.value);
-        // 성공 메시지 표시
-        alert('인증이 완료되었습니다. 이제 정보를 수정할 수 있습니다.');
-    } else {
-        alert('유효하지 않은 인증번호입니다.');
+const verifyCode = async () => {
+    try {
+        const code = verificationCode.value; // 입력된 인증번호
+        const phoneNum = userProfile.phone; // 사용자 전화번호
+
+        if (!code || code.length !== 6) {
+            alert('유효한 인증번호를 입력해주세요.');
+            return;
+        }
+
+        // API 호출
+        const response = await api.phoneAuth(code, phoneNum);
+
+        if (response) {
+            isVerified.value = true;
+            clearInterval(timerInterval.value);
+            alert('인증이 완료되었습니다. 이제 정보를 수정할 수 있습니다.');
+        } else {
+            alert('인증번호가 유효하지 않습니다. 다시 시도해주세요.');
+        }
+    } catch (error) {
+        console.error('Error in verifyCode:', error);
+        alert('인증번호 확인 중 오류가 발생했습니다.');
     }
 };
 
@@ -81,17 +139,51 @@ const formattedTimer = computed(() => {
 });
 
 // 폼 제출 처리
-const handleSubmit = () => {
+const handleSubmit = async () => {
     if (!isVerified.value) {
         alert('개인정보 수정을 위해 핸드폰 인증이 필요합니다.');
         return;
     }
 
-    // 여기서 API 호출 등의 저장 로직을 구현
-    console.log('저장된 정보:', userProfile);
-    isSuccessModalOpen.value = true;
-};
+    if ((newPassword.value || confirmPassword.value || currentPassword.value) &&
+        (newPassword.value !== confirmPassword.value)) {
+        alert('새 비밀번호와 확인이 일치하지 않습니다.');
+        return;
+    }
 
+    // 서버로 전달할 데이터
+    const data = {
+        email: userProfile.email, // 이메일
+        currentPassword: currentPassword.value, // 현재 비밀번호
+        newPassword: newPassword.value, // 새 비밀번호
+    };
+
+    try {
+        const response = await api.updateUserInfo(data);
+
+        if (response) {
+            alert('비밀번호가 성공적으로 변경되었습니다.');
+
+            // 비밀번호 필드 초기화
+            currentPassword.value = '';
+            newPassword.value = '';
+            confirmPassword.value = '';
+
+            await loadUserInfo();
+
+            // 초기 화면으로 돌아가기
+            isVerified.value = false;
+            isVerificationSent.value = false;
+            verificationCode.value = '';
+            clearInterval(timerInterval.value);
+        } else {
+            alert('비밀번호 변경에 실패했습니다. 다시 시도해주세요.');
+        }
+    } catch (error) {
+        console.error('비밀번호 변경 중 오류:', error);
+        alert('비밀번호 변경 중 오류가 발생했습니다.');
+    }
+};
 // 변경사항 취소
 const handleCancel = () => {
     // 원본 데이터로 복원
@@ -107,6 +199,37 @@ const handleCancel = () => {
 const closeSuccessModal = () => {
     isSuccessModalOpen.value = false;
 };
+
+const maskedIdNumber = computed(() => {
+    if (!userProfile.idNumber) return '';
+    return userProfile.idNumber.slice(0, 8) + '******'; // 앞 8자리 + 별표 6개
+});
+
+// 사용자 정보 로드
+const loadUserInfo = async () => {
+    try {
+        const response = await api.getUserInfo();
+        if (response && response.data) {
+            userProfile.name = response.data.name;
+            userProfile.email = response.data.email;
+            userProfile.phone = response.data.phoneNumber;
+            userProfile.idNumber = response.data.ssn;
+
+            // 원본 데이터 백업
+            Object.assign(originalProfile, userProfile);
+            console.log('User info loaded:', userProfile);
+        } else {
+            console.error('사용자 정보를 가져오는 데 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('Error in loadUserInfo:', error);
+    }
+};
+
+// 컴포넌트 마운트 시 사용자 정보 로드
+onMounted(() => {
+    loadUserInfo();
+});
 </script>
 
 <template>
@@ -140,10 +263,12 @@ const closeSuccessModal = () => {
                         <label>전화번호</label>
                         <div class="phone-container">
                             <input type="tel" v-model="userProfile.phone" class="form-input phone-input"
-                                :disabled="isVerificationSent || isVerified" />
+                                :disabled="!isFormEditable" />
                             <button type="button" class="verification-btn" @click="sendVerificationCode"
-                                :disabled="isVerificationSent || isVerified">
-                                {{ isVerified ? '인증완료' : '인증번호 발송' }}
+                                :disabled="isLoading || (isVerificationSent && verificationTimer.value > 0)">
+                                <span v-if="isLoading">전송 중</span>
+                                <span v-else>{{ isVerificationSent && verificationTimer.value > 0 ? '재발송' : '인증번호 발송'
+                                }}</span>
                             </button>
                         </div>
                     </div>
@@ -172,8 +297,8 @@ const closeSuccessModal = () => {
 
                 <div class="form-group">
                     <label>주민등록번호</label>
-                    <input type="text" v-model="userProfile.idNumber" class="form-input" :disabled="!isFormEditable"
-                        placeholder="앞 6자리-뒷 7자리" />
+                    <input type="text" :value="isFormEditable ? userProfile.idNumber : maskedIdNumber"
+                        class="form-input" :disabled="!isFormEditable" />
                     <p class="id-number-hint">주민등록번호는 보안상의 이유로 뒷자리는 일부만 표시됩니다.</p>
                 </div>
 
@@ -183,24 +308,30 @@ const closeSuccessModal = () => {
 
                     <div class="form-group">
                         <label>현재 비밀번호</label>
-                        <input type="password" class="form-input" :disabled="!isFormEditable" />
+                        <input type="password" v-model="currentPassword" class="form-input"
+                            :disabled="!isPasswordEditable" />
                     </div>
 
                     <div class="form-group">
                         <label>새 비밀번호</label>
-                        <input type="password" class="form-input" :disabled="!isFormEditable" />
+                        <input type="password" v-model="newPassword" class="form-input"
+                            :disabled="!isPasswordEditable" />
                     </div>
 
                     <div class="form-group">
                         <label>새 비밀번호 확인</label>
-                        <input type="password" class="form-input" :disabled="!isFormEditable" />
+                        <input type="password" v-model="confirmPassword" class="form-input"
+                            :disabled="!isPasswordEditable" />
+                        <div v-if="!passwordsMatch && confirmPassword" class="password-mismatch">
+                            비밀번호가 일치하지 않습니다.
+                        </div>
                     </div>
                 </div>
 
                 <!-- 버튼 그룹 -->
                 <div class="action_buttons">
-                    <button type="submit" class="save_btn" :disabled="!isFormEditable"
-                        :class="{ 'disabled-btn': !isFormEditable }">
+                    <button type="submit" class="save_btn" :disabled="!isSaveButtonEnabled"
+                        :class="{ 'disabled-btn': !isSaveButtonEnabled }">
                         저장
                     </button>
                     <button type="button" @click="handleCancel" class="cancel_btn">취소</button>
@@ -453,5 +584,11 @@ const closeSuccessModal = () => {
 .disabled-btn {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+.password-mismatch {
+    color: #e74c3c;
+    font-size: 14px;
+    margin-top: 5px;
 }
 </style>

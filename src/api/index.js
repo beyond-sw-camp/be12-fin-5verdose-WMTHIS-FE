@@ -195,7 +195,6 @@ export const api = {
       console.error("API 요청 실패", error);
       throw error;
     }
-
   },
   getMenuList() {
     return instance
@@ -238,6 +237,38 @@ export const api = {
         console.error("Error in updateMenu:", error);
         return false;
       });
+  },
 
+  getUserInfo() {
+    return instance
+      .get("user/searchinfo")
+      .then((res) => {
+        if (res.data.code !== 200) {
+          return false;
+        }
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in updateMenu:", error);
+        return false;
+      });
+  },
+
+  updateUserInfo(data) {
+    console.log("Update user info data", data);
+    return instance
+      .put("/user/updateinfo", data)
+      .then((res) => {
+        console.log("Update user info response", res);
+        if (res.data.code === 200) {
+          return res.data;
+        } else {
+          return false;
+        }
+      })
+      .catch((error) => {
+        console.error("Error in updateUserInfo:", error);
+        return false;
+      });
   },
 };
