@@ -39,7 +39,7 @@ const setItemData = (item) => {
 const sendTradeRequest = () => {
 
   const data = {
-    inventorySaleId: item,inventorySaleId,
+    inventorySaleId: item, inventorySaleId,
     inventoryName: item.inventoryName,
     quantity: quantity.value,
     price: price.value,
@@ -48,17 +48,17 @@ const sendTradeRequest = () => {
 
   const response = marketApi.getInventorySaleList();
 
-// 서버 에러일때
-if(!response) {
-    
-} else {
-    const code = response.code;
-    if(code === 200) {
-        
-      handleClosePanel();
-    } 
+  // 서버 에러일때
+  if (!response) {
 
-}
+  } else {
+    const code = response.code;
+    if (code === 200) {
+
+      handleClosePanel();
+    }
+
+  }
 }
 
 const handleClosePanel = () => {

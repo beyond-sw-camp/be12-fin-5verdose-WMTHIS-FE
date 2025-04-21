@@ -54,7 +54,7 @@ const fetchIngredients = async () => {
 const register = async () => {
 
   const data = {
-    inventoryId: ingredient.value.id,
+    storeInventoryId: ingredient.value.id,
     quantity: quantity.value,
     price: price.value,
     content: content.value,
@@ -62,7 +62,7 @@ const register = async () => {
   }
   console.log("Registering inventory sale with data:", data);
   emit("close");
-  //const response = await marketApi.registerInventorySale();
+  const response = await marketApi.registerInventorySale(data);
 }
 
 watch(

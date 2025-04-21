@@ -24,7 +24,7 @@ export const marketApi = {
   registerInventorySale(data) {
     console.log("registerInventorySale data", data);
     return instance
-      .post("/inventorySale/register", data)
+      .post("/market/registerSale", data)
       .then((res) => {
         console.log("registerRes", res);
         console.log("code:", res.data.code);
