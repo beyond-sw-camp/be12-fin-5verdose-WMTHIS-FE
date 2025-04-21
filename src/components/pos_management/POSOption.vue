@@ -1,38 +1,55 @@
 <script setup>
-import { defineProps, defineEmits, ref } from 'vue';
-
+import { defineProps, defineEmits, ref, onMounted } from 'vue';
+import { api } from '../../api/MenuApi';
 const props = defineProps({
     selectedItem: Object
 });
 const emit = defineEmits(['close', 'addOrder']); // ✅ 주문 추가 이벤트 추가
 
 // ✅ 옵션 리스트 (객체)
-const availableOptions = ref([
-    {
-        name: '추가 재료',
-        choices: [
-            { label: '선택 없음', price: 0 },
-            { label: '베이컨 추가', price: 1000 },
-            { label: '새우 추가', price: 1500 },
-            { label: '버섯 추가', price: 500 }
-        ],
-        selected: []
+const availableOptions = ref([]);
+
+const fetchCategoryOptions = async () => {
+    const selectedItem = { ...props.selectedItem }; // Proxy 객체 해제
+    console.log('Fetching category options for selectedItem:', selectedItem);
+
+    if (!selectedItem || !selectedItem.category) {
+        console.error('Invalid selectedItem or selectedItem.category:', selectedItem);
+        return;
     }
-]);
+
+    try {
+        const response = await api.getPOSCategory(selectedItem.category); // category 값을 params로 전달
+        if (response && response.data) {
+            availableOptions.value = [
+                {
+                    name: response.data.name, // 카테고리 이름
+                    choices: response.data.options.map(option => ({
+                        label: option.name,
+                        price: option.price
+                    })),
+                    selected: [] // 선택된 옵션 초기화
+                }
+            ];
+            console.log('Available options loaded:', availableOptions.value);
+        } else {
+            console.error('옵션 데이터를 가져오는 데 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('Error in fetchCategoryOptions:', error);
+    }
+};
+
+// 옵션 선택 처리
 const handleSelection = (option, choice) => {
     if (choice.label === '선택 없음') {
-        // ✅ "선택 없음" 선택 시, 다른 옵션 해제 후 "선택 없음"만 선택
         option.selected = [choice];
     } else {
-        // ✅ 다른 옵션을 선택하면 "선택 없음" 해제 후 멀티 선택 가능
         option.selected = option.selected.filter(item => item.label !== '선택 없음');
-
         const exists = option.selected.some(item => item.label === choice.label);
         if (exists) {
-            // ✅ 이미 선택된 옵션이면 해제
             option.selected = option.selected.filter(item => item.label !== choice.label);
         } else {
-            // ✅ 새로운 옵션 추가 (멀티 선택 가능)
             option.selected.push(choice);
         }
     }
@@ -47,7 +64,7 @@ const closeAndConfirm = () => {
     const orderData = {
         id: props.selectedItem.id,
         name: props.selectedItem.name,
-        price: props.selectedItem.price + totalOptionPrice, // ✅ 기본 가격 + 옵션 가격
+        price: props.selectedItem.price + totalOptionPrice, // 기본 가격 + 옵션 가격
         quantity: 1,
         options: selectedOptions // 선택한 옵션 전체 저장
     };
@@ -55,8 +72,12 @@ const closeAndConfirm = () => {
     emit('addOrder', orderData);
     emit('close');
 };
-</script>
 
+// 컴포넌트 마운트 시 옵션 데이터 로드
+onMounted(() => {
+    fetchCategoryOptions();
+});
+</script>
 <template>
     <div class="modal_overlay">
         <div class="modal">

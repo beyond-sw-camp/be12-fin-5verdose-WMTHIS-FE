@@ -56,6 +56,19 @@ export const api = {
       params: data,
     });
   },
+
+  getPOSCategory(categoryId) {
+    return instance
+      .get("/category/detail", {
+        params: { id: categoryId }, // categoryId를 params로 전달
+      })
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error in getPOSCategory:", error);
+        throw error;
+      });
+  },
+
   registerOption(data) {
     console.log("registerOption data", data);
     return instance
