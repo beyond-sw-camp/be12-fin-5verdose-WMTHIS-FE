@@ -167,7 +167,7 @@ onMounted(() => {
         </div>
       </div>
       <div class="modal_footer">
-        <button class="confirm_btn" @click=register>수정</button>
+        <button class="confirm_btn" @click=register>판매하기</button>
       </div>
     </div>
   </div>
