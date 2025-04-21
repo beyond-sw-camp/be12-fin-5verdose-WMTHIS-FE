@@ -26,7 +26,8 @@ const fetchCategoryOptions = async () => {
                     name: response.data.name, // 카테고리 이름
                     choices: response.data.options.map(option => ({
                         label: option.name,
-                        price: option.price
+                        price: option.price,
+                        id: option.id, // ID 추가
                     })),
                     selected: [] // 선택된 옵션 초기화
                 }
@@ -42,17 +43,18 @@ const fetchCategoryOptions = async () => {
 
 // 옵션 선택 처리
 const handleSelection = (option, choice) => {
-    if (choice.label === '선택 없음') {
-        option.selected = [choice];
-    } else {
-        option.selected = option.selected.filter(item => item.label !== '선택 없음');
-        const exists = option.selected.some(item => item.label === choice.label);
-        if (exists) {
-            option.selected = option.selected.filter(item => item.label !== choice.label);
-        } else {
-            option.selected.push(choice);
-        }
+    if (!option.selected) {
+        option.selected = []; // 선택된 옵션 초기화
     }
+
+    const exists = option.selected.some(item => item.id === choice.id);
+    if (exists) {
+        option.selected = option.selected.filter(item => item.id !== choice.id); // 이미 선택된 경우 제거
+    } else {
+        option.selected.push(choice); // 선택되지 않은 경우 추가
+    }
+
+    console.log('Updated selected options:', option.selected); // 디버깅용 로그
 };
 // ✅ 옵션 선택 후 확인 버튼 클릭 시
 const closeAndConfirm = () => {
@@ -66,8 +68,11 @@ const closeAndConfirm = () => {
         name: props.selectedItem.name,
         price: props.selectedItem.price + totalOptionPrice, // 기본 가격 + 옵션 가격
         quantity: 1,
-        options: selectedOptions // 선택한 옵션 전체 저장
+        optionIds: selectedOptions.map(opt => opt.id), // 선택된 옵션의 ID만 포함
+        options: selectedOptions, // 선택된 옵션의 상세 정보 포함
     };
+
+    console.log('Order Data:', orderData); // 디버깅용 로그
 
     emit('addOrder', orderData);
     emit('close');

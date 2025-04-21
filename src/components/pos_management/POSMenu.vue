@@ -178,10 +178,8 @@ const closeModal = () => {
 const addOrder = (newOrder) => {
     const existingOrder = orderList.value.find(order =>
         order.id === newOrder.id &&
-        order.options.length === newOrder.options.length &&
-        order.options.every((opt, index) =>
-            opt.label === newOrder.options[index].label && opt.price === newOrder.options[index].price
-        )
+        order.optionIds.length === newOrder.optionIds.length &&
+        order.optionIds.every((id, index) => id === newOrder.optionIds[index])
     );
 
     if (existingOrder) {
@@ -321,7 +319,7 @@ const processPayment = () => {
                         </div>
 
                         <div v-if="order.options && order.options.length">
-                            <ul>
+                            <ul v-if="order.options && order.options.length">
                                 <li v-for="opt in order.options" :key="opt.label">
                                     <span>{{ `${opt.label} (+${opt.price.toLocaleString()}원)` }}</span>
                                 </li>

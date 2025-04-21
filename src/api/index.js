@@ -271,4 +271,14 @@ export const api = {
         return false;
       });
   },
+
+  posOrder(data) {
+    return instance
+      .post("/order/create", data) // 주문 제출 API 엔드포인트
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error in submitOrder:", error);
+        throw error;
+      });
+  },
 };
