@@ -1,25 +1,10 @@
 <script setup>
 import { ref } from 'vue';
+import { api } from '@/api/index';
 
 const currentCarousel = ref(0);
-const series = ref([
-    {
-        name: '홀',
-        data: [
-            5000, 3000, 2000, 1500, 2000, 1000, 1500, 2000, 2500, 4000, 6000,
-            7000, 8000, 6000, 5000, 4000, 3000, 2000, 1500, 2500, 5000, 8000,
-            10000, 6000,
-        ],
-    },
-    {
-        name: '배달',
-        data: [
-            7000, 2000, 1000, 500, 3000, 0, 500, 0, 500, 1000, 2000,
-            3000, 7000, 6000, 5000, 4000, 2000, 1000, 500, 2500, 5000,
-            12000, 20000, 9000,
-        ],
-    },
-]);
+const xaxisCategories = ref([]);
+const series = ref([]);
 
 const chartOptions = ref({
     chart: {
@@ -28,10 +13,7 @@ const chartOptions = ref({
         toolbar: { show: false },
     },
     xaxis: {
-        categories: [
-            '00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11',
-            '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'
-        ],
+        categories: xaxisCategories.value, // xaxis를 time으로 설정
     },
     plotOptions: {
         bar: {
@@ -49,6 +31,35 @@ const chartOptions = ref({
     },
 });
 
+const getTodaySales = async () => {
+    try {
+        // API 호출 (예: axios 사용)
+        const response = await api.getTodaySales();
+
+        if (response) {
+            const salesData = response.data;
+
+            // xaxis와 series 데이터 업데이트
+            xaxisCategories.value = salesData.orderTodayTimeList.map((entry) => entry.time);
+            series.value = [
+                {
+                    name: '홀',
+                    data: salesData.orderTodayTimeList.map((entry) => entry.timeHall),
+                },
+                {
+                    name: '배달',
+                    data: salesData.orderTodayTimeList.map((entry) => entry.timeDelivery),
+                },
+            ];
+        } else {
+            console.error('API 호출 실패:', response.message);
+        }
+    } catch (error) {
+        console.error('API 호출 중 오류 발생:', error);
+    }
+};
+
+getTodaySales();
 
 const summaries = [
     {

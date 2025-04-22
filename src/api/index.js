@@ -149,7 +149,10 @@ export const api = {
     console.log("updateInventory storeInventoryData", storeInventoryData);
 
     try {
-      const res = instance.put(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
+      const res = instance.put(
+        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
+        storeInventoryData
+      );
       console.log("updateRes", res);
       console.log("code:", res.data.code);
 
@@ -166,7 +169,10 @@ export const api = {
 
   async SearchInventory(storeInventoryData) {
     try {
-      const res = await instance.get(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
+      const res = await instance.get(
+        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
+        storeInventoryData
+      );
       console.log("searchRes", res);
       console.log("code:", res.data.code);
 
@@ -275,7 +281,17 @@ export const api = {
         throw error;
       });
   },
-  
+
+  getTodaySales() {
+    return instance
+      .get("order/todaySales")
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error in submitOrder:", error);
+        throw error;
+      });
+  },
+
   async SearchMonthSales(yearMonthData) {
     try {
       const res = await instance.post(`/order/monthSales`, yearMonthData);
