@@ -24,7 +24,7 @@ export const marketApi = {
   registerInventorySale(data) {
     console.log("registerInventorySale data", data);
     return instance
-      .post("/inventorySale/register", data)
+      .post("/market/registerSale", data)
       .then((res) => {
         console.log("registerRes", res);
         console.log("code:", res.data.code);
@@ -39,7 +39,7 @@ export const marketApi = {
   getInventorySaleList() {
     console.log("getInventorySale list");
     return instance
-      .get("/inventorySale/getList")
+      .get("/market/getList")
       .then((res) => {
         console.log("res", res);
 
@@ -47,6 +47,94 @@ export const marketApi = {
       })
       .catch((error) => {
         console.error("Error in getInventorySaleList:", error);
+        return false;
+      });
+  },
+  getInventorySaleDetail(saleId) {
+    console.log("getInventorySaleDetail id:", saleId);
+    return instance
+      .get(`/market/get/${saleId}/detail`)
+      .then((res) => {
+        console.log("detail response:", res);
+        return res.data; // BaseResponse<InventorySale> 구조일 것
+      })
+      .catch((error) => {
+        console.error("Error in getInventorySaleDetail:", error);
+        return null;
+      });
+  },
+  getTransactionList() {
+    console.log("getTransactionList");
+    return instance
+      .get("/market/transaction")
+      .then((res) => {
+        console.log("res", res);
+
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in getTransactionList:", error);
+        return false;
+      });
+  },
+  getPurchaseList(saleId) {
+    console.log("getPurchaseList id:", saleId);
+    return instance
+      .get(`/market/get/${saleId}/purchaseList`)
+      .then((res) => {
+        console.log("purchase response:", res);
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in getPurchaseList:", error);
+        return null;
+      });
+  },
+  registerPurchase(data) {
+    console.log("registerPurchase data", data);
+    return instance
+      .post("/market/registerPurchase", data)
+      .then((res) => {
+        console.log("registerPurchase res", res);
+        return res.data.code === 200; // 성공 시 true 반환;
+      })
+      .catch((error) => {
+        console.error("Error in registerPurchase:", error);
+        return false;
+      });
+  },
+  approvePurchase(saleId, purchaseId) {
+    console.log("approvePurchase saleId:", saleId, "purchaseId:", purchaseId);
+    return instance
+      .get(`/market/approve`, {
+        params: {
+          saleId,
+          purchaseId,
+        },
+      })
+      .then((res) => {
+        console.log("approvePurchase res", res);
+        return res.data.code === 200; // 성공 시 true 반환
+      })
+      .catch((error) => {
+        console.error("Error in approvePurchase:", error);
+        return false;
+      });
+  },
+  rejectPurchase(purchaseId) {
+    console.log("purchaseId:", purchaseId);
+    return instance
+      .get(`/market/reject`, {
+        params: {
+          purchaseId,
+        },
+      })
+      .then((res) => {
+        console.log("rejectPurchase res", res);
+        return res.data.code === 200; // 성공 시 true 반환
+      })
+      .catch((error) => {
+        console.error("Error in approvePurchase:", error);
         return false;
       });
   },

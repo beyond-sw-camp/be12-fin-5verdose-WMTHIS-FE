@@ -1,58 +1,87 @@
+// src/stores/useInventoryStore.js
 import { defineStore } from "pinia";
-import { api } from "@/api";
+import { api } from "@/api/index.js";
+import useAuthStore from "@/stores/useAuthStore.js"; // 수정된 부분
 
 export const useInventoryStore = defineStore("inventoryStore", {
   state: () => ({
     inventoryDetail: {
+      storeIdnventoryId: null,
       name: "",
       expiryDate: null,
       miniquantity: null,
       unit: "",
     },
+    inventoryItems: [],
   }),
 
   actions: {
     async registerStoreInventory(storeInventoryData) {
       try {
-        const result = await api.registerInventory(storeInventoryData);
-        return result;
+        const authStore = useAuthStore();
+        const token = authStore.getLogin()
+          ? localStorage.getItem("accessToken")
+          : null;
+
+        const result = await axios.post(
+          "/api/inventory/registerInventory",
+          storeInventoryData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        return result.data; // 성공적으로 반환된 데이터
       } catch (error) {
         console.error("registerStoreInventory 실패:", error);
         return false;
       }
     },
-
-    async updateInventory(updatedInventory) {
+    async updateInventory(updatedItem) {
       try {
-        console.log("updatedInventory in store:", updatedInventory); // 디버깅용
-        const result = await api.updateInventory(updatedInventory);
-        return result;
-      } catch (error) {
-        console.error(
-          "storeInventory 실패:",
-          error.response || error.message || error
+        const response = await api.put(
+          `/api/inventory/${updatedItem.id}`,
+          updatedItem
         );
+        const index = this.inventories.findIndex(
+          (item) => item.id === updatedItem.id
+        );
+        if (index !== -1) {
+          this.inventories[index] = response.data;
+        }
+        return true;
+      } catch (error) {
+        console.error("Error in updateInventory:", error);
         return false;
       }
     },
+
+    // totalStoreInventory 하나로 합침
     async totalStoreInventory(storeInventoryData) {
       try {
         const result = await api.totalStoreInventory(storeInventoryData);
-        return result;
+        if (result.status === 200) {
+          return true;
+        } else {
+          throw new Error("입고 실패");
+        }
       } catch (error) {
-        console.error("Error in totalStoreInventory:", error);
+        console.error("totalStoreInventory 실패:", error);
         return false;
       }
     },
+
     async searchInventory(storeInventoryData) {
       try {
         const result = await api.searchInventory(storeInventoryData);
 
         if (result) {
-          inventory_items.value = result; // 검색 결과 성공 시 목록에 적용
+          this.inventoryItems = result; // 검색 결과를 상태에 저장
         } else {
           console.warn("검색 결과가 없습니다.");
-          alert("검색 결과가 없습니다."); // 유저에게 안내
+          alert("검색 결과가 없습니다.");
         }
 
         if (result && result !== 404) {
@@ -60,26 +89,19 @@ export const useInventoryStore = defineStore("inventoryStore", {
           return result;
         } else {
           console.error("검색 실패 또는 결과 없음");
+          alert("검색 실패 또는 결과가 없습니다.");
           return false;
         }
       } catch (error) {
-        console.error("searchInventory 실패:", error);
+        console.error(
+          "searchInventory 실패:",
+          error.response || error.message || error
+        );
+        alert("검색 중 오류가 발생했습니다.");
         return false;
       }
     },
-    totalStoreInventory(storeInventoryData) {
-      try {
-        const response = api.totalStoreInventory(storeInventoryData); // API 호출
-        if (response.status === 200) {
-          return true;
-        } else {
-          throw new Error("입고 실패");
-        }
-      } catch (error) {
-        console.error(error);
-        return false;
-      }
-    },
+
     setInventoryDetail(detail) {
       this.inventoryDetail = detail;
     },

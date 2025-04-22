@@ -10,7 +10,7 @@ import InventorySaleModal from "@/components/inventory_management/InventorySaleM
 
 const tab = ref("exp");
 const isStoreOpen = ref(false);
-const selectedFilter = ref("만료");
+const selectedFilter = ref("전체");
 const stockStatus = ref("필요");
 const isModalOpen = ref(false);
 const isDetailModalOpen = ref(false);

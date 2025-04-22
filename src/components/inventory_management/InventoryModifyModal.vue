@@ -15,7 +15,7 @@ const inventoryStore = useInventoryStore();
 // 입력 필드 상태
 const name = ref("");
 const unit = ref("");
-const minquantity = ref(0); // 최소 수량 정의
+const miniquantity = ref(0); // 최소 수량 정의
 const unitCategory = ref("Kg"); // 단위 접미사 선택
 
 // 유통기한 관련
@@ -55,12 +55,22 @@ const disableCustomInput = () => {
 const loadData = () => {
   if (props.item) {
     name.value = props.item.name || "";
-    unit.value = props.item.unit || "";
+    unit.value = props.item.unit?.split(" ")[0] || "";
+    unitCategory.value = props.item.unit?.split(" ")[1] || "Kg";
     minquantity.value = props.item.miniquantity || 0;
-    unitCategory.value = props.item.unitCategory || "Kg"; // 기본값 설정
-    selectedDays.value = props.item.expiryDate || "1";
-    customDays.value =
-      props.item.expiryDate === "custom" ? props.item.customDays : "";
+
+    const days = props.item.expiryDate;
+    const isPredefined = expiryDate.some((option) => option.value === days);
+
+    if (isPredefined) {
+      selectedDays.value = days;
+      isCustomInput.value = false;
+      customDays.value = "";
+    } else {
+      selectedDays.value = "custom";
+      isCustomInput.value = true;
+      customDays.value = days;
+    }
   }
 };
 
@@ -76,29 +86,37 @@ watch(
 // 수정 처리
 
 const updateInventory = async () => {
-  if (!props.item || !props.item.id) {
-    console.error("유효하지 않은 재고 ID입니다.");
+  const inventoryId = props.item?.id || props.item?.store_inventory_id;
+
+  if (!inventoryId) {
+    alert("유효하지 않은 재고 ID입니다.");
     return;
   }
 
-  const storeInventoryData = {
-    inventoryId: props.item.id,
+  const payload = {
+    inventoryId,
     name: name.value,
     unit: `${unit.value} ${unitCategory.value}`,
-    miniquantity: minquantity.value,
+    miniquantity: miniquantity.value,
     expiryDate:
       selectedDays.value === "custom" ? customDays.value : selectedDays.value,
   };
 
-  const result = await inventoryStore.updateInventory(storeInventoryData);
+  try {
+    console.log("수정할 재고 데이터:", payload);
+    const result = await inventoryStore.updateInventory(payload);
 
-  if (result) {
-    emit("updateInventory", storeInventoryData); // 부모로 수정된 데이터 전달
-  } else {
-    console.error("수정 실패");
+    if (result) {
+      alert("재고가 성공적으로 수정되었습니다.");
+      emit("updateInventory", payload);
+      emit("close");
+    } else {
+      throw new Error("수정 실패");
+    }
+  } catch (err) {
+    console.error("재고 수정 실패:", err);
+    alert("재고 수정 중 오류가 발생했습니다.");
   }
-
-  emit("close");
 };
 </script>
 
@@ -128,16 +146,10 @@ const updateInventory = async () => {
         <div class="input_group">
           <div class="input_row">
             <div class="input_label_group">
-              <label>용량/단위</label>
+              <label>단위</label>
               <p class="title_warn">(필수)</p>
             </div>
             <div class="unit_container">
-              <input
-                type="text"
-                v-model="unit"
-                placeholder="5"
-                class="min_qty_input"
-              />
               <select v-model="unitCategory" class="unit_select">
                 <option value="Kg">Kg</option>
                 <option value="g">g</option>
@@ -149,20 +161,6 @@ const updateInventory = async () => {
           <p class="sub_title">현재 재고의 보유량을 입력해주세요.</p>
         </div>
 
-        <div class="input_group">
-          <div class="modal_title2 between">
-            <label>최소수량</label>
-            <input
-              type="text"
-              v-model="minquantity"
-              placeholder="5"
-              class="min-qty-input"
-            />
-          </div>
-          <p class="sub_title">
-            최소 보유하고 있어야하는 재고의 수를 입력해 주세요.
-          </p>
-        </div>
         <div class="input_group">
           <div class="modal_title2">
             <label>유통기한</label>
