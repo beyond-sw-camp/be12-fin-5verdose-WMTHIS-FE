@@ -10,12 +10,17 @@ const instance = axios.create({
 
 export const api = {
   verify(data) {
-    const verfiyRes = instance.post("/verify", data);
-    if (verfiyRes.data === "success") {
-      return true; // 결제 검증 성공
-    } else {
-      return false; // 결제 검증 실패
-    }
+    console.log("Verify data", data);
+    return instance
+      .post("/payments/verify", data)
+      .then((res) => {
+        console.log("verifyRes", res);
+        return res.data.code === 200; // 성공 여부 반환
+      })
+      .catch((error) => {
+        console.error("Error in verify:", error);
+        return false; // 실패 시 false 반환
+      });
   },
 
   signUp(data) {
