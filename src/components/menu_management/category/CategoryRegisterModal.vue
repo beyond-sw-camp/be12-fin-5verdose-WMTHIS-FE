@@ -58,7 +58,7 @@ const loadOptionList = async () => {
         console.log('옵션 목록:', result);
         optionList.value = result.content;
     } else {
-        alert("옵션 목록을 불러오는 데 실패했습니다.");
+        console.log("옵션 목록을 불러오는 데 실패했습니다.");
     }
 };
 

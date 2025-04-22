@@ -153,8 +153,7 @@ export const api = {
       .get(url)
       .then((res) => {
         console.log("getMenuList res", res);
-        if (res.data.code !== 200) return false;
-        return res.data.data;
+        return res.data;
       })
       .catch((error) => {
         console.error("Error in getMenuList: ", error);

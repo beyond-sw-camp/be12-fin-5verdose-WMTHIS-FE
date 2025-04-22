@@ -207,6 +207,7 @@ const submit = async () => {
   if (response) {
     router.push({ name: 'signupDone' });
   } else {
+    router.push({ name: 'signup1' });
     alert(response.error || "회원가입에 실패하였습니다.");
   }
 };

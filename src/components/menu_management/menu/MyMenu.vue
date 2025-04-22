@@ -13,20 +13,26 @@ const isDeleteConfirmOpen = ref(false);
 const isDeleteAlertOpen = ref(false); // 삭제 항목 선택 안내 모달
 const selectedMenu = ref(null); // 선택된 메뉴 항목
 const openModal = () => { isModalOpen.value = true; };
-const closeModal = () => { isModalOpen.value = false; };
+const closeModal = () => {
+    fetchMenus(0);
+    isModalOpen.value = false;
+};
 
 const openDetailModal = (item) => {
     selectedMenu.value = item; // 선택된 메뉴 항목을 저장합니다.
     console.log("상세보기 항목:", item);
     isDetailModalOpen.value = true;
 };
-const closeDetailModal = () => { isDetailModalOpen.value = false; };
+const closeDetailModal = () => {
+    fetchMenus(0);
+    isDetailModalOpen.value = false;
+};
 
 const menu_items = ref([]);
 const currentPage = ref(0); // 현재 페이지
 const totalPages = ref(1); // 총 페이지 수
 const pageSize = 10; // 페이지당 항목 수
-
+const errorMessage = ref('');
 const select_all = ref(false);
 const isBlocked = computed(() => isDeleteConfirmOpen.value || isDeleteAlertOpen.value);
 
@@ -80,17 +86,26 @@ const fetchMenus = async (page = 0) => {
     console.log("메뉴 목록 요청:", page, pageSize);
     const response = await api.getMenuList(page, pageSize, searchKeyword.value);
     console.log("메뉴 목록 응답:", response);
-    if (response) {
-        menu_items.value = response.content.map(item => ({
-            ...item,
-            selected: false
-        }));
-        currentPage.value = response.page.number;
-        totalPages.value = response.page.totalPages;
-        console.log("메뉴 목록:", menu_items.value);
-    } else {
-        alert("메뉴 목록을 불러오는 데 실패했습니다.");
+
+    if (!response) {
         menu_items.value = [];
+        errorMessage.value = "서버 오류입니다. 잠시만 기다려주세요..";
+    } else {
+        if (response.code === 200) {
+            menu_items.value = response.data.content.map(item => ({
+                ...item,
+                selected: false
+            }));
+            currentPage.value = response.page.number;
+            totalPages.value = response.page.totalPages;
+            console.log("메뉴 목록:", menu_items.value);
+            if (menu_items.value.length === 0) {
+                errorMessage.value = "메뉴가 없습니다.";
+            }
+        } else {
+            menu_items.value = [];
+            errorMessage.value = response.data.message;
+        }
     }
 };
 
@@ -128,7 +143,7 @@ onMounted(() => {
         </div>
 
         <!-- 상품 목록 -->
-        <table class="menu_table">
+        <table class="menu_table" v-if="menu_items.length > 0">
             <thead>
                 <tr>
                     <th>
@@ -155,6 +170,11 @@ onMounted(() => {
                 </tr>
             </tbody>
         </table>
+
+        <!-- ✨ 항목이 없을 경우 메시지 출력 -->
+        <div v-else class="empty_message">
+            {{ errorMessage || "메뉴가 없습니다." }}
+        </div>
         <div class="pagination_container">
             <button :disabled="currentPage === 0" @click="goToPage(currentPage - 1)">
                 ◀ 이전
@@ -171,8 +191,9 @@ onMounted(() => {
         </div>
 
         <!-- 모달 컴포넌트들 -->
-        <MenuRegisterModal :isOpen="isModalOpen" @close="closeModal" />
-        <MenuDetailModal :isOpen="isDetailModalOpen" :menu="selectedMenu" @close="closeDetailModal" />
+        <MenuRegisterModal :isOpen="isModalOpen" @close="closeModal" @refresh="fetchMenus" />
+        <MenuDetailModal :isOpen="isDetailModalOpen" :menu="selectedMenu" @close="closeDetailModal"
+            @refresh="fetchMenus" />
         <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
         <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
     </div>
