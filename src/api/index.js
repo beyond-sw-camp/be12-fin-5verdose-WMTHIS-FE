@@ -11,10 +11,16 @@ const instance = axios.create({
 export const api = {
   verify(data) {
     const verfiyRes = instance.post("/verify", data);
-    if (verifyRes.data === "success") {
+    if (verfiyRes.data === "success") {
       return true; // 결제 검증 성공
     } else {
       return false; // 결제 검증 실패
     }
+  },
+
+  login(data) {
+    const loginRes = instance.post("/user/login", data);
+    console.log(loginRes);
+    return loginRes;
   },
 };

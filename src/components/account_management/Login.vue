@@ -1,59 +1,69 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { api } from "@/api";
 
 const router = useRouter();
-const email = ref('');
-const password = ref('');
+const email = ref("");
+const password = ref("");
 const rememberMe = ref(false);
 const isLoading = ref(false);
-const errorMessage = ref('');
+const errorMessage = ref("");
 
 const handleLogin = async () => {
   if (!email.value || !password.value) {
-    errorMessage.value = '이메일과 비밀번호를 모두 입력해주세요.';
+    errorMessage.value = "이메일과 비밀번호를 모두 입력해주세요.";
     return;
   }
 
   try {
     isLoading.value = true;
-    errorMessage.value = '';
+    errorMessage.value = "";
 
     // 실제 구현에서는 API 호출로 로그인 처리
-    await new Promise(resolve => setTimeout(resolve, 1000)); // 로딩 시뮬레이션
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // 로딩 시뮬레이션
 
     // 로그인 성공 시 로컬 스토리지에 아이디 저장 (아이디 저장 체크 시)
     if (rememberMe.value) {
-      localStorage.setItem('savedEmail', email.value);
+      localStorage.setItem("savedEmail", email.value);
     } else {
-      localStorage.removeItem('savedEmail');
+      localStorage.removeItem("savedEmail");
     }
 
     // 로그인 성공 후 대시보드로 이동
-    router.push({ name: 'dashboard' });
+    router.push({ name: "dashboard" });
   } catch (error) {
-    errorMessage.value = '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.';
-    console.error('로그인 오류:', error);
+    errorMessage.value = "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.";
+    console.error("로그인 오류:", error);
   } finally {
     isLoading.value = false;
   }
 };
 
 const goToSignUp = () => {
-  router.push({ name: 'signup1' });
+  router.push({ name: "signup1" });
 };
 
 const goToForgotPassword = () => {
-  router.push('findpwd1');
+  router.push("findpwd1");
 };
 
 // 페이지 로드 시 저장된 이메일 불러오기
 const loadSavedEmail = () => {
-  const savedEmail = localStorage.getItem('savedEmail');
+  const savedEmail = localStorage.getItem("savedEmail");
   if (savedEmail) {
     email.value = savedEmail;
     rememberMe.value = true;
   }
+};
+
+const submitForm = () => {
+  const jsonData = {
+    email: email.value,
+    password: password.value,
+  };
+  const result = api.verify(jsonData);
+  console.log(result);
 };
 
 // 컴포넌트 마운트 시 저장된 이메일 불러오기
@@ -78,14 +88,12 @@ onMounted(loadSavedEmail);
     <form @submit.prevent="handleLogin" class="login-form">
       <div class="form-group">
         <label for="email">이메일 아이디</label>
-        <input type="email" id="email" v-model="email" class="form-input" placeholder="이메일을 입력하세요"
-          autocomplete="email" />
+        <input type="email" id="email" v-model="email" class="form-input" placeholder="이메일을 입력하세요" autocomplete="email" />
       </div>
 
       <div class="form-group">
         <label for="password">비밀번호</label>
-        <input type="password" id="password" v-model="password" class="form-input" placeholder="비밀번호를 입력하세요"
-          autocomplete="current-password" />
+        <input type="password" id="password" v-model="password" class="form-input" placeholder="비밀번호를 입력하세요" autocomplete="current-password" />
       </div>
 
       <div class="login-options">
@@ -97,15 +105,13 @@ onMounted(loadSavedEmail);
         <a @click="goToForgotPassword" class="forgot-password">비밀번호 찾기</a>
       </div>
 
-      <button type="submit" class="login-button" :disabled="isLoading">
+      <button type="submit" class="login-button" :disabled="isLoading" @click="submitForm">
         <span v-if="isLoading">로그인 중...</span>
         <span v-else>로그인</span>
       </button>
     </form>
 
-    <div class="signup-link">
-      계정이 없으신가요? <a @click="goToSignUp" class="signup-text">회원가입</a>
-    </div>
+    <div class="signup-link">계정이 없으신가요? <a @click="goToSignUp" class="signup-text">회원가입</a></div>
   </div>
 </template>
 
@@ -198,7 +204,7 @@ onMounted(loadSavedEmail);
   -webkit-appearance: none;
   width: 18px;
   height: 18px;
-  border: 2px solid #B8C0C8;
+  border: 2px solid #b8c0c8;
   border-radius: 3px;
   margin-right: 8px;
   position: relative;
@@ -251,7 +257,7 @@ onMounted(loadSavedEmail);
 }
 
 .login-button:hover:not(:disabled) {
-  background-color: #5A6978;
+  background-color: #5a6978;
 }
 
 .login-button:disabled {

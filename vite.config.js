@@ -1,19 +1,19 @@
 import { defineConfig } from "vite";
 import path from "path";
-
 import vue from "@vitejs/plugin-vue";
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  server: {
     proxy: {
       "/api": {
-        target: "http://222.112.156.79:107", // 실제 API 서버 주소
-        changeOrigin: true, // 원본 헤더의 호스트를 대상 URL로 변경
+        target: "http://localhost:8081/", // 실제 백엔드 주소
+        changeOrigin: true,
       },
     },
   },
