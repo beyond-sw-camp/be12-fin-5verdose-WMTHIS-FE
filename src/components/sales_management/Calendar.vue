@@ -1,46 +1,23 @@
 <script setup>
-import { computed, ref, onMounted } from "vue";
+import { computed, ref } from "vue";
 import { defineProps, defineEmits } from "vue";
-import { useSaleStore } from "@/stores/useSaleStore";
-import { watch } from "vue";
-
-const saleStore = useSaleStore();
-
-onMounted(() => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth() + 1; // 👉 getMonth()는 0부터 시작하니 +1 필요
-
-  saleStore.fetchMonthSales({ year, month });
-});
-
-const detailedSalesMap = computed(() => {
-  const map = {};
-  if (Array.isArray(saleStore.monthSales)) {
-    saleStore.monthSales.forEach((day) => {
-      map[day.date] = {
-        salesAmount: day.sales,
-        orderCount: day.number,
-      };
-    });
-  }
-  return map;
-});
 
 const props = defineProps({
-  currentMonth: { type: Number, required: true },
-  currentYear: { type: Number, required: true },
+  currentMonth: {
+    type: Number,
+    required: true,
+  },
+  currentYear: {
+    type: Number,
+    required: true,
+  },
+  salesData: {
+    type: Object,
+    required: true,
+  },
 });
 
-watch(
-  () => [props.currentYear, props.currentMonth],
-  ([newYear, newMonth]) => {
-    // month는 +1 해서 백엔드에 넘겨야 할 수도 있음 (getMonth 0-based 확인)
-    saleStore.fetchMonthSales({ year: newYear, month: newMonth + 1 });
-  },
-  { immediate: true }
-);
-
+// 수정된 emit 정의 - 기간 정보도 함께 전달하기 위한 새 이벤트 추가
 const emit = defineEmits(["update:currentMonth", "update:currentYear", "date-selected", "period-selected"]);
 
 const rangeSelecting = ref(false);
@@ -50,77 +27,61 @@ const selectedRangeEnd = ref(null);
 const selectedDate = ref(null);
 const selectedRange = ref([]);
 const weekdays = ["S", "M", "T", "W", "T", "F", "S"];
-
-const currentYearMonth = computed(() => `${props.currentYear}년 ${props.currentMonth + 1}월`);
-
+const currentYearMonth = computed(() => {
+  return `${props.currentYear}년 ${props.currentMonth + 1}월`;
+});
+// 달력 날짜 계산
 const calendarDays = computed(() => {
   const days = [];
   const firstDay = new Date(props.currentYear, props.currentMonth, 1);
   const lastDay = new Date(props.currentYear, props.currentMonth + 1, 0);
 
+  // 이전 달의 날짜 추가
   const firstDayOfWeek = firstDay.getDay();
   if (firstDayOfWeek > 0) {
     const prevMonthLastDay = new Date(props.currentYear, props.currentMonth, 0).getDate();
     for (let i = firstDayOfWeek - 1; i >= 0; i--) {
       const date = new Date(props.currentYear, props.currentMonth - 1, prevMonthLastDay - i);
-      days.push({ day: prevMonthLastDay - i, date, currentMonth: false, sales: getSalesForDate(date) });
+      days.push({
+        day: prevMonthLastDay - i,
+        date,
+        currentMonth: false,
+        sales: getSalesForDate(date),
+      });
     }
   }
 
+  // 현재 달의 날짜 추가
   for (let i = 1; i <= lastDay.getDate(); i++) {
     const date = new Date(props.currentYear, props.currentMonth, i);
-    days.push({ day: i, date, currentMonth: true, sales: getSalesForDate(date) });
+    days.push({
+      day: i,
+      date,
+      currentMonth: true,
+      sales: getSalesForDate(date),
+    });
   }
 
-  const remainingDays = 42 - days.length;
+  // 다음 달의 날짜 추가
+  const remainingDays = 42 - days.length; // 6주 x 7일 = 42
   for (let i = 1; i <= remainingDays; i++) {
     const date = new Date(props.currentYear, props.currentMonth + 1, i);
-    days.push({ day: i, date, currentMonth: false, sales: getSalesForDate(date) });
+    days.push({
+      day: i,
+      date,
+      currentMonth: false,
+      sales: getSalesForDate(date),
+    });
   }
 
   return days;
 });
 
+// 날짜에 해당하는 매출 데이터 가져오기
 const getSalesForDate = (date) => {
   const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-  return detailedSalesMap.value[formattedDate] || { salesAmount: 0, orderCount: 0 };
+  return props.salesData[formattedDate] || [];
 };
-
-const isToday = (date) => {
-  const today = new Date();
-  return today.getFullYear() === date.getFullYear() && today.getMonth() === date.getMonth() && today.getDate() === date.getDate();
-};
-
-const isSelected = (date) => {
-  return selectedRange.value.some(
-    (selected) => selected.getFullYear() === date.getFullYear() && selected.getMonth() === date.getMonth() && selected.getDate() === date.getDate()
-  );
-};
-
-const selectDate = (date) => {
-  if (!rangeSelecting.value) {
-    activeTab.value = null;
-    selectedDate.value = date;
-    selectedRange.value = [date];
-    emit("date-selected", date);
-    emit("period-selected", "specific");
-  } else {
-    if (!selectedRangeStart.value) {
-      selectedRangeStart.value = date;
-    } else {
-      selectedRangeEnd.value = date;
-      const start = selectedRangeStart.value < date ? selectedRangeStart.value : date;
-      const end = selectedRangeStart.value > date ? selectedRangeStart.value : date;
-      selectedRange.value = getDateRange(start, end);
-      selectedDate.value = start;
-      emit("date-selected", start);
-      emit("period-selected", { type: "custom", start, end });
-      rangeSelecting.value = false;
-    }
-  }
-};
-
-const formatSales = (amount) => amount.toLocaleString() + "원";
 
 const startRangeSelection = () => {
   activeTab.value = "custom";
@@ -129,7 +90,72 @@ const startRangeSelection = () => {
   selectedRangeEnd.value = null;
   selectedRange.value = [];
 };
+// 오늘 날짜인지 확인
+const isToday = (date) => {
+  const today = new Date();
+  return date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
+};
 
+// 선택된 날짜인지 확인
+const isSelected = (date) => {
+  return selectedRange.value.some(
+    (selectedDate) =>
+      date.getFullYear() === selectedDate.getFullYear() && date.getMonth() === selectedDate.getMonth() && date.getDate() === selectedDate.getDate()
+  );
+};
+
+// 날짜 선택 핸들러
+const selectDate = (date) => {
+  if (!rangeSelecting.value) {
+    activeTab.value = null;
+    selectedDate.value = date;
+    selectedRange.value = [date];
+    emit("date-selected", date);
+    // 단일 날짜 선택 시 period-selected 이벤트도 발생시킴
+    emit("period-selected", "specific");
+  } else {
+    if (!selectedRangeStart.value) {
+      selectedRangeStart.value = date;
+    } else {
+      selectedRangeEnd.value = date;
+
+      const start = selectedRangeStart.value < date ? selectedRangeStart.value : date;
+      const end = selectedRangeStart.value > date ? selectedRangeStart.value : date;
+
+      selectedRange.value = getDateRange(start, end);
+      selectedDate.value = start;
+
+      emit("date-selected", start);
+      emit("period-selected", {
+        type: "custom",
+        start,
+        end,
+      });
+
+      // 선택 완료 후 초기화
+      rangeSelecting.value = false;
+    }
+  }
+};
+
+// 매출액 포맷팅
+const formatSales = (amount) => {
+  return amount.toLocaleString() + "원";
+};
+
+const calculateTotal = (sales) => {
+  if (!Array.isArray(sales)) return { amount: 0, count: 0 };
+
+  const totalAmount = sales.reduce((sum, item) => sum + (item.amount || 0), 0);
+  const totalCount = sales.length;
+
+  return {
+    amount: totalAmount,
+    count: totalCount,
+  };
+};
+
+// 이전 달로 이동
 const prevMonth = () => {
   if (props.currentMonth === 0) {
     emit("update:currentMonth", 11);
@@ -139,6 +165,7 @@ const prevMonth = () => {
   }
 };
 
+// 다음 달로 이동
 const nextMonth = () => {
   if (props.currentMonth === 11) {
     emit("update:currentMonth", 0);
@@ -148,50 +175,54 @@ const nextMonth = () => {
   }
 };
 
-const activeTab = ref("today");
-
+// 탭 상태 관리
+const activeTab = ref("today"); // 기본값: '일별'
 const setActiveTab = (tab) => {
   activeTab.value = tab;
+
   const today = new Date();
 
   if (tab === "yesterday") {
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
     selectedDate.value = yesterday;
-    selectedRange.value = [yesterday];
+    selectedRange.value = [yesterday]; // 어제 날짜만 선택
     emit("date-selected", yesterday);
     emit("period-selected", "yesterday");
   } else if (tab === "today") {
     selectedDate.value = today;
-    selectedRange.value = [today];
+    selectedRange.value = [today]; // 오늘 날짜만 선택
     emit("date-selected", today);
     emit("period-selected", "today");
   } else if (tab === "thisweek") {
     const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay());
+    startOfWeek.setDate(today.getDate() - today.getDay()); // 이번 주 시작일 (일요일)
     const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setDate(startOfWeek.getDate() + 6); // 이번 주 종료일 (토요일)
+
     selectedDate.value = startOfWeek;
-    selectedRange.value = getDateRange(startOfWeek, endOfWeek);
+    selectedRange.value = getDateRange(startOfWeek, endOfWeek); // 이번 주 범위
     emit("date-selected", startOfWeek);
     emit("period-selected", "week");
   } else if (tab === "thismonth") {
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1); // 이번 달 시작일
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0); // 이번 달 종료일
+
     selectedDate.value = startOfMonth;
-    selectedRange.value = getDateRange(startOfMonth, endOfMonth);
+    selectedRange.value = getDateRange(startOfMonth, endOfMonth); // 이번 달 범위
     emit("date-selected", startOfMonth);
     emit("period-selected", "month");
   }
 };
-
 const getDateRange = (startDate, endDate) => {
   const range = [];
-  let current = new Date(startDate);
-  while (current <= endDate) {
-    range.push(new Date(current));
-    current.setDate(current.getDate() + 1);
+  let currentDate = new Date(startDate);
+
+  while (currentDate <= endDate) {
+    range.push(new Date(currentDate)); // 날짜를 배열에 추가
+    currentDate.setDate(currentDate.getDate() + 1); // 하루씩 증가
   }
+
   return range;
 };
 </script>
@@ -228,9 +259,9 @@ const getDateRange = (startDate, endDate) => {
         @click="selectDate(day.date)"
       >
         <div class="day-number">{{ day.day }}</div>
-        <div v-if="day.sales && (day.sales.salesAmount || day.sales.orderCount)" class="sales-indicator">
-          <div class="sales-box1">{{ formatSales(day.sales.salesAmount) }}</div>
-          <div class="sales-box2">{{ day.sales.orderCount }}건</div>
+        <div v-if="day.sales && day.sales.length" class="sales-indicator">
+          <div class="sales-box1">{{ formatSales(calculateTotal(day.sales).amount) }}</div>
+          <div class="sales-box2">{{ calculateTotal(day.sales).count }}건</div>
         </div>
       </div>
     </div>
