@@ -153,4 +153,30 @@ export const marketApi = {
         return false;
       });
   },
+  getMyStore() {
+    console.log("getMyStore");
+    return instance
+      .get("/store/getAddress")
+      .then((res) => {
+        console.log("res", res);
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in getMyStoreAddress:", error);
+        return false;
+      });
+  },
+  getNearbyStore() {
+    console.log("getNearbyStore");
+    return instance
+      .get("/store/getNearbyStores")
+      .then((res) => {
+        console.log("res", res);
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in getMyStoreAddress:", error);
+        return false;
+      });
+  },
 };
