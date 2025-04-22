@@ -3,81 +3,86 @@ import { ref, computed, onMounted, nextTick, watch } from "vue";
 import upIcon from "@/assets/image/up.png";
 import downIcon from "@/assets/image/down.png";
 import Calendar from "@/components/Calendar.vue";
+import { api } from "@/api/index.js";
 
 const keyword = ref("");
-const salesData = [
-  { date: "2025-04-05", time: "04:55:00", categoryName: "파스타", menuName: "알리오올리오" },
-  { date: "2025-04-07", time: "06:34:41", categoryName: "파스타", menuName: "쉬림프로제" },
-  { date: "2025-04-05", time: "20:30:10", categoryName: "파스타", menuName: "알리오올리오" },
-  { date: "2025-04-07", time: "09:26:52", categoryName: "피자", menuName: "불고기피자" },
-  { date: "2025-04-07", time: "15:35:31", categoryName: "파스타", menuName: "알리오올리오" },
-  { date: "2025-04-06", time: "17:21:25", categoryName: "피자", menuName: "불고기피자" },
-  { date: "2025-04-06", time: "00:18:27", categoryName: "피자", menuName: "포테이토피자" },
-  { date: "2025-04-05", time: "01:34:21", categoryName: "파스타", menuName: "쉬림프로제" },
-  { date: "2025-04-05", time: "17:01:13", categoryName: "파스타", menuName: "머쉬룸파스타" },
-  { date: "2025-04-05", time: "23:37:55", categoryName: "피자", menuName: "포테이토피자" },
-  { date: "2025-04-07", time: "22:31:25", categoryName: "피자", menuName: "불고기피자" },
-  { date: "2025-04-05", time: "04:20:04", categoryName: "피자", menuName: "포테이토피자" },
-  { date: "2025-04-07", time: "19:08:03", categoryName: "피자", menuName: "쉬림프피자" },
-  { date: "2025-04-07", time: "18:58:56", categoryName: "파스타", menuName: "크림치즈 파스타" },
-  { date: "2025-04-05", time: "21:47:10", categoryName: "피자", menuName: "불고기피자" },
-  { date: "2025-04-07", time: "17:58:41", categoryName: "파스타", menuName: "크림치즈 파스타" },
-  { date: "2025-04-07", time: "03:03:02", categoryName: "파스타", menuName: "크림치즈 파스타" },
-  { date: "2025-04-05", time: "00:35:05", categoryName: "파스타", menuName: "알리오올리오" },
-  { date: "2025-04-06", time: "21:43:30", categoryName: "파스타", menuName: "머쉬룸파스타" },
-  { date: "2025-04-06", time: "01:16:19", categoryName: "피자", menuName: "쉬림프피자" },
-  { date: "2025-04-07", time: "17:25:53", categoryName: "파스타", menuName: "머쉬룸파스타" },
-  { date: "2025-04-05", time: "18:38:43", categoryName: "피자", menuName: "포테이토피자" },
-  { date: "2025-04-06", time: "00:38:58", categoryName: "파스타", menuName: "크림치즈 파스타" },
-  { date: "2025-04-06", time: "07:57:46", categoryName: "피자", menuName: "쉬림프피자" },
-  { date: "2025-04-05", time: "13:29:15", categoryName: "피자", menuName: "포테이토피자" },
-  { date: "2025-04-07", time: "10:20:19", categoryName: "파스타", menuName: "크림치즈 파스타" },
-  { date: "2025-04-05", time: "21:35:05", categoryName: "피자", menuName: "쉬림프피자" },
-  { date: "2025-04-06", time: "16:21:18", categoryName: "피자", menuName: "쉬림프피자" },
-  { date: "2025-04-06", time: "04:20:32", categoryName: "피자", menuName: "불고기피자" },
-  { date: "2025-04-05", time: "10:35:25", categoryName: "파스타", menuName: "크림치즈 파스타" },
-  { date: "2025-04-05", time: "02:11:43", categoryName: "파스타", menuName: "크림치즈 파스타" },
-  { date: "2025-04-05", time: "17:25:37", categoryName: "피자", menuName: "불고기피자" },
-  { date: "2025-04-05", time: "15:48:53", categoryName: "파스타", menuName: "머쉬룸파스타" },
-  { date: "2025-04-07", time: "02:08:54", categoryName: "피자", menuName: "쉬림프피자" },
-  { date: "2025-04-05", time: "06:01:29", categoryName: "파스타", menuName: "알리오올리오" },
-  { date: "2025-04-06", time: "21:40:02", categoryName: "파스타", menuName: "머쉬룸파스타" },
-  { date: "2025-04-06", time: "12:34:22", categoryName: "파스타", menuName: "알리오올리오" },
-  { date: "2025-04-07", time: "06:54:27", categoryName: "파스타", menuName: "머쉬룸파스타" },
-  { date: "2025-04-06", time: "00:31:49", categoryName: "피자", menuName: "불고기피자" },
-  { date: "2025-04-05", time: "23:20:02", categoryName: "피자", menuName: "쉬림프피자" },
-  { date: "2025-04-06", time: "12:44:44", categoryName: "피자", menuName: "불고기피자" },
-  { date: "2025-04-05", time: "04:20:10", categoryName: "피자", menuName: "불고기피자" },
-  { date: "2025-04-05", time: "04:59:05", categoryName: "파스타", menuName: "머쉬룸파스타" },
-  { date: "2025-04-06", time: "00:05:47", categoryName: "파스타", menuName: "알리오올리오" },
-  { date: "2025-04-06", time: "11:52:31", categoryName: "파스타", menuName: "알리오올리오" },
-  { date: "2025-04-07", time: "12:34:42", categoryName: "파스타", menuName: "머쉬룸파스타" },
-  { date: "2025-04-06", time: "20:26:50", categoryName: "피자", menuName: "포테이토피자" },
-  { date: "2025-04-06", time: "06:49:10", categoryName: "파스타", menuName: "알리오올리오" },
-  { date: "2025-04-06", time: "06:16:14", categoryName: "파스타", menuName: "알리오올리오" },
-  { date: "2025-04-05", time: "19:58:13", categoryName: "파스타", menuName: "쉬림프로제" },
-];
 
-const flatList = [
-  { menuName: "알리오올리오", category: "파스타" },
-  { menuName: "쉬림프로제", category: "파스타" },
-  { menuName: "머쉬룸파스타", category: "파스타" },
-  { menuName: "크림치즈 파스타", category: "파스타" },
-  { menuName: "불고기피자", category: "피자" },
-  { menuName: "포테이토피자", category: "피자" },
-  { menuName: "쉬림프피자", category: "피자" },
-];
+const startDate = ref("");
+const endDate = ref("");
+
+watch([startDate, endDate], ([newStart, newEnd]) => {
+  if (newStart && newEnd) {
+    const start = new Date(newStart);
+    const end = new Date(newEnd);
+
+    if (start > end) {
+      console.warn("⚠️ 시작일이 종료일보다 늦습니다. API 호출하지 않음");
+      return;
+    }
+
+    fetchAndSetSalesData();
+  }
+});
+
+const salesData = ref([]);
+async function fetchAndSetSalesData() {
+  try {
+    const payload = {
+      startDate: startDate.value,
+      endDate: endDate.value,
+    };
+    console.log(payload);
+    const data = await api.SearchMenuSale(payload);
+    console.log("📦 받은 데이터:", data);
+
+    if (data !== 404) {
+      salesData.value = data.map((item) => {
+        const fullDate = new Date(item.date);
+        const date = fullDate.toISOString().slice(0, 10); // "YYYY-MM-DD"
+        const time = fullDate.toTimeString().slice(0, 8); // "HH:mm:ss"
+
+        return {
+          date,
+          time,
+          categoryName: item.category,
+          menuName: item.menuName,
+          quantity: item.quantity,
+        };
+      });
+    } else {
+      console.error("❌ 판매 데이터를 불러오지 못했습니다.");
+    }
+  } catch (error) {
+    console.error("🔥 에러 발생:", error);
+  }
+}
+
+const flatList = ref([]);
+async function fetchAndSetFlatList() {
+  const data = await api.SearchMenuList();
+
+  if (data !== 404) {
+    flatList.value = data.map((item) => ({
+      menuName: item.menuName,
+      category: item.category,
+    }));
+  } else {
+    console.error("❌ 메뉴 데이터를 불러오지 못했습니다.");
+  }
+}
+
+onMounted(() => {
+  fetchAndSetFlatList(); // ✅ 마운트 시 실행
+});
 
 const filteredList = computed(() => {
   const query = keyword.value.trim();
-  if (!query) return flatList;
+  if (!query) return flatList.value;
 
-  return flatList.filter((item) => item.menuName.includes(query));
+  return flatList.value.filter((item) => item.menuName.includes(query));
 });
 
 // 달력 관련 데이터
-const startDate = ref("");
-const endDate = ref("");
 const showByMonth = computed(() => {
   if (!startDate.value || !endDate.value) return false;
 
@@ -98,12 +103,10 @@ const periodSales = computed(() => {
   const end = new Date(endDate.value);
 
   // 날짜 범위에 해당하는 데이터 필터링
-  const filteredSales = salesData.filter((item) => {
+  const filteredSales = salesData.value.filter((item) => {
     const itemDate = new Date(item.date);
     return itemDate >= start && itemDate <= end;
   });
-  console.log(filteredSales);
-
   // 키워드 필터링
   const filteredMenu = filteredSales.filter((item) => {
     return !query || item.menuName.includes(query);
@@ -311,7 +314,7 @@ const chartOptions = computed(() => {
                   >
                     <td>{{ showByMonth ? item.date : item.time }}</td>
                     <td>{{ item.menuName }}</td>
-                    <td>1</td>
+                    <td>{{ item.quantity }}</td>
                   </tr>
                 </template>
 
