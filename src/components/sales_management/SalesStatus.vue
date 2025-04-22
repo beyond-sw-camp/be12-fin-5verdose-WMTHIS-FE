@@ -5,6 +5,7 @@ import { api } from '@/api/index';
 const currentCarousel = ref(0);
 const xaxisCategories = ref([]);
 const series = ref([]);
+const bestMenuList = ref([]);
 
 const chartOptions = ref({
     chart: {
@@ -13,7 +14,14 @@ const chartOptions = ref({
         toolbar: { show: false },
     },
     xaxis: {
-        categories: xaxisCategories.value, // xaxis를 time으로 설정
+        categories: xaxisCategories.value,
+        min: 0,
+        tickAmount: 24, // 0~23시간 기준이면 24칸
+        labels: {
+            show: true,
+            step: 1, // 1단위로 레이블 표시
+            formatter: (value) => `${Math.floor(value)}시`,
+        },
     },
     plotOptions: {
         bar: {
@@ -33,24 +41,33 @@ const chartOptions = ref({
 
 const getTodaySales = async () => {
     try {
-        // API 호출 (예: axios 사용)
+        // API 호출
         const response = await api.getTodaySales();
 
         if (response) {
             const salesData = response.data;
 
             // xaxis와 series 데이터 업데이트
-            xaxisCategories.value = salesData.orderTodayTimeList.map((entry) => entry.time);
+            xaxisCategories.value = salesData.orderTodayTimeList.map((entry) => entry.time); // 숫자 배열 유지
             series.value = [
                 {
                     name: '홀',
-                    data: salesData.orderTodayTimeList.map((entry) => entry.timeHall),
+                    data: salesData.orderTodayTimeList.map((entry) => ({
+                        x: entry.time, // x축 값
+                        y: entry.timeHall, // y축 값
+                    })),
                 },
                 {
                     name: '배달',
-                    data: salesData.orderTodayTimeList.map((entry) => entry.timeDelivery),
+                    data: salesData.orderTodayTimeList.map((entry) => ({
+                        x: entry.time, // x축 값
+                        y: entry.timeDelivery, // y축 값
+                    })),
                 },
             ];
+
+            console.log('xaxisCategories:', xaxisCategories.value);
+            console.log('series:', series.value);
         } else {
             console.error('API 호출 실패:', response.message);
         }
@@ -59,6 +76,24 @@ const getTodaySales = async () => {
     }
 };
 
+const getBestMenu = async () => {
+    try {
+        // API 호출
+        const response = await api.getBestTop3(); // 실제 API 엔드포인트로 변경
+
+        if (response) {
+            const data = response.data;
+
+            // bestMenuList 배열 업데이트
+            bestMenuList.value = [data.top1, data.top2, data.top3];
+        } else {
+            console.error('API 호출 실패:', response.message);
+        }
+    } catch (error) {
+        console.error('API 호출 중 오류 발생:', error);
+    }
+};
+getBestMenu();
 getTodaySales();
 
 const summaries = [
@@ -153,16 +188,16 @@ const summaries = [
         <v-col cols="12" md="3">
             <div class="best_menu_title">이번 주 메뉴 TOP 3</div>
             <div class="best_menu_item">
-                <img src="@/assets/image/1st.png" alt="만료임박 아이콘" class="best_menu_icon" />
-                <div class="best_menu_list">토마토 파스타</div>
+                <img src="@/assets/image/1st.png" alt="1등 아이콘" class="best_menu_icon" />
+                <div class="best_menu_list">{{ bestMenuList[0] }}</div>
             </div>
             <div class="best_menu_item">
                 <div class="best_menu_rank">2</div>
-                <div class="best_menu_list">불고기 필라프</div>
+                <div class="best_menu_list">{{ bestMenuList[1] }}</div>
             </div>
             <div class="best_menu_item">
                 <div class="best_menu_rank">3</div>
-                <div class="best_menu_list">로제 파스타</div>
+                <div class="best_menu_list">{{ bestMenuList[2] }}</div>
             </div>
         </v-col>
     </v-row>

@@ -287,7 +287,17 @@ export const api = {
       .get("order/todaySales")
       .then((res) => res.data)
       .catch((error) => {
-        console.error("Error in submitOrder:", error);
+        console.error("Error in TodaySales:", error);
+        throw error;
+      });
+  },
+
+  getBestTop3() {
+    return instance
+      .get("order/weekbestmenu")
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error in Top3Menu(week):", error);
         throw error;
       });
   },
