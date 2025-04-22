@@ -138,4 +138,19 @@ export const marketApi = {
         return false;
       });
   },
+  confirmDelivery(purchaseId) {
+    console.log("confirmDelivery purchaseId:", purchaseId);
+    return instance
+      .put("/market/confirm", null, {
+        params: { purchaseId },
+      })
+      .then((res) => {
+        console.log("confirmDelivery res", res);
+        return res.data.code === 200; // 성공 여부 반환
+      })
+      .catch((error) => {
+        console.error("Error in confirmDelivery:", error);
+        return false;
+      });
+  },
 };
