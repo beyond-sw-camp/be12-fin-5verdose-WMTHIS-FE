@@ -1,35 +1,49 @@
 <script setup>
-import { defineProps, defineEmits, ref, computed } from 'vue';
+import { marketApi } from "@/api/MarketApi.js";
+import { defineProps, defineEmits, ref, watch } from 'vue';
 
 const props = defineProps({
+    saleId: Number,
     isOpen: Boolean,
     productName: {
         type: String,
         default: ''
-    }
+    },
+    items: {
+        type: Object,
+        required: true,
+    },
 });
+
+const methodMap = {
+    "cash": "만나서결제",
+    "credit_card": "카드결제",
+};
 const handleOverlayClick = () => {
     emit('close');
 };
 const emit = defineEmits(['close']);
 
 // 샘플 요청 데이터
-const requestItems = ref([
-    { id: 1, quantity: '1kg', amount: '3000원', paymentMethod: '카드', store: '포마 김밥' },
-    { id: 2, quantity: '0.9kg', amount: '2300원', paymentMethod: '만나서 결제', store: '양은이네' },
-    { id: 3, quantity: '2kg', amount: '6300원', paymentMethod: '카드', store: '포마토김밥' },
-    { id: 4, quantity: '1.2kg', amount: '3000원', paymentMethod: '만나서 결제', store: '포레포레' },
-    { id: 5, quantity: '1.4kg', amount: '2900원', paymentMethod: '카드', store: '모스키친' },
-]);
+const requestItems = ref([]);
 
 // 요청 처리 함수
-const handleApprove = (id) => {
+const handleApprove = async (id) => {
+    await marketApi.approvePurchase(props.saleId, id);
     alert(`ID ${id} 요청을 승인했습니다.`);
 };
 
-const handleReject = (id) => {
+const handleReject = async (id) => {
+    await marketApi.rejectPurchase(id);
     alert(`ID ${id} 요청을 거절했습니다.`);
 };
+const setItems = (items) => {
+    requestItems.value = items;
+}
+watch(() => props.items, (newItems) => {
+    console.log('새로 받은 아이템:', newItems);
+    if (newItems) setItems(newItems);
+});
 </script>
 
 <template>
@@ -56,12 +70,12 @@ const handleReject = (id) => {
                     <tbody>
                         <tr v-for="item in requestItems" :key="item.id">
                             <td>{{ item.quantity }}</td>
-                            <td>{{ item.amount }}</td>
-                            <td>{{ item.paymentMethod }}</td>
-                            <td>{{ item.store }}</td>
+                            <td>{{ item.price }}</td>
+                            <td>{{ methodMap[item.method] }}</td>
+                            <td>{{ item.buyerStoreName }}</td>
                             <td class="action_buttons">
-                                <button class="approve_btn" @click="handleApprove(item.id)">✓</button>
-                                <button class="reject_btn" @click="handleReject(item.id)">✗</button>
+                                <button class="approve_btn" @click="handleApprove(item.inventoryPurchaseId)">✓</button>
+                                <button class="reject_btn" @click="handleReject(item.inventoryPurchaseId)">✗</button>
                             </td>
                         </tr>
                     </tbody>
