@@ -181,14 +181,14 @@ routes.beforeEach(async (to, from, next) => {
       console.log("API 호출 실패");
       return next("/account/login");
     }
-    if (response.code === 2001) {
+    if (response.code === 1015) {
       // 발급된 토큰이 없거나 만료된 경우
       return next("/account/login");
-    } else if (response.code === 2002) {
+    } else if (response.code === 1016) {
       // 발급된 토큰에 가게 정보가 없는 경우
       return next("/account/register");
-    } else if (response.code === 2003) {
-      // 발급된 토큰이 유효하지 않은 경우
+    } else if (response.code === 1017) {
+      // 발급된 토큰에 유저정보가 없을때
       return next("/account/login");
     }
     // 정상적인 경우
