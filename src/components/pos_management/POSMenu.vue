@@ -150,8 +150,7 @@ const total_quantity = computed(() => {
 
 const total_price = computed(() => {
     return orderList.value.reduce((sum, item) => {
-        const optionsPrice = item.options ? item.options.reduce((optSum, opt) => optSum + opt.price, 0) : 0;
-        return sum + ((item.price + optionsPrice) * item.quantity);
+        return sum + (item.price * item.quantity);
     }, 0);
 });
 
@@ -178,10 +177,8 @@ const closeModal = () => {
 const addOrder = (newOrder) => {
     const existingOrder = orderList.value.find(order =>
         order.id === newOrder.id &&
-        order.options.length === newOrder.options.length &&
-        order.options.every((opt, index) =>
-            opt.label === newOrder.options[index].label && opt.price === newOrder.options[index].price
-        )
+        order.optionIds.length === newOrder.optionIds.length &&
+        order.optionIds.every((id, index) => id === newOrder.optionIds[index])
     );
 
     if (existingOrder) {
@@ -321,7 +318,7 @@ const processPayment = () => {
                         </div>
 
                         <div v-if="order.options && order.options.length">
-                            <ul>
+                            <ul v-if="order.options && order.options.length">
                                 <li v-for="opt in order.options" :key="opt.label">
                                     <span>{{ `${opt.label} (+${opt.price.toLocaleString()}원)` }}</span>
                                 </li>

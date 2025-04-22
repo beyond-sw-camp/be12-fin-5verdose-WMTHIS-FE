@@ -85,8 +85,7 @@ const getTableTotal = (orders) => {
     if (!orders || orders.length === 0) return 0;
 
     return orders.reduce((sum, order) => {
-        const optionsPrice = order.options ? order.options.reduce((optSum, opt) => optSum + opt.price, 0) : 0;
-        return sum + ((order.price + optionsPrice) * order.quantity);
+        return sum + (order.price * order.quantity);
     }, 0);
 };
 

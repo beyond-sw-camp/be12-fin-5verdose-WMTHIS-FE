@@ -276,4 +276,64 @@ export const api = {
         return false;
       });
   },
+
+  posOrder(data) {
+    return instance
+      .post("/order/create", data) // 주문 제출 API 엔드포인트
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error in submitOrder:", error);
+        throw error;
+      });
+  },
+
+  getTodaySales() {
+    return instance
+      .get("order/todaySales")
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error in TodaySales:", error);
+        throw error;
+      });
+  },
+
+  getBestTop3() {
+    return instance
+      .get("order/weekbestmenu")
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error in Top3Menu(week):", error);
+        throw error;
+      });
+  },
+
+  async SearchMonthSales(yearMonthData) {
+    try {
+      const res = await instance.post(`/order/monthSales`, yearMonthData);
+
+      if (res.data.code === 200) {
+        return res.data.data; // 데이터를 반환
+      } else {
+        return 404; // 오류 처리
+      }
+    } catch (error) {
+      console.error("Error in searchMonthSales:", error);
+      return 404; // 오류 처리
+    }
+  },
+
+  async SearchSaleDetail(PeroidRange) {
+    try {
+      const res = await instance.post(`/order/saleDetail`, PeroidRange);
+
+      if (res.data.code === 200) {
+        return res.data.data; // 데이터를 반환
+      } else {
+        return 404; // 오류 처리
+      }
+    } catch (error) {
+      console.error("Error in searchMonthSales:", error);
+      return 404; // 오류 처리
+    }
+  },
 };

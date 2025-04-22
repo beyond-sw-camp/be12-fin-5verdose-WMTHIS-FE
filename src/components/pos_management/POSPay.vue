@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { api } from '@/api/index.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -11,12 +12,26 @@ const orderInfo = ref({
     deliveryService: ''
 });
 
+
 onMounted(() => {
     try {
         // 주문 정보 가져오기
         if (route.query.orders) {
-            orderList.value = JSON.parse(route.query.orders);
+            orderList.value = JSON.parse(route.query.orders).map((item) => ({
+                ...item,
+                basePrice: item.basePrice || item.price,
+                optionIds: item.optionIds || [], // optionIds 초기화
+                options: item.options || [], // options 초기화
+            }));
         }
+
+        // 로컬스토리지에서 옵션 데이터 가져오기
+        const storedOptions = JSON.parse(localStorage.getItem('selected_options') || '{}');
+        orderList.value.forEach(order => {
+            if (storedOptions[order.id]) {
+                order.optionIds = storedOptions[order.id]; // 옵션 ID만 반영
+            }
+        });
 
         // 주문 타입 정보 가져오기 (테이블 또는 배달)
         const orderType = localStorage.getItem('order_type');
@@ -24,13 +39,13 @@ onMounted(() => {
             orderInfo.value = {
                 type: 'table',
                 tableId: localStorage.getItem('selected_table_id'),
-                deliveryService: ''
+                deliveryService: '',
             };
         } else if (orderType === 'delivery') {
             orderInfo.value = {
                 type: 'delivery',
                 tableId: null,
-                deliveryService: localStorage.getItem('delivery_service')
+                deliveryService: localStorage.getItem('delivery_service'), // baemin, yogiyo, coupang 중 하나
             };
         }
     } catch (error) {
@@ -47,8 +62,7 @@ const total_quantity = computed(() => {
 // 총 가격 계산
 const total_price = computed(() => {
     return orderList.value.reduce((sum, item) => {
-        const optionsPrice = item.options ? item.options.reduce((optSum, opt) => optSum + opt.price, 0) : 0;
-        return sum + ((item.price + optionsPrice) * item.quantity);
+        return sum + (item.price * item.quantity);
     }, 0);
 });
 
@@ -61,21 +75,54 @@ const selectPayment = (method) => {
 };
 
 // 결제 처리
-const processPayment = () => {
+const processPayment = async () => {
+    console.log('Order List:', orderList.value);
+
     if (!selectedPayment.value) {
         alert('결제 방법을 선택해주세요.');
         return;
     }
 
-    // 결제 완료 후 테이블 초기화
-    if (orderInfo.value.type === 'table') {
-        clearTableOrders(orderInfo.value.tableId);
-    } else if (orderInfo.value.type === 'delivery') {
-        clearDeliveryOrders(orderInfo.value.deliveryService);
-    }
+    // 주문 데이터를 구성
+    const requestData = {
+        tableNumber: orderInfo.value.type === 'table' ? orderInfo.value.tableId : null,
+        orderType: orderInfo.value.type === 'table' ? 'hall' : orderInfo.value.deliveryService,
+        orderMenus: orderList.value.map((item) => ({
+            menuId: item.id,
+            quantity: item.quantity,
+            price: item.basePrice,
+            optionIds: item.optionIds || [], // optionIds가 없으면 빈 배열로 처리
+        })),
+    };
 
-    alert(`${selectedPayment.value} 방식으로 ${total_price.value.toLocaleString()}원 결제가 완료되었습니다.`);
-    router.push('/pos');
+    console.log('Request Data:', requestData); // 디버깅용 로그 추가
+
+    try {
+        // 서버로 데이터 전송
+        const response = await api.posOrder(requestData);
+
+        if (response) {
+            alert(`${selectedPayment.value} 방식으로 ${total_price.value.toLocaleString()}원 결제가 완료되었습니다.`);
+
+            // 결제 완료 후 주문 초기화
+            if (orderInfo.value.type === 'table') {
+                clearTableOrders(orderInfo.value.tableId); // 테이블 주문 초기화
+            } else if (orderInfo.value.type === 'delivery') {
+                clearDeliveryOrders(orderInfo.value.deliveryService); // 배달 주문 초기화
+            }
+
+            // 결제 완료 후 로컬스토리지 초기화
+            localStorage.removeItem('selected_options');
+
+            // 결제 완료 후 POS 화면으로 이동
+            router.push('/pos');
+        } else {
+            alert('결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+        }
+    } catch (error) {
+        console.error('결제 처리 중 오류:', error);
+        alert('결제 처리 중 오류가 발생했습니다.');
+    }
 };
 
 // 테이블 주문 초기화

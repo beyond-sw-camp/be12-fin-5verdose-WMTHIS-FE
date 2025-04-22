@@ -2,6 +2,9 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import SuccessModal from '@/components/alerts/SuccessModal.vue';
 import { api } from '@/api/index.js';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const isLoading = ref(false);
 // 사용자 정보 상태
@@ -193,6 +196,8 @@ const handleCancel = () => {
     isVerificationSent.value = false;
     verificationCode.value = '';
     clearInterval(timerInterval.value);
+
+    router.push('/');
 };
 
 // 성공 모달 닫기
@@ -268,7 +273,7 @@ onMounted(() => {
                                 :disabled="isLoading || (isVerificationSent && verificationTimer.value > 0)">
                                 <span v-if="isLoading">전송 중</span>
                                 <span v-else>{{ isVerificationSent && verificationTimer.value > 0 ? '재발송' : '인증번호 발송'
-                                }}</span>
+                                    }}</span>
                             </button>
                         </div>
                     </div>
