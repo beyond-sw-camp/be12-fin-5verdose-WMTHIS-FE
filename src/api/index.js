@@ -11,7 +11,7 @@ const instance = axios.create({
 export const api = {
   verify(data) {
     const verfiyRes = instance.post("/verify", data);
-    if (verifyRes.data === "success") {
+    if (verfiyRes.data === "success") {
       return true; // 결제 검증 성공
     } else {
       return false; // 결제 검증 실패
@@ -149,10 +149,7 @@ export const api = {
     console.log("updateInventory storeInventoryData", storeInventoryData);
 
     try {
-      const res = instance.put(
-        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
-        storeInventoryData
-      );
+      const res = instance.put(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
       console.log("updateRes", res);
       console.log("code:", res.data.code);
 
@@ -169,10 +166,7 @@ export const api = {
 
   async SearchInventory(storeInventoryData) {
     try {
-      const res = await instance.get(
-        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
-        storeInventoryData
-      );
+      const res = await instance.get(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
       console.log("searchRes", res);
       console.log("code:", res.data.code);
 
@@ -270,5 +264,35 @@ export const api = {
         console.error("Error in updateUserInfo:", error);
         return false;
       });
+  },
+
+  async SearchMonthSales(yearMonthData) {
+    try {
+      const res = await instance.post(`/order/monthSales`, yearMonthData);
+
+      if (res.data.code === 200) {
+        return res.data.data; // 데이터를 반환
+      } else {
+        return 404; // 오류 처리
+      }
+    } catch (error) {
+      console.error("Error in searchMonthSales:", error);
+      return 404; // 오류 처리
+    }
+  },
+
+  async SearchSaleDetail(PeroidRange) {
+    try {
+      const res = await instance.post(`/order/saleDetail`, PeroidRange);
+
+      if (res.data.code === 200) {
+        return res.data.data; // 데이터를 반환
+      } else {
+        return 404; // 오류 처리
+      }
+    } catch (error) {
+      console.error("Error in searchMonthSales:", error);
+      return 404; // 오류 처리
+    }
   },
 };
