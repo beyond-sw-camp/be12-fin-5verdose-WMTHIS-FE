@@ -266,6 +266,16 @@ export const api = {
       });
   },
 
+  posOrder(data) {
+    return instance
+      .post("/order/create", data) // 주문 제출 API 엔드포인트
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error in submitOrder:", error);
+        throw error;
+      });
+  },
+  
   async SearchMonthSales(yearMonthData) {
     try {
       const res = await instance.post(`/order/monthSales`, yearMonthData);
