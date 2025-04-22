@@ -336,4 +336,79 @@ export const api = {
       return 404; // 오류 처리
     }
   },
+
+  async SearchMenuList() {
+    try {
+      const res = await instance.get(`/menu/menuList`);
+
+      if (res.data.code === 200) {
+        return res.data.data; // 데이터를 반환
+      } else {
+        return 404; // 오류 처리
+      }
+    } catch (error) {
+      console.error("Error in searchMonthSales:", error);
+      return 404; // 오류 처리
+    }
+  },
+
+  async SearchMenuSale(PeroidRange) {
+    try {
+      const res = await instance.post(`/menu/menuSale`, PeroidRange);
+
+      if (res.data.code === 200) {
+        return res.data.data; // 데이터를 반환
+      } else {
+        return 404; // 오류 처리
+      }
+    } catch (error) {
+      console.error("Error in searchMonthSales:", error);
+      return 404; // 오류 처리
+    }
+  },
+
+  async SearchStockList() {
+    try {
+      const res = await instance.get(`/inventory/inventoryList`);
+
+      if (res.data.code === 200) {
+        return res.data.data; // 데이터를 반환
+      } else {
+        return 404; // 오류 처리
+      }
+    } catch (error) {
+      console.error("Error in searchMonthSales:", error);
+      return 404; // 오류 처리
+    }
+  },
+
+  async SearchInventorySale(PeroidRange) {
+    try {
+      const res = await instance.post(`/inventory/menuSale`, PeroidRange);
+
+      if (res.data.code === 200) {
+        return res.data.data; // 데이터를 반환
+      } else {
+        return 404; // 오류 처리
+      }
+    } catch (error) {
+      console.error("Error in searchMonthSales:", error);
+      return 404; // 오류 처리
+    }
+  },
+
+  async SearchInventoryMarket(PeroidRange) {
+    try {
+      const res = await instance.post(`/inventory/marketSale`, PeroidRange);
+
+      if (res.data.code === 200) {
+        return res.data.data; // 데이터를 반환
+      } else {
+        return 404; // 오류 처리
+      }
+    } catch (error) {
+      console.error("Error in searchMonthSales:", error);
+      return 404; // 오류 처리
+    }
+  },
 };
