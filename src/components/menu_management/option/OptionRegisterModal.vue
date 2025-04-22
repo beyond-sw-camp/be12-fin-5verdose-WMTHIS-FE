@@ -26,7 +26,7 @@ const loadCategories = async () => {
     if (result) {
         categoryList.value = result;
     } else {
-        alert("카테고리 목록을 불러오는 데 실패했습니다.");
+        console.log("카테고리 목록을 불러오는 데 실패했습니다.");
     }
 };
 

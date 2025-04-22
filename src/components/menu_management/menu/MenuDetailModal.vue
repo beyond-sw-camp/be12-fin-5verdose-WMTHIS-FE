@@ -34,7 +34,7 @@ const loadCategories = async () => {
     if (result) {
         categoryList.value = result.content;
     } else {
-        alert("카테고리 목록을 불러오는 데 실패했습니다.");
+        console("카테고리 목록을 불러오는 데 실패했습니다.");
     }
 };
 
@@ -98,7 +98,7 @@ const registerMenu = async () => {
         const response = await api.updateMenu(data); // API 호출
         console.log('API 응답:', response);
         if (response) {
-
+            emit('refresh');
             emit('close'); // 모달 닫기
         } else {
             alert('메뉴 등록에 실패했습니다. 다시 시도해주세요.');
@@ -117,7 +117,7 @@ const getStoreInventoryList = async () => {
         }));
         console.log('재고 목록:', ingredientOptions.value);
     } else {
-        alert("재고 목록을 불러오는 데 실패했습니다.");
+        console.log("재고 목록을 불러오는 데 실패했습니다.");
     }
 };
 
