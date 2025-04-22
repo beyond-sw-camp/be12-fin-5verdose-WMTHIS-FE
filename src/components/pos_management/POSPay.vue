@@ -19,7 +19,9 @@ onMounted(() => {
         if (route.query.orders) {
             orderList.value = JSON.parse(route.query.orders).map((item) => ({
                 ...item,
-                optionIds: [], // optionIds 초기화
+                basePrice: item.basePrice || item.price,
+                optionIds: item.optionIds || [], // optionIds 초기화
+                options: item.options || [], // options 초기화
             }));
         }
 
@@ -60,8 +62,7 @@ const total_quantity = computed(() => {
 // 총 가격 계산
 const total_price = computed(() => {
     return orderList.value.reduce((sum, item) => {
-        const optionsPrice = item.options ? item.options.reduce((optSum, opt) => optSum + opt.price, 0) : 0;
-        return sum + ((item.price + optionsPrice) * item.quantity);
+        return sum + (item.price * item.quantity);
     }, 0);
 });
 
@@ -77,7 +78,6 @@ const selectPayment = (method) => {
 const processPayment = async () => {
     console.log('Order List:', orderList.value);
 
-
     if (!selectedPayment.value) {
         alert('결제 방법을 선택해주세요.');
         return;
@@ -90,7 +90,7 @@ const processPayment = async () => {
         orderMenus: orderList.value.map((item) => ({
             menuId: item.id,
             quantity: item.quantity,
-            price: item.price,
+            price: item.basePrice,
             optionIds: item.optionIds || [], // optionIds가 없으면 빈 배열로 처리
         })),
     };
@@ -101,8 +101,15 @@ const processPayment = async () => {
         // 서버로 데이터 전송
         const response = await api.posOrder(requestData);
 
-        if (response && response.code === 200) {
+        if (response) {
             alert(`${selectedPayment.value} 방식으로 ${total_price.value.toLocaleString()}원 결제가 완료되었습니다.`);
+
+            // 결제 완료 후 주문 초기화
+            if (orderInfo.value.type === 'table') {
+                clearTableOrders(orderInfo.value.tableId); // 테이블 주문 초기화
+            } else if (orderInfo.value.type === 'delivery') {
+                clearDeliveryOrders(orderInfo.value.deliveryService); // 배달 주문 초기화
+            }
 
             // 결제 완료 후 로컬스토리지 초기화
             localStorage.removeItem('selected_options');

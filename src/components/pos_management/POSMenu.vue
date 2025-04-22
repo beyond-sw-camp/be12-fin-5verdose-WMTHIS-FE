@@ -150,8 +150,7 @@ const total_quantity = computed(() => {
 
 const total_price = computed(() => {
     return orderList.value.reduce((sum, item) => {
-        const optionsPrice = item.options ? item.options.reduce((optSum, opt) => optSum + opt.price, 0) : 0;
-        return sum + ((item.price + optionsPrice) * item.quantity);
+        return sum + (item.price * item.quantity);
     }, 0);
 });
 

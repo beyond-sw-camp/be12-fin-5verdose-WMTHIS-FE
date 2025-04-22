@@ -66,6 +66,7 @@ const closeAndConfirm = () => {
     const orderData = {
         id: props.selectedItem.id,
         name: props.selectedItem.name,
+        basePrice: props.selectedItem.price,
         price: props.selectedItem.price + totalOptionPrice, // 기본 가격 + 옵션 가격
         quantity: 1,
         optionIds: selectedOptions.map(opt => opt.id), // 선택된 옵션의 ID만 포함
