@@ -265,4 +265,34 @@ export const api = {
         return false;
       });
   },
+
+  async SearchMonthSales(yearMonthData) {
+    try {
+      const res = await instance.post(`/order/monthSales`, yearMonthData);
+
+      if (res.data.code === 200) {
+        return res.data.data; // 데이터를 반환
+      } else {
+        return 404; // 오류 처리
+      }
+    } catch (error) {
+      console.error("Error in searchMonthSales:", error);
+      return 404; // 오류 처리
+    }
+  },
+
+  async SearchSaleDetail(PeroidRange) {
+    try {
+      const res = await instance.post(`/order/saleDetail`, PeroidRange);
+
+      if (res.data.code === 200) {
+        return res.data.data; // 데이터를 반환
+      } else {
+        return 404; // 오류 처리
+      }
+    } catch (error) {
+      console.error("Error in searchMonthSales:", error);
+      return 404; // 오류 처리
+    }
+  },
 };
