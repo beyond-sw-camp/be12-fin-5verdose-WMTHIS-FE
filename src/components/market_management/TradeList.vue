@@ -1,19 +1,33 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import TradeRequestModal from './TradeRequestModal.vue';
-import axios from 'axios';
+import { marketApi } from '@/api/MarketApi';
 import { api } from '@/api';
 
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
 
+const statusMap = {
+    available: '판매중',
+    waiting: '요청확인',
+    delivery: '배송중',
+    sold: '거래완료',
+    cancelled: '거래취소'
+};
+
+const form = ref({
+
+})
+
 // 상태
 const showRequestListModal = ref(false);
-const selectedProduct = ref('');
+const selectedProductId = ref('');
+
+const selectedProductName = ref('');
 const tradeType = ref('전체');
 const startDate = ref('');
 const endDate = ref('');
@@ -28,6 +42,7 @@ const tradeTypes = ['전체', '판매', '구매'];
 const showModal = ref(false);
 const modalMessage = ref('');
 const currentItemIndex = ref(null);
+const responseItem = ref([]);
 
 const toggleDropdown = () => {
     isOpen.value = !isOpen.value;
@@ -44,44 +59,25 @@ const toggleSortOrder = () => {
 };
 
 // 샘플 거래 데이터
-const trade_items = ref([
-    {
-        type: '판매',
-        product: '양파',
-        price: 1000,
-        quantity: 5,
-        status: '요청확인',
-        date: '2025-04-07',
-        store: '신림분식'
-    },
-    {
-        type: '구매',
-        product: '마늘',
-        price: 1500,
-        quantity: 2,
-        status: '결제하기',
-        date: '2025-04-06',
-        store: '상도파스타'
-    },
-    {
-        type: '구매',
-        product: '파슬리',
-        price: 700,
-        quantity: 1,
-        status: '거래완료',
-        date: '2025-04-04',
-        store: '상도파스타'
-    },
-]);
+const trade_items = ref([]);
 
-const handleButtonClick = (status, index) => {
+const handleButtonClick = async (status, index) => {
     currentItemIndex.value = index;
 
     if (status === '배송확정') {
         modalMessage.value = '배송을 확정하시겠습니까?';
         showModal.value = true;
     } else if (status === '요청확인') {
-        selectedProduct.value = trade_items.value[index].product;
+        selectedProductId.value = trade_items.value[index].inventorySaleId;
+        selectedProductName.value = trade_items.value[index].name;
+        console.log(index);
+        console.log(selectedProductId.value);
+        const response = await marketApi.getPurchaseList(selectedProductId.value);
+        console.log(response);
+        responseItem.value = response.map(item => ({
+            ...item,
+        }));
+        console.log(responseItem.value);
         showRequestListModal.value = true;
     } else {
         modalMessage.value = '결제를 진행하시겠습니까?';
@@ -121,8 +117,8 @@ const filteredItems = computed(() => {
                 (!end || itemDate.isSameOrBefore(end));
         })
         .sort((a, b) => {
-            const dateA = dayjs(a.date);
-            const dateB = dayjs(b.date);
+            const dateA = dayjs(a.createdAt);
+            const dateB = dayjs(b.createdAt);
             return sortOrder.value === 'asc' ? dateA.diff(dateB) : dateB.diff(dateA);
         });
 });
@@ -175,6 +171,27 @@ const runPayment = (item, onSuccess) => {
         }
     });
 };
+const getTransactionList = async () => {
+    const response = await marketApi.getTransactionList();
+    if (!response) {
+
+    } else {
+        const code = response.code;
+        if (code === 200) {
+            trade_items.value = response.data.map(item => ({
+                ...item,
+            }));
+
+            console.log(trade_items.value);
+        } else {
+
+        }
+    }
+}
+onMounted(() => {
+    // 초기화 작업
+    getTransactionList();
+});
 
 </script>
 
@@ -229,19 +246,19 @@ const runPayment = (item, onSuccess) => {
             </thead>
             <tbody>
                 <tr v-for="(item, index) in filteredItems" :key="index">
-                    <td>{{ item.type }}</td>
-                    <td class="bold_text">{{ item.product }}</td>
+                    <td>{{ item.type ? '판매' : '구매' }}</td>
+                    <td class="bold_text">{{ item.name }}</td>
                     <td>{{ item.price.toLocaleString() }}원</td>
-                    <td>{{ item.quantity }}개</td>
+                    <td>{{ item.quantity }}</td>
                     <td>
-                        <button v-if="['요청확인', '결제하기', '배송확정'].includes(item.status)"
-                            @click="handleButtonClick(item.status, index)" class="detail_btn">
-                            {{ item.status }}
+                        <button v-if="['요청확인', '결제하기', '배송확정'].includes(statusMap[item.status])"
+                            @click="handleButtonClick(statusMap[item.status], index)" class="detail_btn">
+                            {{ statusMap[item.status] }}
                         </button>
-                        <span v-else>{{ item.status }}</span>
+                        <span v-else>{{ statusMap[item.status] }}</span>
                     </td>
-                    <td>{{ item.date }}</td>
-                    <td>{{ item.store }}</td>
+                    <td>{{ item.createdAt }}</td>
+                    <td>{{ item.otherStoreName }}</td>
                 </tr>
             </tbody>
         </table>
@@ -259,8 +276,8 @@ const runPayment = (item, onSuccess) => {
     </div>
 
     <!-- 요청 목록 모달 - 별도 컴포넌트로 분리 -->
-    <TradeRequestModal :isOpen="showRequestListModal" :productName="selectedProduct"
-        @close="showRequestListModal = false" />
+    <TradeRequestModal :isOpen="showRequestListModal" :productName="selectedProductName" :items="responseItem"
+        :saleId="selectedProductId" @close="showRequestListModal = false" />
 </template>
 
 

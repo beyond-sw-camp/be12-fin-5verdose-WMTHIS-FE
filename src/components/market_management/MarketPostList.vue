@@ -15,7 +15,7 @@ dayjs.locale('ko');
 const startDate = ref('');
 const endDate = ref('');
 const selectedSaleId = ref('');
-const saleDetail = ref('');
+const saleDetail = ref({});
 
 const filteredItems = computed(() => {
     return [...menu_items.value]
@@ -69,71 +69,45 @@ const isDetailModalOpen = ref(false);
 //const openDetailModal = () => { isDetailModalOpen.value = true; };
 const closeDetailModal = () => { isDetailModalOpen.value = false; };
 
-const menu_items = ref([
-    {
-        product: "마늘",
-        quantity: 10,
-        expiration: "2025-04-15",
-        price: 1200,
-        date: "2025-04-07",
-        store: "신림분식"
-    },
-    {
-        product: "양파",
-        quantity: 8,
-        expiration: "2025-04-18",
-        price: 900,
-        date: "2025-04-06",
-        store: "신림분식"
-    },
-    {
-        product: "방울토마토",
-        quantity: 12,
-        expiration: "2025-04-14",
-        price: 2500,
-        date: "2025-04-07",
-        store: "상도파스타"
-    },
-    {
-        product: "파슬리",
-        quantity: 3,
-        expiration: "2025-04-20",
-        price: 700,
-        date: "2025-04-04",
-        store: "상도파스타"
-    }
-]);
+const menu_items = ref([]);
 
 const openDetailModal = async (item) => {
+
+    console.log(item);
     selectedSaleId.value = item.inventorySaleId;
+    console.log(selectedSaleId.value);
 
-    const response = await marketApi.getDetail(selectedSaleId.value);
+    const response = await marketApi.getInventorySaleDetail(selectedSaleId.value);
 
-    if(!response){
+    if (!response) {
 
     } else {
-        if(response.code === 200) {
+        if (response.code === 200) {
             saleDetail.value = response.data;
+            console.log(response);
+            console.log(saleDetail.value);
             isDetailModalOpen.value = true;
         }
 
     }
-} 
+}
 
-const fetchInventorySaleList = () => {
-    const response = marketApi.getInventorySaleList();
+const fetchInventorySaleList = async () => {
+    const response = await marketApi.getInventorySaleList();
 
     // 서버 에러일때
-    if(!response) {
-        
+    if (!response) {
+
     } else {
         const code = response.code;
-        if(code === 200) {
-            menu_items.value = response.content.map(item => ({
+        console.log(response.data);
+        if (code === 200) {
+            menu_items.value = response.data.map(item => ({
                 ...item,
             }))
-        } 
-    
+            console.log(menu_items.value);
+        }
+
     }
 }
 
@@ -190,7 +164,7 @@ onMounted(() => {
             <tbody>
                 <tr v-for="(item, index) in filteredItems" :key="index">
                     <td class="bold_text">{{ item.inventoryName }}</td>
-                    <td class="bold_text">{{ item.quantity }}개</td>
+                    <td class="bold_text">{{ item.quantity }}</td>
                     <td>{{ getDday(item.expirationDate) }}</td>
                     <td>{{ item.price.toLocaleString() }}원</td>
                     <td>{{ getRelativeDate(item.createdDate) }}</td>
@@ -201,7 +175,7 @@ onMounted(() => {
                 </tr>
             </tbody>
         </table>
-        <MyMapDetailModal  v-if="isDetailModalOpen" :item="saleDetail"  @close="closeDetailModal"/>
+        <MyMapDetailModal :isOpen="isDetailModalOpen" :item="saleDetail" @close="closeDetailModal" />
     </div>
 </template>
 
