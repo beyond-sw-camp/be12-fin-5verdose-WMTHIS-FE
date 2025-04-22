@@ -1,21 +1,35 @@
 <script setup>
 import { ref, watch } from "vue";
+import { marketApi } from "@/api/MarketApi.js";
 
+import dayjs from 'dayjs';
 const props = defineProps({
-  item: Object,
+  isOpen: Boolean,
+  item: {
+    type: Object,
+    required: true,
+  },
 });
 
+
+
 const form = ref({
+  inventorySaleId: "",
   name: "",
   storeName: "",
   price: "",
   quantity: "",
   description: "",
-  expirationDate: "",
-  createdAt: "",
+  expiryDate: "",
+  createdDate: "",
+  imageUrls: [],
   method: "만나서결제"
 });
 
+const methodMap = {
+  "만나서결제": "cash",
+  "카드결제": "credit_card"
+};
 
 const price = ref("");
 const quantity = ref("");
@@ -23,30 +37,34 @@ const description = ref("");
 const paymentMethod = ref("만나서결제");
 const emit = defineEmits(["close"]);
 
-watch(() => props.item, (newItem) => {
-  if (newItem) setItemData(newItem);
-}, { immediate: true });
 
 const setItemData = (item) => {
+  console.log("item" + item.value);
+  form.value.inventorySaleId = item.id;
   form.value.name = item.inventoryName;
   form.value.storeName = item.sellerStoreName;
   form.value.price = item.price;
   form.value.quantity = item.quantity;
   form.value.description = item.content;
+  form.value.expiryDate = item.expiryDate;
+  form.value.createdDate = item.createdDate;
+  form.value.imageUrls = item.imageUrls;
+  console.log(form.value);
 };
 
 // 구매 요청 보내고 닫기
 const sendTradeRequest = () => {
 
   const data = {
-    inventorySaleId: item, inventorySaleId,
-    inventoryName: item.inventoryName,
-    quantity: quantity.value,
-    price: price.value,
-    method: paymentMethod.value
+    inventorySaleId: form.value.inventorySaleId,
+    inventoryName: form.value.name,
+    quantity: form.value.quantity,
+    price: form.value.price,
+    method: methodMap[form.value.method] || "cash"
   }
+  console.log(data);
 
-  const response = marketApi.getInventorySaleList();
+  const response = marketApi.registerPurchase(data);
 
   // 서버 에러일때
   if (!response) {
@@ -59,76 +77,143 @@ const sendTradeRequest = () => {
     }
 
   }
+
+  handleClosePanel();
 }
+const getDday = (expirationDate) => {
+  const today = dayjs();
+  const exp = dayjs(expirationDate);
+  const diff = exp.diff(today, 'day');
+
+  if (diff > 0) return `D-${diff}`;
+  else if (diff === 0) return 'D-day';
+  else return `D+${Math.abs(diff)}`;
+};
 
 const handleClosePanel = () => {
   emit("close");
 };
+
+
+watch(() => props.item, (newItem) => {
+  console.log('새로 받은 아이템:', newItem);
+  if (newItem) setItemData(newItem);
+});
 </script>
 
 <template>
-  <div class="detail_modal">
-    <div class="title">
-      <h1 class="title_left">{{ form.value.name }}</h1>
-      <div class="title_right">
-        <button class="close_btn" @click="handleClosePanel"><img src="@/assets/image/xMark.png"
-            class="x_button" /></button>
-        <p class="title_store">{{ form.value.storeName }}</p>
-      </div>
-    </div>
-
-    <div class="price_quantity">
-      <div>
-        <label>희망가격 <span style="color: red">(필수)</span></label>
-        <div class="detail_message">구입 희망가격을 입력해주세요</div>
-      </div>
-      <div><input type="number" class="no_spinner number_insert" v-model="form.value.price" /> 원</div>
-    </div>
-
-    <div class="price_quantity">
-      <div>
-        <label>수량 <span style="color: red">(필수)</span></label>
-        <div class="detail_message">물품의 수량을 입력해주세요</div>
-      </div>
-      <div><input type="number" class="no_spinner number_insert" v-model="form.value.quantity" /> {{ item.unit }}</div>
-    </div>
-
-    <!-- 이미지 영역 -->
-    <div class="image_area">
-      <img :src="item.images[0]" alt="마늘 이미지" class="main_image" />
-      <div class="thumbnail_area">
-        <img :src="item.images[1]" alt="썸네일1" />
-        <img :src="item.images[2]" alt="썸네일2" />
-      </div>
-    </div>
-
-    <!-- 설명 -->
-    <div class="description_area">
-      <label>물품 설명</label>
-      <div class="description_item">{{ form.value.description }}</div>
-    </div>
-
-    <!-- 결제 방법 및 날짜 -->
-    <div class="payment_section">
-      <label>결제방법 <span style="color: red">(필수)</span></label>
-      <select v-model="form.value.method" class="method_select">
-        <option>만나서결제</option>
-        <option>계좌이체</option>
-      </select>
-      <div class="date_info">
-        <div>
-          유통기한<span>{{ form.value.expirationDate }} {{ item.expire }}</span>
+  <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')">
+    <div class="modal">
+      <div class="detail_modal">
+        <div class="title">
+          <h1 class="title_left">{{ form.name }}</h1>
+          <div class="title_right">
+            <button class="close_btn" @click="handleClosePanel"><img src="@/assets/image/xMark.png"
+                class="x_button" /></button>
+            <p class="title_store">{{ form.storeName }}</p>
+          </div>
         </div>
-        <div>
-          등록날짜<span>{{ form.value.createdAt }}</span>
+
+        <div class="price_quantity">
+          <div>
+            <label>희망가격 <span style="color: red">(필수)</span></label>
+            <div class="detail_message">구입 희망가격을 입력해주세요</div>
+          </div>
+          <div><input type="number" class="no_spinner number_insert" v-model="form.price" /> 원</div>
         </div>
+
+        <div class="price_quantity">
+          <div>
+            <label>수량 <span style="color: red">(필수)</span></label>
+            <div class="detail_message">물품의 수량을 입력해주세요</div>
+          </div>
+          <div><input type="number" class="no_spinner number_insert" v-model="form.quantity" /> {{ item.unit }}</div>
+        </div>
+
+        <!-- 이미지 영역 -->
+        <div class="image_area">
+          <img v-if="form.imageUrls.length" :src="form.imageUrls[0]" alt="대표 이미지" class="main_image" />
+          <div class="thumbnail_area">
+            <img v-for="(img, index) in form.imageUrls.slice(1)" :key="index" :src="img" :alt="`썸네일 ${index + 1}`" />
+          </div>
+        </div>
+
+        <!-- 설명 -->
+        <div class="description_area">
+          <label>물품 설명</label>
+          <div class="description_item">{{ form.description }}</div>
+        </div>
+
+        <!-- 결제 방법 및 날짜 -->
+        <div class="payment_section">
+          <label>결제방법 <span style="color: red">(필수)</span></label>
+          <select v-model="form.method" class="method_select">
+            <option>만나서결제</option>
+            <option>카드결제</option>
+          </select>
+          <div class="date_info">
+            <div>
+              유통기한<span>{{ form.expiryDate }} {{ getDday(form.expiryDate) }}</span>
+            </div>
+            <div>
+              등록날짜<span>{{ form.createdDate }}</span>
+            </div>
+          </div>
+        </div>
+        <button class="request_button" @click=sendTradeRequest>거래 요청</button>
       </div>
     </div>
-    <button class="request_button">거래 요청</button>
   </div>
 </template>
 
 <style scoped>
+.modal_overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: flex-end;
+  opacity: 0;
+  animation: fadeIn 0.3s forwards;
+  z-index: 2000;
+}
+
+/* 페이드인 효과 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  height: 100vh;
+  background: white;
+  border-left: 1px solid #ddd;
+  box-shadow: -5px 0 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  animation: slideIn 0.3s forwards;
+}
+
+/* 오른쪽에서 왼쪽으로 슬라이드 */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
 .title {
   display: flex;
   width: 100%;
@@ -171,8 +256,6 @@ const handleClosePanel = () => {
 .detail_modal {
   width: 520px;
   height: 750px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
   padding: 20px;
   box-sizing: border-box;
   overflow-y: auto;
