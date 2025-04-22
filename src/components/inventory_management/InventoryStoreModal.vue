@@ -1,31 +1,33 @@
 <script setup>
-import { defineProps, defineEmits, ref, watch } from "vue";
-import { useInventoryStore } from "@/stores/useInventoryStore";
+import { defineProps, defineEmits, ref, watch, onMounted } from "vue";
+import { useInventoryStore } from "@/stores/useInventoryStore"; // Pinia store\
 
 // props & emits
 const props = defineProps({
   isOpen: Boolean,
+  item: {
+    type: Object,
+    required: true,
+  },
 });
 const emit = defineEmits(["close", "registerInventory", "totalInventory"]);
 
-// pinia store
+// Pinia store
 const inventoryStore = useInventoryStore();
 const closeModal = () => {
   console.log("모달 닫기 호출됨");
   emit("close");
 };
+
 // 입력 필드 상태
 const name = ref("");
 const unit = ref("");
+const quantity = ref(0); // 재고 수량
 const miniquantity = ref(0);
 const unitCategory = ref("Kg");
-watch(
-  () => props.isOpen,
-  (newVal) => {
-    console.log("재고입고:", newVal);
-  },
-  { immediate: true }
-);
+const ingredients = ref([]); // 재료 목록을 저장할 변수
+const ingredient = ref(""); // 선택된 재료 (ingredient 변수 정의)
+
 // 유통기한 관련
 const selectedDays = ref("1");
 const isCustomInput = ref(false);
@@ -60,36 +62,52 @@ const disableCustomInput = () => {
   }
 };
 
-// 입고 처리
-const totalInventory = () => {
-  if (name.value && miniquantity.value > 0) {
-    console.log("입고 데이터:", {
-      name: name.value,
-      unit: unit.value,
-      miniquantity: miniquantity.value,
-      unitCategory: unitCategory.value,
-      expiration: isExpirationDifferent.value
-        ? customDays.value
-        : selectedDays.value,
-      quantity: miniquantity.value,
-    });
+// 등록 처리
+const totalInventory = async () => {
+  // 등록할 데이터 세팅
+  const storeInventoryData = {
+    storeInventoryId: ingredient.value.id,
+    quantity: quantity.value, // 예: "5", "10"
+    unit: unit.value, // 예: "100g", "1 Kg"
+    miniquantity: miniquantity.value,
+    expiryDate:
+      selectedDays.value === "custom" ? customDays.value : selectedDays.value,
+  };
+  console.log("등록할 재고 데이터:", storeInventoryData);
+  // 재고 등록 API 호출
+};
 
-    emit("totalInventory", {
-      name: name.value,
-      unit: unit.value,
-      miniquantity: miniquantity.value,
-      unitCategory: unitCategory.value,
-      expiration: isExpirationDifferent.value
-        ? customDays.value
-        : selectedDays.value,
-      quantity: miniquantity.value,
-    });
-
-    closeModal(); // 모달 닫기
-  } else {
-    console.error("입고 실패: 유효한 재고명과 수량을 입력하세요");
+const fetchIngredients = async () => {
+  try {
+    await inventoryStore.getInventoryList();
+    ingredients.value = inventoryStore.inventoryList.map((item) => ({
+      id: item.id,
+      name: item.name,
+      unit: item.unit,
+    }));
+    console.log("Fetched ingredients:", ingredients.value);
+  } catch (error) {
+    console.error("Error fetching ingredients:", error);
   }
 };
+
+// 모달이 열릴 때 재료 목록을 가져옴
+watch(
+  () => props.isOpen,
+  (newVal) => {
+    if (newVal) {
+      console.log("모달이 열렸습니다. 재료 목록을 가져옵니다.");
+      fetchIngredients(); // 재료 목록을 가져옴
+    }
+  },
+  { immediate: true }
+);
+onMounted(() => {
+  // 컴포넌트가 마운트될 때 재료 목록을 가져옴
+  console.log("Component mounted, fetching ingredients...");
+
+  fetchIngredients();
+});
 </script>
 
 <template>
@@ -106,13 +124,25 @@ const totalInventory = () => {
 
           <h2 class="modal_title">재고 입고</h2>
         </div>
-        <div class="input_group">
+        <!-- 재고명 영역 -->
+        <div class="input_group" style="flex: 1">
           <div class="modal_title2">
             <label>재고명</label>
             <p class="title_warn">(필수)</p>
           </div>
-          <p class="sub_title">상품의 정확한 이름을 입력해 주세요.</p>
-          <input type="text" v-model="name" placeholder="마늘" />
+          <p class="sub_title">판매할 재고명을 선택해주세요.</p>
+          <div class="unit-container">
+            <select
+              v-model="ingredient"
+              class="unit-select"
+              style="width: 200px"
+            >
+              <option value="" disabled>재고 선택</option>
+              <option v-for="item in ingredients" :key="item.id" :value="item">
+                {{ item.name }}
+              </option>
+            </select>
+          </div>
         </div>
 
         <div class="input_group">
@@ -124,16 +154,15 @@ const totalInventory = () => {
             <div class="unit_container">
               <input
                 type="text"
-                v-model="unit"
+                v-model="quantity"
                 placeholder="5"
                 class="min_qty_input"
               />
-              <select v-model="unitCategory" class="unit_select">
-                <option value="Kg">Kg</option>
-                <option value="g">g</option>
-                <option value="L">L</option>
-                <option value="ml">ml</option>
-              </select>
+              <div class="inventory_info">
+                <p>
+                  {{ ingredient.unit }}
+                </p>
+              </div>
             </div>
           </div>
           <p class="sub_title">현재 재고의 보유량을 입력해주세요.</p>
@@ -472,6 +501,13 @@ const totalInventory = () => {
   border: 1px solid #ccc;
   border-radius: 18px;
   font-size: 14px;
+}
+.inventory_info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 20px;
 }
 
 .input_group label {
