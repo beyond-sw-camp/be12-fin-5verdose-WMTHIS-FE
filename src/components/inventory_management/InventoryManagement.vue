@@ -376,11 +376,6 @@ const addInventoryItem = (item) => {
             </tr>
           </tbody>
         </table>
-        <InventoryCorrectionModal
-          v-if="modalType === 'correction'"
-          :isOpen="isModalOpen"
-          @close="closeModal"
-        />
         <InventoryParticularModal
           v-if="modalType === 'particular' && isModalOpen && selectedItem"
           :item="selectedItem"
@@ -392,12 +387,6 @@ const addInventoryItem = (item) => {
           :isOpen="isStoreOpen"
           @close="isStoreOpen = false"
           @totalInventory="addInventoryItem"
-        />
-
-        <InventorySaleModal
-          v-if="modalType === 'sale'"
-          :isOpen="isModalOpen"
-          @close="closeModal"
         />
 
         <InventoryCorrectionModal

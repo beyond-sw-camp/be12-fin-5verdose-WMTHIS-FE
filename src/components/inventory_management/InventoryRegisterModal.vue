@@ -1,7 +1,8 @@
 <script setup>
 import { defineProps, defineEmits, ref } from "vue";
 import { useInventoryStore } from "@/stores/useInventoryStore";
-
+import useAuthStore from "@/stores/useAuthStore";
+const authStore = useAuthStore();
 // props & emits
 const props = defineProps({
   isOpen: Boolean,
@@ -15,7 +16,6 @@ const inventoryStore = useInventoryStore();
 const name = ref("");
 const unit = ref("");
 const miniquantity = ref(0);
-const unitCategory = ref("Kg"); // 단위 접미사 선택
 
 // 유통기한 관련
 const selectedDays = ref("1");
@@ -52,27 +52,31 @@ const disableCustomInput = () => {
 
 // 등록 처리
 const registerInventory = async () => {
-  // 등록할 데이터 세팅
+  if (!name.value || !unit.value || miniquantity.value <= 0) {
+    alert("필수 항목을 모두 입력해주세요.");
+    return;
+  }
+  disabled = "!authStore.token";
   const storeInventoryData = {
     name: name.value,
-    quantity: quantity.value, // 예: "5", "10"
-    unit: `${unitCategory.value}`, // 예: "100g", "1 Kg"
+    quantity: quantity.value,
+    unit: unit.value,
     miniquantity: miniquantity.value,
     expiryDate:
       selectedDays.value === "custom" ? customDays.value : selectedDays.value,
   };
 
-  // Pinia store의 registerStoreInventory 함수 호출
   const result = await inventoryStore.registerStoreInventory(
     storeInventoryData
   );
-
   if (result) {
-    emit("registerInventory", storeInventoryData); // 부모에서 닫기 처리
+    emit("registerInventory", storeInventoryData);
+    alert("재고가 성공적으로 등록되었습니다."); // 성공 알림
   } else {
     console.error("등록 실패");
+    alert("등록에 실패했습니다. 다시 시도해주세요."); // 실패 알림
   }
-  closeModal(); // 모달 닫기
+  emit("close");
 };
 </script>
 
@@ -106,7 +110,7 @@ const registerInventory = async () => {
               <p class="title_warn">(필수)</p>
             </div>
             <div class="unit_container">
-              <select v-model="unitCategory" class="unit_select">
+              <select v-model="unit" class="unit_select">
                 <option value="Kg">Kg</option>
                 <option value="g">g</option>
                 <option value="L">L</option>
