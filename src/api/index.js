@@ -99,7 +99,7 @@ export const api = {
       .post("/user/login", data)
       .then((res) => {
         console.log("LoginRes", res);
-        return res.data.code === 200; // 성공 여부 반환
+        return res.data;
       })
       .catch((error) => {
         console.error("Error in Login:", error);
@@ -335,5 +335,19 @@ export const api = {
       console.error("Error in searchMonthSales:", error);
       return 404; // 오류 처리
     }
+  },
+  isRegistered() {
+    return instance
+      .get("/user/isRegistered")
+      .then((res) => {
+        if (res.data.code !== 200) {
+          return false;
+        }
+        return;
+      })
+      .catch((error) => {
+        console.error("Error in isRegistered:", error);
+        return false;
+      });
   },
 };

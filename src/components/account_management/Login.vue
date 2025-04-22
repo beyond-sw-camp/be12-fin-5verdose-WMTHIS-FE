@@ -9,6 +9,7 @@ const rememberMe = ref(false);
 const isLoading = ref(false);
 const errorMessage = ref("");
 
+
 const handleLogin = async () => {
   if (!email.value || !password.value) {
     errorMessage.value = "이메일과 비밀번호를 모두 입력해주세요.";
@@ -26,26 +27,26 @@ const handleLogin = async () => {
 
     // ✅ 로그인 API 호출
     const response = await api.login(data);
-
-    // 로그인 성공 처리
-    if (response) {
-      // 로그인 성공 시 로컬 스토리지에 아이디 저장 (아이디 저장 체크 시)
-      if (rememberMe.value) {
-        localStorage.setItem("savedEmail", email.value);
-      } else {
-        localStorage.removeItem("savedEmail");
-      }
-
-      // 로그인 성공 후 대시보드로 이동
-      router.push({ name: "dashboard" });
+    if (!response) {
+      errorMessage.value = "로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+      return;
     } else {
-      // 로그인 실패 시 에러 메시지 표시
-      errorMessage.value = response.message || "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.";
+      if (response.code === 200) {
+        if (rememberMe.value) {
+          localStorage.setItem("savedEmail", email.value);
+        } else {
+          localStorage.removeItem("savedEmail");
+        }
+        router.push({ name: "dashboard" });
+      } else if (response.code === 4001) {
+      }
+      else {
+        errorMessage.value = response.data || "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.";
+      }
     }
   } catch (error) {
-    // API 호출 실패 시 에러 메시지 표시
-    errorMessage.value = error.response?.data?.message || "로그인 중 오류가 발생했습니다.";
-    console.error("로그인 오류:", error);
+    console.error("로그인 중 오류 발생:", error);
+    errorMessage.value = "로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
   } finally {
     isLoading.value = false;
   }
@@ -99,12 +100,14 @@ onMounted(loadSavedEmail);
     <form @submit.prevent="handleLogin" class="login-form">
       <div class="form-group">
         <label for="email">이메일 아이디</label>
-        <input type="email" id="email" v-model="email" class="form-input" placeholder="이메일을 입력하세요" autocomplete="email" />
+        <input type="email" id="email" v-model="email" class="form-input" placeholder="이메일을 입력하세요"
+          autocomplete="email" />
       </div>
 
       <div class="form-group">
         <label for="password">비밀번호</label>
-        <input type="password" id="password" v-model="password" class="form-input" placeholder="비밀번호를 입력하세요" autocomplete="current-password" />
+        <input type="password" id="password" v-model="password" class="form-input" placeholder="비밀번호를 입력하세요"
+          autocomplete="current-password" />
       </div>
 
       <div class="login-options">

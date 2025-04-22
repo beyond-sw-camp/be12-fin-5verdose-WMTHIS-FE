@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { api } from "@/api";
 
 const routes = createRouter({
   history: createWebHistory(),
@@ -159,6 +160,44 @@ const routes = createRouter({
   scrollBehavior(to, from, savedPosition) {
     return false;
   },
+});
+
+routes.beforeEach(async (to, from, next) => {
+  const publicPages = [
+    "login",
+    "signup1",
+    "signup2",
+    "signupDone",
+    "findpwd1",
+    "findpwd2",
+  ];
+  if (publicPages.includes(to.name)) {
+    return next(); // 인증 검사 하지 않음
+  }
+  try {
+    const response = await api.isRegistered();
+    if (!response) {
+      // API 호출 실패 시
+      console.log("API 호출 실패");
+      return next("/account/login");
+    }
+    if (response.code === 2001) {
+      // 발급된 토큰이 없거나 만료된 경우
+      return next("/account/login");
+    } else if (response.code === 2002) {
+      // 발급된 토큰에 가게 정보가 없는 경우
+      return next("/account/register");
+    } else if (response.code === 2003) {
+      // 발급된 토큰이 유효하지 않은 경우
+      return next("/account/login");
+    }
+    // 정상적인 경우
+    next();
+  } catch (error) {
+    // beforeEach에서 오류 발생 시
+    console.error("Error in beforeEach:", error);
+    next("/account/login");
+  }
 });
 
 export default routes;
