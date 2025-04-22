@@ -90,15 +90,10 @@ const inventory_items = ref([
             <p v-if="props.item">
               <strong>현재 수량:</strong> {{ props.item.quantity }}
             </p>
+            <p v-if="props.item">
+              <strong>사용메뉴:</strong> {{ props.item.menu_items }}
+            </p>
           </div>
-        </div>
-        <div class="input_group">
-          <div class="input_row">
-            <div class="input_label_group">
-              <label>사용메뉴</label>
-            </div>
-          </div>
-          <p class="sub_title">알리오올리오,감바스</p>
         </div>
 
         <table class="inventory_table">

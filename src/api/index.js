@@ -10,12 +10,17 @@ const instance = axios.create({
 
 export const api = {
   verify(data) {
-    const verfiyRes = instance.post("/verify", data);
-    if (verfiyRes.data === "success") {
-      return true; // 결제 검증 성공
-    } else {
-      return false; // 결제 검증 실패
-    }
+    console.log("Verify data", data);
+    return instance
+      .post("/payments/verify", data)
+      .then((res) => {
+        console.log("verifyRes", res);
+        return res.data.code === 200; // 성공 여부 반환
+      })
+      .catch((error) => {
+        console.error("Error in verify:", error);
+        return false; // 실패 시 false 반환
+      });
   },
 
   signUp(data) {
@@ -149,7 +154,10 @@ export const api = {
     console.log("updateInventory storeInventoryData", storeInventoryData);
 
     try {
-      const res = instance.put(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
+      const res = instance.put(
+        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
+        storeInventoryData
+      );
       console.log("updateRes", res);
       console.log("code:", res.data.code);
 
@@ -166,7 +174,10 @@ export const api = {
 
   async SearchInventory(storeInventoryData) {
     try {
-      const res = await instance.get(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
+      const res = await instance.get(
+        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
+        storeInventoryData
+      );
       console.log("searchRes", res);
       console.log("code:", res.data.code);
 
@@ -272,6 +283,26 @@ export const api = {
       .then((res) => res.data)
       .catch((error) => {
         console.error("Error in submitOrder:", error);
+        throw error;
+      });
+  },
+
+  getTodaySales() {
+    return instance
+      .get("order/todaySales")
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error in TodaySales:", error);
+        throw error;
+      });
+  },
+
+  getBestTop3() {
+    return instance
+      .get("order/weekbestmenu")
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error in Top3Menu(week):", error);
         throw error;
       });
   },

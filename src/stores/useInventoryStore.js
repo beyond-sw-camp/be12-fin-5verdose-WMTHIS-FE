@@ -1,27 +1,33 @@
 // src/stores/useInventoryStore.js
 import { defineStore } from "pinia";
-import { api } from "@/api/index.js";
+import axios from "axios"; // axios를 사용하여 API 요청을 처리합니다.
+import { api } from "@/api/MenuApi.js"; // api 모듈을 가져옵니다.
 import useAuthStore from "@/stores/useAuthStore.js"; // 수정된 부분
 
 export const useInventoryStore = defineStore("inventoryStore", {
   state: () => ({
     inventoryDetail: {
-      storeIdnventoryId: null,
+      storeInventoryId: null,
       name: "",
       expiryDate: null,
       miniquantity: null,
       unit: "",
     },
     inventoryItems: [],
+    inventoryList: [],
   }),
 
   actions: {
     async registerStoreInventory(storeInventoryData) {
       try {
         const authStore = useAuthStore();
-        const token = authStore.getLogin()
-          ? localStorage.getItem("accessToken")
-          : null;
+        const token = localStorage.getItem("accessToken"); // 로그인 상태와 관계없이 항상 토큰 가져오기
+
+        // 토큰이 없다면 API 요청을 보낼 수 없음
+        if (!token) {
+          alert("로그인이 필요한 작업입니다.");
+          return;
+        }
 
         const result = await axios.post(
           "/api/inventory/registerInventory",
@@ -33,12 +39,14 @@ export const useInventoryStore = defineStore("inventoryStore", {
           }
         );
 
-        return result.data; // 성공적으로 반환된 데이터
+        // 성공적으로 등록되었을 경우
+        return result.data;
       } catch (error) {
-        console.error("registerStoreInventory 실패:", error);
-        return false;
+        console.error("재고 등록 중 오류 발생:", error);
+        alert("재고 등록 중 오류가 발생했습니다. 다시 시도해주세요.");
       }
     },
+
     async updateInventory(updatedItem) {
       try {
         const response = await api.put(
@@ -58,7 +66,6 @@ export const useInventoryStore = defineStore("inventoryStore", {
       }
     },
 
-    // totalStoreInventory 하나로 합침
     async totalStoreInventory(storeInventoryData) {
       try {
         const result = await api.totalStoreInventory(storeInventoryData);
@@ -100,6 +107,25 @@ export const useInventoryStore = defineStore("inventoryStore", {
         alert("검색 중 오류가 발생했습니다.");
         return false;
       }
+    },
+    async getInventoryList() {
+      try {
+        const data = await api.getStoreInventoryList(); // API 호출
+        if (data) {
+          this.inventoryList = data; // 데이터가 있으면 목록에 저장
+        } else {
+          console.error("Failed to fetch inventory list");
+        }
+      } catch (error) {
+        console.error("Error fetching inventory list:", error);
+      }
+    },
+    // 재고 정보 선택
+    selectInventory(inventoryId) {
+      const inventory = this.inventoryList.find(
+        (item) => item.id === inventoryId
+      );
+      this.selectedInventory = inventory;
     },
 
     setInventoryDetail(detail) {
