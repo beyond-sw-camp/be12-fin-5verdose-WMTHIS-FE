@@ -1,5 +1,6 @@
 <script setup>
-import { defineProps, defineEmits, ref } from 'vue';
+import { defineProps, defineEmits, ref, onMounted } from 'vue';
+import { api } from '@/api/MenuApi.js';// API 호출을 위한 axios 인스턴스 import
 
 const props = defineProps({
     isOpen: Boolean
@@ -7,24 +8,64 @@ const props = defineProps({
 
 const emit = defineEmits(['close']);
 
-const menuName = ref('');
+const categoryName = ref('');
 const category = ref('');
-const optionList = ['면 추가', '밥 추가', '치즈 추가', '고기 추가'];
+const optionList = ref(['면 추가', '밥 추가', '치즈 추가', '고기 추가']);
 const optionName = ref('');
 const selectedOptions = ref([]);
 
 const addOption = () => {
     if (optionName.value && !selectedOptions.value.includes(optionName.value)) {
+        console.log('추가할 옵션:', optionName.value.optionId);
         selectedOptions.value.push(optionName.value);
         optionName.value = '';
     }
 };
 
+const registerCategory = async () => {
+    if (categoryName.value && selectedOptions.value.length >= 0) {
+        // name만 추출
+        const optionIds = selectedOptions.value.map(option => option.optionId);
+
+        console.log('카테고리 등록:', categoryName.value, optionIds);
+
+        const response = await api.registerCategory({
+            name: categoryName.value,
+            optionIds: optionIds
+        });
+
+        if (response) {
+            alert('카테고리가 등록되었습니다.');
+            emit('refresh');
+            emit('close');
+        } else {
+            alert('카테고리 등록에 실패했습니다.');
+        }
+    } else {
+        alert('카테고리명을 입력해주세요.');
+    }
+};
+
+
 const removeOption = (index) => {
     selectedOptions.value.splice(index, 1);
 };
 
+// 옵션 리스트 로딩
+const loadOptionList = async () => {
+    const result = await api.getOptionList();
+    if (result) {
+        console.log('옵션 목록:', result);
+        optionList.value = result.content;
+    } else {
+        alert("옵션 목록을 불러오는 데 실패했습니다.");
+    }
+};
 
+onMounted(() => {
+    // 초기화 로직이 필요하다면 여기에 작성
+    loadOptionList();
+});
 </script>
 
 <template>
@@ -44,20 +85,9 @@ const removeOption = (index) => {
                         <p class="title_warn">(필수)</p>
                     </div>
                     <p class="sub_title"> 판매 시 사용하는 카테고리명을 입력해주세요</p>
-                    <input type="text" v-model="menuName" placeholder="카테고리1" />
+                    <input type="text" v-model="categoryName" placeholder="카테고리1" />
                 </div>
 
-
-                <div class="input_group">
-                    <label>옵션</label>
-                    <p class="sub_title"> 카테고리에서 사용가능한 옵션을 선택해주세요.</p>
-                    <select v-model="category">
-                        <option value="">카테고리를 선택해 주세요.</option>
-                        <option value="">탕류</option>
-                        <option value="">사이드</option>
-                        <option value="">선택없음</option>
-                    </select>
-                </div>
 
                 <div class="input_group">
                     <label>옵션 추가</label>
@@ -65,7 +95,7 @@ const removeOption = (index) => {
                     <div class="ingredient_inputs">
                         <select v-model="optionName">
                             <option value="" disabled selected>옵션 선택</option>
-                            <option v-for="item in optionList" :key="item" :value="item">{{ item }}</option>
+                            <option v-for="item in optionList" :key="item" :value="item">{{ item.name }}</option>
                         </select>
                         <button class="add_btn" @click="addOption">추가</button>
                     </div>
@@ -73,7 +103,7 @@ const removeOption = (index) => {
 
                 <div class="tag_container">
                     <span v-for="(opt, index) in selectedOptions" :key="index" class="tag">
-                        {{ opt }}
+                        {{ opt.name }}
                         <button class="remove_btn" @click="removeOption(index)">✕</button>
                     </span>
                 </div>
@@ -81,7 +111,7 @@ const removeOption = (index) => {
 
             </div>
             <div class="modal_footer">
-                <button class="confirm_btn" @click="emit('close')">등록</button>
+                <button class="confirm_btn" @click="registerCategory">등록</button>
             </div>
         </div>
     </div>

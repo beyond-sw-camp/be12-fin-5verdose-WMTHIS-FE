@@ -1,10 +1,12 @@
 <script setup>
-import { ref, watch, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { marketApi } from '@/api/MarketApi.js';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/ko';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import MyMapDetailModal from '@/components/market_management/MyMapDetailModal.vue'
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -12,6 +14,8 @@ dayjs.extend(relativeTime);
 dayjs.locale('ko');
 const startDate = ref('');
 const endDate = ref('');
+const selectedSaleId = ref('');
+const saleDetail = ref('');
 
 const filteredItems = computed(() => {
     return [...menu_items.value]
@@ -62,7 +66,7 @@ const toggleSortOrder = () => {
 
 const isDetailModalOpen = ref(false);
 
-const openDetailModal = () => { isDetailModalOpen.value = true; };
+//const openDetailModal = () => { isDetailModalOpen.value = true; };
 const closeDetailModal = () => { isDetailModalOpen.value = false; };
 
 const menu_items = ref([
@@ -99,6 +103,46 @@ const menu_items = ref([
         store: "상도파스타"
     }
 ]);
+
+const openDetailModal = async (item) => {
+    selectedSaleId.value = item.inventorySaleId;
+
+    const response = await marketApi.getDetail(selectedSaleId.value);
+
+    if(!response){
+
+    } else {
+        if(response.code === 200) {
+            saleDetail.value = response.data;
+            isDetailModalOpen.value = true;
+        }
+
+    }
+} 
+
+const fetchInventorySaleList = () => {
+    const response = marketApi.getInventorySaleList();
+
+    // 서버 에러일때
+    if(!response) {
+        
+    } else {
+        const code = response.code;
+        if(code === 200) {
+            menu_items.value = response.content.map(item => ({
+                ...item,
+            }))
+        } 
+    
+    }
+}
+
+
+onMounted(() => {
+    // 컴포넌트생성될때 거래내역 목록 가져옴
+    fetchInventorySaleList();
+
+});
 </script>
 <template>
     <div class="body">
@@ -145,21 +189,19 @@ const menu_items = ref([
             </thead>
             <tbody>
                 <tr v-for="(item, index) in filteredItems" :key="index">
-                    <td class="bold_text">{{ item.product }}</td>
+                    <td class="bold_text">{{ item.inventoryName }}</td>
                     <td class="bold_text">{{ item.quantity }}개</td>
-                    <td>{{ getDday(item.expiration) }}</td>
+                    <td>{{ getDday(item.expirationDate) }}</td>
                     <td>{{ item.price.toLocaleString() }}원</td>
-                    <td>{{ getRelativeDate(item.date) }}</td>
-                    <td>{{ item.store }}</td>
+                    <td>{{ getRelativeDate(item.createdDate) }}</td>
+                    <td>{{ item.sellerStoreName }}</td>
                     <td>
                         <button class="detail_btn" @click="openDetailModal(item)">상세</button>
                     </td>
                 </tr>
             </tbody>
         </table>
-
-        <!-- 모달 컴포넌트들 -->
-        <!--<MenuDetailModal :isOpen="isDetailModalOpen" @close="closeDetailModal" />-->
+        <MyMapDetailModal  v-if="isDetailModalOpen" :item="saleDetail"  @close="closeDetailModal"/>
     </div>
 </template>
 

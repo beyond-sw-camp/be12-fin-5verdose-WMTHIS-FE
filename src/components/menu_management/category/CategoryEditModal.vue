@@ -1,30 +1,91 @@
 <script setup>
-import { defineProps, defineEmits, ref } from 'vue';
+import { defineProps, defineEmits, ref, watch, onMounted } from 'vue';
+import { api } from '@/api/MenuApi.js';// API 호출을 위한 axios 인스턴스 import
 
 const props = defineProps({
-    isOpen: Boolean
+    isOpen: Boolean,
+    category: Object
 });
 
 const emit = defineEmits(['close']);
 
-const menuName = ref('');
+const categoryName = ref('');
 const category = ref('');
-const optionList = ['면 추가', '밥 추가', '치즈 추가', '고기 추가'];
+const optionList = ref(['면 추가', '밥 추가', '치즈 추가', '고기 추가']);
 const optionName = ref('');
 const selectedOptions = ref([]);
 
 const addOption = () => {
-    if (optionName.value && !selectedOptions.value.includes(optionName.value)) {
+    if (
+        optionName.value &&
+        !selectedOptions.value.some((opt) => opt.name === optionName.value.name)
+    ) {
         selectedOptions.value.push(optionName.value);
         optionName.value = '';
     }
 };
 
+
 const removeOption = (index) => {
     selectedOptions.value.splice(index, 1);
 };
+const getCategory = async () => {
+    console.log('카테고리 ID:', props.category);
+    if (!props.category) return;
+    try {
+        const res = await api.getCategory({ id: props.category });
+        console.log('카테고리 정보:', res.data);
+        categoryName.value = res.data.data.name;
+
+        selectedOptions.value = res.data.data.options || [];
+        console.log('선택된 옵션:', selectedOptions.value);
+    } catch (error) {
+        console.error('카테고리 정보 로드 실패:', error);
+    }
+};
+watch(() => props.category, (newVal) => {
+    if (newVal) getCategory();
+});
+
+// 옵션 리스트 로딩
+const loadOptionList = async () => {
+    const result = await api.getOptionList();
+    if (result) {
+        console.log('옵션 목록:', result);
+        optionList.value = result.content;
+    } else {
+        alert("옵션 목록을 불러오는 데 실패했습니다.");
+    }
+};
+const updateCategory = async () => {
+    if (!categoryName.value) {
+        alert('카테고리명을 입력해주세요.');
+        return;
+    }
+
+    try {
+        const payload = {
+            id: props.category, // 또는 id → Spring에서 처리 방식에 따라 다르게
+            newName: categoryName.value,
+            optionIds: selectedOptions.value.map(option => option.optionId)
+        };
+        console.log('수정할 카테고리 데이터:', payload);
+        const res = await api.updateCategory(payload);
+        console.log('수정 성공:', res.data);
+        alert('카테고리가 성공적으로 수정되었습니다.');
+        emit('refresh');
+        emit('close');
+    } catch (err) {
+        console.error('카테고리 수정 실패:', err);
+        alert('카테고리 수정 중 오류가 발생했습니다.');
+    }
+};
 
 
+onMounted(() => {
+    // 초기화 로직이 필요하다면 여기에 작성
+    loadOptionList();
+});
 </script>
 
 <template>
@@ -42,20 +103,7 @@ const removeOption = (index) => {
                         <p class="title_warn">(필수)</p>
                     </div>
                     <p class="sub_title"> 판매 시 사용하는 카테고리명을 입력해주세요</p>
-                    <input type="text" v-model="menuName" placeholder="카테고리1" />
-                </div>
-
-
-
-                <div class="input_group">
-                    <label>옵션</label>
-                    <p class="sub_title"> 카테고리에서 사용가능한 옵션을 선택해주세요.</p>
-                    <select v-model="category">
-                        <option value="">카테고리를 선택해 주세요.</option>
-                        <option value="">탕류</option>
-                        <option value="">사이드</option>
-                        <option value="">선택없음</option>
-                    </select>
+                    <input type="text" v-model="categoryName" placeholder="카테고리1" />
                 </div>
 
                 <div class="input_group">
@@ -63,8 +111,10 @@ const removeOption = (index) => {
                     <p class="sub_title">면 추가, 밥 추가 등 메뉴에 적용할 옵션을 선택해 주세요.</p>
                     <div class="ingredient_inputs">
                         <select v-model="optionName">
-                            <option value="" disabled selected>옵션 선택</option>
-                            <option v-for="item in optionList" :key="item" :value="item">{{ item }}</option>
+                            <option disabled value="">옵션 선택</option>
+                            <option v-for="item in optionList" :key="item.id" :value="item">
+                                {{ item.name }}
+                            </option>
                         </select>
                         <button class="add_btn" @click="addOption">추가</button>
                     </div>
@@ -72,15 +122,13 @@ const removeOption = (index) => {
 
                 <div class="tag_container">
                     <span v-for="(opt, index) in selectedOptions" :key="index" class="tag">
-                        {{ opt }}
+                        {{ opt.name }}
                         <button class="remove_btn" @click="removeOption(index)">✕</button>
                     </span>
                 </div>
-
-
             </div>
             <div class="modal_footer">
-                <button class="confirm_btn" @click="emit('close')">수정</button>
+                <button class="confirm_btn" @click=updateCategory>수정</button>
             </div>
         </div>
     </div>

@@ -1,8 +1,8 @@
 <script setup>
-import { ref } from 'vue';
+import { ref,onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Logo from '@/assets/image/icon.png'; // 로고 이미지 import
-
+import { api } from "@/api/index";
 // 변수 선언
 const router = useRouter();
 const logoImage = ref(Logo); // 로고 이미지 참조 추가
@@ -11,34 +11,42 @@ const storeAddress = ref('');
 const detailAddress = ref('');
 const storePhone = ref('');
 const errorMessage = ref('');
+const storeLatitude = ref('');
+const storeLongitude = ref('');
 
-// 휴대폰 번호 포맷팅 (02-XXXX-XXXX 또는 010-XXXX-XXXX)
+// 휴대폰 번호 포맷팅 (지역번호 및 휴대폰 번호 처리)
 const formatPhoneNumber = (value) => {
     if (!value) return '';
-    value = value.replace(/[^0-9]/g, '');
+    value = value.replace(/[^0-9]/g, ''); // 숫자만 남기기
 
-    if (value.length <= 2) {
-        return value;
-    } else if (value.length <= 3) {
-        // 휴대폰 번호인 경우 (010, 011 등)
-        return value;
-    } else if (value.length <= 6) {
-        // 지역번호가 2자리인 경우 (02-XXX)
-        if (value.startsWith('02')) {
+    if (value.startsWith('02')) {
+        // 지역번호가 02인 경우
+        if (value.length <= 2) {
+            return value;
+        } else if (value.length <= 5) {
             return value.slice(0, 2) + '-' + value.slice(2);
+        } else if (value.length <= 9) {
+            return value.slice(0, 2) + '-' + value.slice(2, 5) + '-' + value.slice(5);
+        } else {
+            return value.slice(0, 2) + '-' + value.slice(2, 5) + '-' + value.slice(5, 9);
         }
-        // 휴대폰 번호 또는 3자리 지역번호
-        else {
+    } else if (value.startsWith('010')) {
+        // 휴대폰 번호인 경우
+        if (value.length <= 3) {
+            return value;
+        } else if (value.length <= 7) {
             return value.slice(0, 3) + '-' + value.slice(3);
+        } else {
+            return value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7, 11);
         }
     } else {
-        // 지역번호가 2자리인 경우 (02-XXXX-XXXX)
-        if (value.startsWith('02')) {
-            return value.slice(0, 2) + '-' + value.slice(2, 6) + '-' + value.slice(6, 10);
-        }
-        // 휴대폰 번호 또는 3자리 지역번호
-        else {
-            return value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7, 11);
+        // 다른 지역번호 (3자리 지역번호)
+        if (value.length <= 3) {
+            return value;
+        } else if (value.length <= 7) {
+            return value.slice(0, 3) + '-' + value.slice(3);
+        } else {
+            return value.slice(0, 3) + '-' + value.slice(3, 6) + '-' + value.slice(6, 10);
         }
     }
 };
@@ -49,20 +57,50 @@ const handlePhoneInput = (e) => {
     storePhone.value = formattedValue;
 };
 
+const waitForKakao = () => {
+  return new Promise((resolve) => {
+    const check = () => {
+      if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
+        resolve();
+      } else {
+        setTimeout(check, 100);
+      }
+    };
+    check();
+  });
+};
+
 // 주소 검색
-const searchAddress = () => {
-    new window.daum.Postcode({
-        oncomplete: function (data) {
-            // 주소 선택 후 callback으로 주소 값을 storeAddress에 할당
-            storeAddress.value = data.address; // 기본 주소
-        },
-        width: '100%',
-        height: '100%',
-    }).open();
+const searchAddress = async () => {
+  new window.daum.Postcode({
+    oncomplete: async function (data) {
+      const address = data.address;
+      storeAddress.value = address;
+      console.log(address);
+      await waitForKakao(); // kakao.maps 로드 대기
+      console.log("arrare");
+      // Kakao Maps 좌표 변환 API 사용
+      const geocoder = new window.kakao.maps.services.Geocoder();
+      geocoder.addressSearch(address, function (result, status) {
+        if (status === window.kakao.maps.services.Status.OK) {
+          const lat = result[0].y;
+          const lng = result[0].x;
+          console.log('위도:', lat, '경도:', lng);
+
+          storeLatitude.value = lat;
+          storeLongitude.value = lng;
+        } else {
+          alert('주소의 좌표를 찾을 수 없습니다.');
+        }
+      });
+    },
+    width: '100%',
+    height: '100%',
+  }).open();
 };
 
 // 다음 단계로 이동
-const submit = () => {
+const submit = async () => {
     // 유효성 검사
     if (!storeName.value) {
         errorMessage.value = '매장명을 입력해주세요.';
@@ -79,15 +117,30 @@ const submit = () => {
         return;
     }
 
-    // 실제 구현에서는 가게 등록 API 호출
-    console.log('Store registration submitted', {
-        storeName: storeName.value,
-        storeAddress: storeAddress.value,
-        detailAddress: detailAddress.value,
-        storePhone: storePhone.value
-    });
+    try {
+        // 데이터를 매핑하여 API 호출
+        const requestData = {
+            name: storeName.value,
+            address: `${storeAddress.value} ${detailAddress.value}`, // 주소와 상세 주소를 합침
+            phoneNumber: storePhone.value,
+            latitude: storeLatitude.value,
+            longitude: storeLongitude.value
+        };
 
-    router.push({ name: 'storedone' });
+        console.log('Submitting store registration data:', requestData);
+
+        const response = await api.registerStore(requestData);
+
+        if (response) {
+            alert('매장 등록이 완료되었습니다.');
+            router.push({ name: 'storedone' }); // 완료 페이지로 이동
+        } else {
+            errorMessage.value = response.message || '매장 등록에 실패했습니다.';
+        }
+    } catch (err) {
+        errorMessage.value = err.response?.data?.message || '매장 등록 중 오류가 발생했습니다.';
+        console.error('Error during store registration:', err);
+    }
 };
 </script>
 
@@ -114,19 +167,20 @@ const submit = () => {
 
             <div class="form-group">
                 <label for="store-address">매장 주소</label>
-                <input type="text" id="store-address" v-model="storeAddress" class="form-input"
-                    placeholder="매장 주소를 입력하세요" readonly />
-            </div>
 
-            <div class="form-group address-group">
-                <label for="detail-address">상세 주소</label>
                 <div class="address-container">
-                    <input type="text" id="detail-address" v-model="detailAddress" class="form-input address-input"
-                        placeholder="상세 주소를 입력하세요" />
+                    <input type="text" id="store-address" v-model="storeAddress" class="form-input"
+                        placeholder="매장 주소를 입력하세요" readonly />
                     <button type="button" class="search-btn" @click="searchAddress">
                         검색
                     </button>
                 </div>
+            </div>
+
+            <div class="form-group address-group">
+                <label for="detail-address">상세 주소</label>
+                <input type="text" id="detail-address" v-model="detailAddress" class="form-input address-input"
+                    placeholder="상세 주소를 입력하세요" />
             </div>
 
             <div class="form-group">

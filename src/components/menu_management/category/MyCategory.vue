@@ -1,45 +1,49 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
+import { api } from '@/api/MenuApi.js';
 import CategoryRegisterModal from '@/components/menu_management/category/CategoryRegisterModal.vue';
 import DeleteConfirmModal from '@/components/alerts/DeleteConfirmModal.vue';
 import DeleteAlertModal from '@/components/alerts/DeleteAlertModal.vue';
 import CategoryEditModal from '@/components/menu_management/category/CategoryEditModal.vue';
 
+
+const searchKeyword = ref('');
 const isRegisterModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isDeleteConfirmOpen = ref(false);
-const isDeleteAlertOpen = ref(false); // 삭제 항목 선택 안내 모달
+const isDeleteAlertOpen = ref(false);
+const selectedCategory = ref(null);
+
 const openRegisterModal = () => { isRegisterModalOpen.value = true; };
 const closeRegisterModal = () => { isRegisterModalOpen.value = false; };
 
-const openEditModal = () => { isEditModalOpen.value = true; };
+const openEditModal = (item) => {
+    isEditModalOpen.value = true;
+    selectedCategory.value = item.id;
+};
 const closeEditModal = () => { isEditModalOpen.value = false; };
 
-const menu_items = ref([
-    { name: "알리오올리오", category: '파스타', selected: false },
-    { name: "들깨 크림 뇨끼", category: '파스타', selected: false },
-    { name: "토마토 파스타", category: '파스타', selected: false },
-    { name: "봉골레 파스타", category: '파스타', selected: false }
-]);
+const category_items = ref([]);
+const currentPage = ref(0);
+const totalPages = ref(1);
+const pageSize = 10;
 
 const select_all = ref(false);
-const isBlocked = computed(() => false);
+const isBlocked = computed(() => isDeleteConfirmOpen.value || isDeleteAlertOpen.value);
 
 const toggle_select_all = () => {
     if (!isBlocked.value) {
-        menu_items.value.forEach(item => (item.selected = select_all.value));
+        category_items.value.forEach(item => (item.selected = select_all.value));
     }
 };
 
-watch(menu_items, (new_items) => {
+watch(category_items, (new_items) => {
     select_all.value = new_items.every(item => item.selected);
 }, { deep: true });
 
-
-// 삭제 확인 모달 열기
 const openDeleteConfirm = () => {
     if (!isBlocked.value) {
-        const selectedItems = menu_items.value.some(item => item.selected);
+        const selectedItems = category_items.value.some(item => item.selected);
         if (selectedItems) {
             isDeleteConfirmOpen.value = true;
         } else {
@@ -48,22 +52,55 @@ const openDeleteConfirm = () => {
     }
 };
 
-// 삭제 확인 모달 닫기
-const closeDeleteConfirm = () => {
+const closeDeleteConfirm = () => { isDeleteConfirmOpen.value = false; };
+const closeDeleteAlert = () => { isDeleteAlertOpen.value = false; };
+
+const deleteSelectedItems = async () => {
     isDeleteConfirmOpen.value = false;
+    const selectedIds = category_items.value.filter(item => item.selected).map(item => item.id);
+
+    try {
+        const res = await api.deleteCategory({ ids: selectedIds });
+        if (res.data.code === 200) {
+            category_items.value = category_items.value.filter(item => !item.selected);
+            select_all.value = false;
+            fetchCategoryList(currentPage.value);
+        } else {
+            console.error("삭제 중 에러:", res.data.message);
+        }
+    } catch (err) {
+        console.error("API 호출 실패:", err);
+    }
 };
 
-// 삭제 경고 모달 닫기
-const closeDeleteAlert = () => {
-    isDeleteAlertOpen.value = false;
+const fetchCategoryList = async (page = 0) => {
+    console.log(searchKeyword.value);
+    try {
+        const res = await api.getCategoryList(page, pageSize, searchKeyword.value);
+        if (res) {
+            category_items.value = res.content.map(item => ({
+                ...item,
+                selected: false,
+            }));
+            currentPage.value = res.page.number;
+            totalPages.value = res.page.totalPages;
+        }
+    } catch (error) {
+        console.error('카테고리 목록 불러오기 실패:', error);
+    }
 };
 
-// 삭제 실행
-const deleteSelectedItems = () => {
-    isDeleteConfirmOpen.value = false;
-    menu_items.value = menu_items.value.filter(item => !item.selected);
+const goToPage = (page) => {
+    if (page >= 0 && page < totalPages.value) {
+        fetchCategoryList(page);
+    }
 };
+
+onMounted(() => {
+    fetchCategoryList(0);
+});
 </script>
+
 
 
 
@@ -73,8 +110,9 @@ const deleteSelectedItems = () => {
         <h1 class="page_title">카테고리 관리</h1>
         <div class="search_container">
             <div class="search_box">
-                <input type="text" class="search_input" placeholder="카테고리 검색" />
-                <button class="search_btn">
+                <input type="text" v-model="searchKeyword" class="search_input" placeholder="카테고리 검색"
+                    @input="fetchCategoryList(0)" />
+                <button class="search_btn" @Click="fetchCategoryList(0)">
                     <img src="@/assets/image/search_button.png" class="search_icon">
                 </button>
             </div>
@@ -96,20 +134,36 @@ const deleteSelectedItems = () => {
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(item, index) in menu_items" :key="index" :class="{ 'selected-row': item.selected }">
+                <tr v-for="(item, index) in category_items" :key="index" :class="{ 'selected-row': item.selected }">
                     <td>
                         <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
                     </td>
-                    <td>{{ item.category }}</td>
+                    <td>{{ item.name }}</td>
                     <td>
-                        <button class="detail_btn" @click="openEditModal">수정</button>
+                        <button class="detail_btn" @click="openEditModal(item)">수정</button>
                     </td>
                 </tr>
             </tbody>
+
         </table>
 
-        <CategoryRegisterModal :isOpen="isRegisterModalOpen" @close="closeRegisterModal" />
-        <CategoryEditModal :isOpen="isEditModalOpen" @close="closeEditModal" />
+        <div class="pagination_container">
+            <button :disabled="currentPage === 0" @click="goToPage(currentPage - 1)">
+                ◀ 이전
+            </button>
+
+            <span v-for="page in totalPages" :key="page" @click="goToPage(page - 1)"
+                :class="{ 'page-number': true, 'active': currentPage === page - 1 }">
+                {{ page }}
+            </span>
+
+            <button :disabled="currentPage === totalPages - 1" @click="goToPage(currentPage + 1)">
+                다음 ▶
+            </button>
+        </div>
+        <CategoryRegisterModal :isOpen="isRegisterModalOpen" @close="closeRegisterModal" @refresh="fetchCategoryList" />
+        <CategoryEditModal :isOpen="isEditModalOpen" :category="selectedCategory" @close="closeEditModal"
+            @refresh="fetchCategoryList" />
         <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
         <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
     </div>
@@ -283,5 +337,24 @@ const deleteSelectedItems = () => {
 .register_btn:hover,
 .delete_btn:hover {
     background-color: #98A8B8;
+}
+
+.pagination_container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+    gap: 0.5rem;
+}
+
+.page-number {
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.page-number.active {
+    background-color: #ffcc00;
+    font-weight: bold;
 }
 </style>

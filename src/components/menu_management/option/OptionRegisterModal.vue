@@ -1,5 +1,6 @@
 <script setup>
-import { defineProps, defineEmits, ref } from 'vue';
+import { defineProps, defineEmits, ref, onMounted, computed } from 'vue';
+import { api } from '@/api/MenuApi.js';
 
 const props = defineProps({
     isOpen: Boolean
@@ -7,37 +8,87 @@ const props = defineProps({
 
 const emit = defineEmits(['close']);
 
-const activeTab = ref('단일메뉴'); // 기본 선택된 탭
+const price = ref('');
 const optionName = ref('');
 const ingredientName = ref('');
 const ingredientAmount = ref('');
-const ingredientUnit = ref('');
-const ingredients = ref([
-    { name: '고추장', amount: '50', unit: 'g' },
-    { name: '토마토', amount: '10', unit: 'g' },
-    { name: '삼겹살', amount: '50', unit: 'g' }
-]);
+const ingredients = ref([]);
+const categoryList = ref([]);
 const category = ref('');
 
-const ingredientOptions = ['고추장', '토마토', '삼겹살', '양파', '파'];
-const unitOptions = ['g', 'kg', 'ml', 'L', 'EA'];
+const selectedUnit = computed(() => {
+    const selected = ingredientOptions.value.find(item => item.name === ingredientName.value.name);
+    return selected ? selected.unit : '';
+});
+// 카테고리 목록 로딩
+const loadCategories = async () => {
+    const result = await api.getCategoryList();
+    if (result) {
+        categoryList.value = result;
+    } else {
+        alert("카테고리 목록을 불러오는 데 실패했습니다.");
+    }
+};
+
+const ingredientOptions = ref([]);
 
 const addIngredient = () => {
-    if (ingredientName.value && ingredientAmount.value && ingredientUnit.value) {
+    if (ingredientName.value && ingredientAmount.value) {
         ingredients.value.push({
-            name: ingredientName.value,
+            id: ingredientName.value.id,
+            name: ingredientName.value.name,
             amount: ingredientAmount.value,
-            unit: ingredientUnit.value
+            unit: selectedUnit.value,
         });
         ingredientName.value = '';
         ingredientAmount.value = '';
-        ingredientUnit.value = '';
     }
 };
 
 const removeIngredient = (index) => {
     ingredients.value.splice(index, 1);
 };
+
+const handleRegisterOption = async () => {
+
+
+    const requestData = {
+        name: optionName.value,
+        price: parseInt(price.value),
+        inventoryQuantities: ingredients.value.map((ingredient) => ({
+            inventoryId: ingredient.id,
+            quantity: parseFloat(ingredient.amount),
+        })),
+    };
+    console.log('등록할 옵션 데이터:', requestData);
+    const success = await api.registerOption(requestData);
+    if (success) {
+        alert('옵션 등록 성공');
+
+        emit('refresh');
+        emit('close');
+    } else {
+        alert('옵션 등록 실패');
+    }
+};
+const getStoreInventoryList = async () => {
+    const result = await api.getStoreInventoryList();
+    if (result) {
+        ingredientOptions.value = result.map(item => ({
+            id: item.id,
+            name: item.name,
+            unit: item.unit,
+        }));
+        console.log('재고 목록:', ingredientOptions.value);
+    } else {
+        alert("재고 목록을 불러오는 데 실패했습니다.");
+    }
+};
+
+onMounted(() => {
+    loadCategories();
+    getStoreInventoryList();
+});
 </script>
 
 <template>
@@ -63,18 +114,15 @@ const removeIngredient = (index) => {
 
                 <div class="input_group">
                     <label>재고 소요량</label>
-                    <p class="sub_title"> 옵션을 만드는 데 필요한 재고의 종류와 양을 입력해 주세요.</p>
+                    <p class="sub_title"> 옵션를 만드는 데 필요한 재고의 종류와 양을 입력해 주세요.</p>
                     <div class="ingredient_inputs">
                         <select v-model="ingredientName">
                             <option value="" disabled selected>재료 선택</option>
-                            <option v-for="item in ingredientOptions" :key="item" :value="item">{{ item }}</option>
+                            <option v-for="item in ingredientOptions" :key="item" :value="item">{{ item.name }}</option>
                         </select>
                         <input type="number" v-model="ingredientAmount" min="1" placeholder="수량" />
-                        <select v-model="ingredientUnit">
-                            <option value="" disabled selected>단위 선택</option>
-                            <option v-for="unit in unitOptions" :key="unit" :value="unit">{{ unit }}</option>
-                        </select>
-                        <button class="add_btn" @click="addIngredient">추가</button>
+                        <label>{{ selectedUnit }}</label>
+                        <button class="add_btn" @click="addIngredient()">추가</button>
                     </div>
                 </div>
 
@@ -88,24 +136,13 @@ const removeIngredient = (index) => {
                 <div class="input_group">
                     <label>가격</label>
                     <p class="sub_title">옵션의 가격을 입력해주세요.</p>
-                    <input type="number" min="1" placeholder="(ex) 50000" />
-                </div>
-
-                <div class="input_group">
-                    <label>카테고리</label>
-                    <p class="sub_title"> 메뉴가 속한 카테고리를 입력해 주세요.</p>
-                    <select v-model="category">
-                        <option value="">카테고리를 선택해 주세요.</option>
-                        <option value="5900원 메뉴">탕류</option>
-                        <option value="프리미엄 메뉴">사이드</option>
-                        <option value="프리미엄 메뉴">선택없음</option>
-                    </select>
+                    <input type="number" v-model="price" min="1" placeholder="(ex) 50000" />
                 </div>
 
 
             </div>
             <div class="modal_footer">
-                <button class="confirm_btn" @click="emit('close')">등록</button>
+                <button class="confirm_btn" @click=handleRegisterOption>등록</button>
             </div>
         </div>
     </div>
