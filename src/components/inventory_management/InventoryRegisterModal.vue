@@ -66,15 +66,13 @@ const registerInventory = async () => {
   const result = await inventoryStore.registerStoreInventory(
     storeInventoryData
   );
+
   if (result) {
-    emit("registerInventory", storeInventoryData);
-  }
-  if (result) {
-    emit("registerInventory"); // 성공 시 모달 닫기
+    emit("registerInventory", storeInventoryData); // 부모에서 닫기 처리
   } else {
     console.error("등록 실패");
-    // 실패 시 알림을 추가하는 로직 추가 가능
   }
+  closeModal(); // 모달 닫기
 };
 </script>
 

@@ -1,18 +1,20 @@
 // src/stores/useInventoryStore.js
 import { defineStore } from "pinia";
+import axios from "axios"; // axios를 사용하여 API 요청을 처리합니다.
 import { api } from "@/api/index.js";
 import useAuthStore from "@/stores/useAuthStore.js"; // 수정된 부분
 
 export const useInventoryStore = defineStore("inventoryStore", {
   state: () => ({
     inventoryDetail: {
-      storeIdnventoryId: null,
+      storeInventoryId: null,
       name: "",
       expiryDate: null,
       miniquantity: null,
       unit: "",
     },
     inventoryItems: [],
+    inventoryList: [],
   }),
 
   actions: {
@@ -23,17 +25,10 @@ export const useInventoryStore = defineStore("inventoryStore", {
           ? localStorage.getItem("accessToken")
           : null;
 
-        const result = await axios.post(
-          "/api/inventory/registerInventory",
-          storeInventoryData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        // api.registerInventory()를 사용하여 메서드 호출
+        const result = await api.registerInventory(storeInventoryData);
 
-        return result.data; // 성공적으로 반환된 데이터
+        return result; // 성공적으로 반환된 데이터
       } catch (error) {
         console.error("registerStoreInventory 실패:", error);
         return false;
@@ -58,7 +53,6 @@ export const useInventoryStore = defineStore("inventoryStore", {
       }
     },
 
-    // totalStoreInventory 하나로 합침
     async totalStoreInventory(storeInventoryData) {
       try {
         const result = await api.totalStoreInventory(storeInventoryData);
@@ -100,6 +94,21 @@ export const useInventoryStore = defineStore("inventoryStore", {
         alert("검색 중 오류가 발생했습니다.");
         return false;
       }
+    },
+    async getInventoryList() {
+      try {
+        const response = await axios.get("/api/inventories"); // 서버에서 재고 리스트 가져오기
+        this.inventoryList = response.data;
+      } catch (error) {
+        console.error("재고 목록을 불러오는 데 실패했습니다.", error);
+      }
+    },
+    // 재고 정보 선택
+    selectInventory(inventoryId) {
+      const inventory = this.inventoryList.find(
+        (item) => item.id === inventoryId
+      );
+      this.selectedInventory = inventory;
     },
 
     setInventoryDetail(detail) {
