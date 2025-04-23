@@ -43,9 +43,8 @@ const handleLogin = async () => {
       }
     }
   } catch (error) {
-    // API 호출 실패 시 에러 메시지 표시
-    errorMessage.value = error.response?.data?.message || "로그인 중 오류가 발생했습니다.";
-    console.error("로그인 오류:", error);
+    console.error("로그인 중 오류 발생:", error);
+    errorMessage.value = "로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
   } finally {
     isLoading.value = false;
   }

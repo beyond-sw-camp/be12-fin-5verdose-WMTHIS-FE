@@ -10,12 +10,17 @@ const instance = axios.create({
 
 export const api = {
   verify(data) {
-    const verfiyRes = instance.post("/verify", data);
-    if (verfiyRes.data === "success") {
-      return true; // 결제 검증 성공
-    } else {
-      return false; // 결제 검증 실패
-    }
+    console.log("Verify data", data);
+    return instance
+      .post("/payments/verify", data)
+      .then((res) => {
+        console.log("verifyRes", res);
+        return res.data.code === 200; // 성공 여부 반환
+      })
+      .catch((error) => {
+        console.error("Error in verify:", error);
+        return false; // 실패 시 false 반환
+      });
   },
 
   signUp(data) {
@@ -94,7 +99,7 @@ export const api = {
       .post("/user/login", data)
       .then((res) => {
         console.log("LoginRes", res);
-        return res.data.code === 200; // 성공 여부 반환
+        return res.data;
       })
       .catch((error) => {
         console.error("Error in Login:", error);
@@ -289,6 +294,46 @@ export const api = {
       });
   },
 
+  getTodaySales() {
+    return instance
+      .get("order/todaySales")
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error in TodaySales:", error);
+        throw error;
+      });
+  },
+
+  getBestTop3() {
+    return instance
+      .get("order/weekbestmenu")
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error in Top3Menu(week):", error);
+        throw error;
+      });
+  },
+
+  getSalesData(data) {
+    return instance
+      .post("order/saleDetail", data)
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error in SalesData:", error);
+        throw error;
+      });
+  },
+
+  getOrdersList() {
+    return instance
+      .get("order/getList")
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error in OrderListData:", error);
+        throw error;
+      });
+  },
+
   async SearchMonthSales(yearMonthData) {
     try {
       const res = await instance.post(`/order/monthSales`, yearMonthData);
@@ -317,6 +362,20 @@ export const api = {
       console.error("Error in searchMonthSales:", error);
       return 404; // 오류 처리
     }
+  },
+  isRegistered() {
+    return instance
+      .get("/user/isRegistered")
+      .then((res) => {
+        if (res.data.code !== 200) {
+          return false;
+        }
+        return;
+      })
+      .catch((error) => {
+        console.error("Error in isRegistered:", error);
+        return false;
+      });
   },
 
   async SearchMenuList() {
