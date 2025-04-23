@@ -107,6 +107,19 @@ export const api = {
       });
   },
 
+  isLogin() {
+    return instance
+      .get("/user/isLogin")
+      .then((res) => {
+        console.log("LoginRes");
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in Login:", error);
+        return false;
+      });
+  },
+
   updatePassword(data) {
     console.log("Update password data", data);
     return instance
@@ -154,10 +167,7 @@ export const api = {
     console.log("updateInventory storeInventoryData", storeInventoryData);
 
     try {
-      const res = instance.put(
-        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
-        storeInventoryData
-      );
+      const res = instance.put(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
       console.log("updateRes", res);
       console.log("code:", res.data.code);
 
@@ -174,10 +184,7 @@ export const api = {
 
   async SearchInventory(storeInventoryData) {
     try {
-      const res = await instance.get(
-        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
-        storeInventoryData
-      );
+      const res = await instance.get(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
       console.log("searchRes", res);
       console.log("code:", res.data.code);
 

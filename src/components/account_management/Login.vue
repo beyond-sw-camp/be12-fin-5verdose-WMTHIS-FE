@@ -9,7 +9,6 @@ const rememberMe = ref(false);
 const isLoading = ref(false);
 const errorMessage = ref("");
 
-
 const handleLogin = async () => {
   if (!email.value || !password.value) {
     errorMessage.value = "이메일과 비밀번호를 모두 입력해주세요.";
@@ -37,9 +36,9 @@ const handleLogin = async () => {
         } else {
           localStorage.removeItem("savedEmail");
         }
-        router.push({ name: "dashboard" });
-      }
-      else {
+
+        window.location.href = "/";
+      } else {
         errorMessage.value = response.data || "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.";
       }
     }
@@ -68,17 +67,30 @@ const loadSavedEmail = () => {
   }
 };
 
+async function checkIsLogin() {
+  const response = await api.isLogin();
+  console.log("뭔데");
+  console.log(response);
+  console.log("router 확인:", router);
+  if (response.data == true) {
+    router.replace({ name: "dashboard" });
+  }
+}
+
 const submitForm = () => {
   const jsonData = {
     email: email.value,
     password: password.value,
   };
-  const result = api.verify(jsonData);
+  const result = api.login(jsonData);
   console.log(result);
 };
 
 // 컴포넌트 마운트 시 저장된 이메일 불러오기
-onMounted(loadSavedEmail);
+onMounted(() => {
+  loadSavedEmail(); // ✅ 마운트 시 실행
+  checkIsLogin();
+});
 </script>
 
 <template>
@@ -99,14 +111,12 @@ onMounted(loadSavedEmail);
     <form @submit.prevent="handleLogin" class="login-form">
       <div class="form-group">
         <label for="email">이메일 아이디</label>
-        <input type="email" id="email" v-model="email" class="form-input" placeholder="이메일을 입력하세요"
-          autocomplete="email" />
+        <input type="email" id="email" v-model="email" class="form-input" placeholder="이메일을 입력하세요" autocomplete="email" />
       </div>
 
       <div class="form-group">
         <label for="password">비밀번호</label>
-        <input type="password" id="password" v-model="password" class="form-input" placeholder="비밀번호를 입력하세요"
-          autocomplete="current-password" />
+        <input type="password" id="password" v-model="password" class="form-input" placeholder="비밀번호를 입력하세요" autocomplete="current-password" />
       </div>
 
       <div class="login-options">
