@@ -167,10 +167,7 @@ export const api = {
     console.log("updateInventory storeInventoryData", storeInventoryData);
 
     try {
-      const res = instance.put(
-        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
-        storeInventoryData
-      );
+      const res = instance.put(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
       console.log("updateRes", res);
       console.log("code:", res.data.code);
 
@@ -187,10 +184,7 @@ export const api = {
 
   async SearchInventory(storeInventoryData) {
     try {
-      const res = await instance.get(
-        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
-        storeInventoryData
-      );
+      const res = await instance.get(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
       console.log("searchRes", res);
       console.log("code:", res.data.code);
 
