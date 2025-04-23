@@ -83,7 +83,6 @@ const processPayment = async () => {
         return;
     }
 
-    // 주문 데이터를 구성
     const requestData = {
         tableNumber: orderInfo.value.type === 'table' ? orderInfo.value.tableId : null,
         orderType: orderInfo.value.type === 'table' ? 'hall' : orderInfo.value.deliveryService,
@@ -91,37 +90,31 @@ const processPayment = async () => {
             menuId: item.id,
             quantity: item.quantity,
             price: item.basePrice,
-            optionIds: item.optionIds || [], // optionIds가 없으면 빈 배열로 처리
+            optionIds: item.optionIds || [],
         })),
     };
 
-    console.log('Request Data:', requestData); // 디버깅용 로그 추가
+    console.log('Request Data:', requestData);
 
     try {
-        // 서버로 데이터 전송
         const response = await api.posOrder(requestData);
 
-        if (response) {
-            alert(`${selectedPayment.value} 방식으로 ${total_price.value.toLocaleString()}원 결제가 완료되었습니다.`);
+        alert(`${selectedPayment.value} 방식으로 ${total_price.value.toLocaleString()}원 결제가 완료되었습니다.`);
 
-            // 결제 완료 후 주문 초기화
-            if (orderInfo.value.type === 'table') {
-                clearTableOrders(orderInfo.value.tableId); // 테이블 주문 초기화
-            } else if (orderInfo.value.type === 'delivery') {
-                clearDeliveryOrders(orderInfo.value.deliveryService); // 배달 주문 초기화
-            }
-
-            // 결제 완료 후 로컬스토리지 초기화
-            localStorage.removeItem('selected_options');
-
-            // 결제 완료 후 POS 화면으로 이동
-            router.push('/pos');
-        } else {
-            alert('결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+        // 결제 완료 후 주문 초기화
+        if (orderInfo.value.type === 'table') {
+            clearTableOrders(orderInfo.value.tableId);
+        } else if (orderInfo.value.type === 'delivery') {
+            clearDeliveryOrders(orderInfo.value.deliveryService);
         }
+
+        // 로컬스토리지 초기화 및 이동
+        localStorage.removeItem('selected_options');
+        router.push('/pos');
+
     } catch (error) {
         console.error('결제 처리 중 오류:', error);
-        alert('결제 처리 중 오류가 발생했습니다.');
+        alert(error.message); // 서버가 보낸 메시지 그대로 사용자에게 표시
     }
 };
 
