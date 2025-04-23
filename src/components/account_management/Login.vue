@@ -36,7 +36,6 @@ const handleLogin = async () => {
         } else {
           localStorage.removeItem("savedEmail");
         }
-
         window.location.href = "/";
       } else {
         errorMessage.value = response.data || "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.";
