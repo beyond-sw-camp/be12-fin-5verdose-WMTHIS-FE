@@ -26,21 +26,21 @@ const handleLogin = async () => {
 
     // ✅ 로그인 API 호출
     const response = await api.login(data);
-
-    // 로그인 성공 처리
-    if (response) {
-      // 로그인 성공 시 로컬 스토리지에 아이디 저장 (아이디 저장 체크 시)
-      if (rememberMe.value) {
-        localStorage.setItem("savedEmail", email.value);
-      } else {
-        localStorage.removeItem("savedEmail");
-      }
-
-      // 로그인 성공 후 대시보드로 이동
-      router.push({ name: "dashboard" });
+    if (!response) {
+      errorMessage.value = "로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+      return;
     } else {
-      // 로그인 실패 시 에러 메시지 표시
-      errorMessage.value = response.message || "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.";
+      if (response.code === 200) {
+        if (rememberMe.value) {
+          localStorage.setItem("savedEmail", email.value);
+        } else {
+          localStorage.removeItem("savedEmail");
+        }
+
+        window.location.href = "/";
+      } else {
+        errorMessage.value = response.data || "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.";
+      }
     }
   } catch (error) {
     // API 호출 실패 시 에러 메시지 표시
@@ -68,17 +68,30 @@ const loadSavedEmail = () => {
   }
 };
 
+async function checkIsLogin() {
+  const response = await api.isLogin();
+  console.log("뭔데");
+  console.log(response);
+  console.log("router 확인:", router);
+  if (response.data == true) {
+    router.replace({ name: "dashboard" });
+  }
+}
+
 const submitForm = () => {
   const jsonData = {
     email: email.value,
     password: password.value,
   };
-  const result = api.verify(jsonData);
+  const result = api.login(jsonData);
   console.log(result);
 };
 
 // 컴포넌트 마운트 시 저장된 이메일 불러오기
-onMounted(loadSavedEmail);
+onMounted(() => {
+  loadSavedEmail(); // ✅ 마운트 시 실행
+  checkIsLogin();
+});
 </script>
 
 <template>
