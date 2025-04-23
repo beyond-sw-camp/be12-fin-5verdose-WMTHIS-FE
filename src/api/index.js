@@ -107,6 +107,19 @@ export const api = {
       });
   },
 
+  isLogin() {
+    return instance
+      .get("/user/isLogin")
+      .then((res) => {
+        console.log("LoginRes");
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in Login:", error);
+        return false;
+      });
+  },
+
   updatePassword(data) {
     console.log("Update password data", data);
     return instance

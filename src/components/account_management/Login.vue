@@ -37,9 +37,8 @@ const handleLogin = async () => {
         } else {
           localStorage.removeItem("savedEmail");
         }
-        router.push({ name: "dashboard" });
-      }
-      else {
+        window.location.href = "/";
+      } else {
         errorMessage.value = response.data || "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.";
       }
     }
@@ -68,17 +67,30 @@ const loadSavedEmail = () => {
   }
 };
 
+async function checkIsLogin() {
+  const response = await api.isLogin();
+  console.log("뭔데");
+  console.log(response);
+  console.log("router 확인:", router);
+  if (response.data == true) {
+    router.replace({ name: "dashboard" });
+  }
+}
+
 const submitForm = () => {
   const jsonData = {
     email: email.value,
     password: password.value,
   };
-  const result = api.verify(jsonData);
+  const result = api.login(jsonData);
   console.log(result);
 };
 
 // 컴포넌트 마운트 시 저장된 이메일 불러오기
-onMounted(loadSavedEmail);
+onMounted(() => {
+  loadSavedEmail(); // ✅ 마운트 시 실행
+  checkIsLogin();
+});
 </script>
 
 <template>
