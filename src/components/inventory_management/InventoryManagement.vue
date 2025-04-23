@@ -5,8 +5,8 @@ import InventoryStoreModal from "@/components/inventory_management/InventoryStor
 import DeleteConfirmModal from "@/components/alerts/DeleteConfirmModal.vue";
 import DeleteAlertModal from "@/components/alerts/DeleteAlertModal.vue";
 import InventoryParticularModal from "@/components/inventory_management/InventoryParticularModal.vue";
-
 import InventorySaleModal from "@/components/inventory_management/InventorySaleModal.vue";
+import { api } from "@/api/MenuApi.js"; // API 임포트 추가
 
 const tab = ref("exp");
 const isStoreOpen = ref(false);
@@ -18,11 +18,57 @@ const isDeleteConfirmOpen = ref(false);
 const isDeleteAlertOpen = ref(false);
 const modalType = ref("");
 const selectedItem = ref(null);
+const isLoading = ref(false); // 로딩 상태 추가
+
+// 재고 아이템 데이터
+const inventory_items = ref([]);
+
 const handleInventoryRegistered = (data) => {
   console.log("입고 완료된 재고 데이터:", data);
-  // 입고 후 테이블 갱신 등 처리
+  // 입고 후 테이블 갱신
+  fetchInventoryData();
 };
+
+// API에서 데이터 가져오기
+const fetchInventoryData = async () => {
+  isLoading.value = true;
+  try {
+    const data = await api.getStoreInventoryList();
+    if (data) {
+      // API 응답에서 필요한 필드만 추출하여 매핑
+      inventory_items.value = data.map(item => ({
+        id: item.id, // API의 id를 inventoryId로 사용
+        inventoryId: item.id, // 명시적으로 inventoryId 필드 추가
+        name: item.name,
+        miniquantity: item.miniquantity,
+        quantity: item.miniquantity, // 임시로 miniquantity를 quantity로 사용
+        totalquantity: `${item.miniquantity} ${item.unit}`, // 단위와 함께 표시
+        unit: item.unit,
+        expiryDate: item.expiryDate,
+        status: getStatusFromExpiryDate(item.expiryDate), // 유통기한 기반 상태 계산
+        orderNeed: item.miniquantity < 100 ? "필요" : "-", // 임의의 로직으로 발주 필요 여부 결정
+        selected: false
+      }));
+      console.log("API에서 가져온 재고 데이터:", inventory_items.value);
+    } else {
+      console.error("재고 데이터를 가져오는데 실패했습니다.");
+    }
+  } catch (error) {
+    console.error("재고 데이터 로딩 중 오류 발생:", error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// 유통기한 기반으로 상태 결정 (임의의 로직)
+const getStatusFromExpiryDate = (days) => {
+  if (days <= 3) return "만료";
+  if (days <= 7) return "임박";
+  return "유효";
+};
+
 const openParticularModal = (item) => {
+  console.log("✅ 상세 보기 클릭됨:", item);
   selectedItem.value = item;
   modalType.value = "particular";
   isModalOpen.value = true;
@@ -41,39 +87,31 @@ const openDetailModal = () => {
   modalType.value = "detail";
   isModalOpen.value = true;
 };
+
 const setFilter = (status) => {
   selectedFilter.value = status;
   filterStatus.value = status; // 둘 다 필요할 경우
 };
-const closeModal = () => (isModalOpen.value = false);
 
+const closeModal = () => (isModalOpen.value = false);
 const closeDetailModal = () => (isDetailModalOpen.value = false);
+
 watch(selectedFilter, (newVal) => {
   stockStatus.value = newVal;
 });
 
 const searchKeyword = ref("");
-const inventory_items = ref([]);
 
 const select_all = ref(false);
 const isBlocked = computed(
   () => isDeleteConfirmOpen.value || isDeleteAlertOpen.value
 );
+
 const toggle_select_all = () => {
   if (!isBlocked.value)
     inventory_items.value.forEach((item) => (item.selected = select_all.value));
 };
 
-watch(
-  inventory_items,
-  (newItems, oldItems) => {
-    console.log("Updated inventory items:", newItems);
-    console.log("Previous inventory items:", oldItems);
-
-    localStorage.setItem("inventory_items", JSON.stringify(newItems));
-  },
-  { deep: true }
-);
 const filteredItems = computed(() => {
   let items = inventory_items.value;
 
@@ -99,26 +137,10 @@ const filteredItems = computed(() => {
   return items;
 });
 
-// 최초 로딩 시 로컬스토리지에서 불러오기
+// 컴포넌트 마운트 시 API에서 데이터 가져오기
 onMounted(() => {
-  const savedItems = localStorage.getItem("inventory_items");
-  if (savedItems) {
-    try {
-      inventory_items.value = JSON.parse(savedItems);
-    } catch (e) {
-      console.error("로컬스토리지에서 재고 불러오기 실패:", e);
-    }
-  }
+  fetchInventoryData();
 });
-
-// 변경 감지해서 저장
-watch(
-  inventory_items,
-  (newItems) => {
-    localStorage.setItem("inventory_items", JSON.stringify(newItems));
-  },
-  { deep: true }
-);
 
 const openDeleteConfirm = () => {
   if (!isBlocked.value) {
@@ -130,22 +152,37 @@ const openDeleteConfirm = () => {
 
 const closeDeleteConfirm = () => (isDeleteConfirmOpen.value = false);
 const closeDeleteAlert = () => (isDeleteAlertOpen.value = false);
-const deleteSelectedItems = () => {
+
+const deleteSelectedItems = async () => {
   isDeleteConfirmOpen.value = false;
-  inventory_items.value = inventory_items.value.filter(
-    (item) => !item.selected
-  );
+
+  // 선택된 아이템 ID 목록
+  const selectedIds = inventory_items.value
+    .filter(item => item.selected)
+    .map(item => item.id);
+
+  // 여기에 삭제 API 호출 로직을 추가할 수 있습니다
+  // 예: await api.deleteInventoryItems(selectedIds);
+
+  // 삭제 후 목록 다시 불러오기
+  await fetchInventoryData();
 };
+
 const addInventoryItem = (item) => {
   console.log("입고 완료된 재고 데이터:", item);
-  inventory_items.value.push(item);
-
-  // 로컬스토리지에 저장
-  localStorage.setItem(
-    "inventory_items",
-    JSON.stringify(inventory_items.value)
-  );
+  // 입고 후 데이터 다시 불러오기
+  fetchInventoryData();
 };
+
+// 만료 임박 아이템 계산
+const expiringItems = computed(() => {
+  return inventory_items.value.filter(item => item.status === "임박");
+});
+
+// 발주 필요 아이템 계산
+const orderNeededItems = computed(() => {
+  return inventory_items.value.filter(item => item.orderNeed !== "-");
+});
 </script>
 
 <template>
@@ -157,51 +194,39 @@ const addInventoryItem = (item) => {
         <!-- 만료 임박 -->
         <v-col cols="12" md="5" class="text-center">
           <div class="label">만료 임박</div>
-          <div class="warning_text">마늘</div>
-          <div class="warning_text">D-8</div>
+          <div v-if="expiringItems.length > 0" class="warning_text">
+            {{ expiringItems[0].name }}
+          </div>
+          <div v-if="expiringItems.length > 0" class="warning_text">
+            D-{{ expiringItems[0].expiryDate }}
+          </div>
+          <div v-else class="normal_text">없음</div>
         </v-col>
 
         <!-- 세로 구분선 -->
         <v-col cols="12" md="1" class="d-flex justify-center">
-          <div
-            class="divider"
-            style="width: 2px; background-color: #ccc; height: 100%"
-          ></div>
+          <div class="divider" style="width: 2px; background-color: #ccc; height: 100%"></div>
         </v-col>
 
         <!-- 발주 필요 재고 -->
         <v-col cols="12" md="6" class="text-center">
           <div class="label">발주 필요재고</div>
-          <div class="warning_text" v-if="stockStatus === '필요'">6개</div>
-          <div class="warning_text" v-else>0</div>
+          <div class="warning_text">{{ orderNeededItems.length }}개</div>
         </v-col>
       </v-row>
 
       <!-- 탭 -->
-      <v-tabs
-        v-model="tab"
-        class="custom_tabs shift_tabs"
-        background-color="transparent"
-        show-arrows
-      >
-        <v-tab
-          variant="text"
-          value="exp"
-          :class="{
-            selected_tab: tab === 'exp',
-            default_tab: tab !== 'exp',
-          }"
-        >
+      <v-tabs v-model="tab" class="custom_tabs shift_tabs" background-color="transparent" show-arrows>
+        <v-tab variant="text" value="exp" :class="{
+          selected_tab: tab === 'exp',
+          default_tab: tab !== 'exp',
+        }">
           유통기한
         </v-tab>
-        <v-tab
-          variant="text"
-          value="order"
-          :class="{
-            selected_tab: tab === 'order',
-            default_tab: tab !== 'order',
-          }"
-        >
+        <v-tab variant="text" value="order" :class="{
+          selected_tab: tab === 'order',
+          default_tab: tab !== 'order',
+        }">
           발주필요재고
         </v-tab>
       </v-tabs>
@@ -212,46 +237,26 @@ const addInventoryItem = (item) => {
         <v-window-item value="exp">
           <v-row class="mt-3">
             <v-col cols="5">
-              <v-btn
-                class="filter_btn"
-                :class="{ selected: selectedFilter === '전체' }"
-                block
-                depressed
-                @click="selectedFilter = '전체'"
-              >
+              <v-btn class="filter_btn" :class="{ selected: selectedFilter === '전체' }" block depressed
+                @click="selectedFilter = '전체'">
                 전체
               </v-btn>
             </v-col>
             <v-col cols="5">
-              <v-btn
-                class="filter_btn"
-                :class="{ selected: selectedFilter === '만료' }"
-                block
-                depressed
-                @click="selectedFilter = '만료'"
-              >
+              <v-btn class="filter_btn" :class="{ selected: selectedFilter === '만료' }" block depressed
+                @click="selectedFilter = '만료'">
                 만료
               </v-btn>
             </v-col>
             <v-col cols="5">
-              <v-btn
-                class="filter_btn"
-                :class="{ selected: selectedFilter === '임박' }"
-                block
-                depressed
-                @click="selectedFilter = '임박'"
-              >
+              <v-btn class="filter_btn" :class="{ selected: selectedFilter === '임박' }" block depressed
+                @click="selectedFilter = '임박'">
                 임박
               </v-btn>
             </v-col>
             <v-col cols="5">
-              <v-btn
-                class="filter_btn"
-                :class="{ selected: selectedFilter === '유효' }"
-                block
-                depressed
-                @click="selectedFilter = '유효'"
-              >
+              <v-btn class="filter_btn" :class="{ selected: selectedFilter === '유효' }" block depressed
+                @click="selectedFilter = '유효'">
                 유효
               </v-btn>
             </v-col>
@@ -262,24 +267,14 @@ const addInventoryItem = (item) => {
         <v-window-item value="order">
           <v-row class="mt-3">
             <v-col cols="5">
-              <v-btn
-                class="filter_btn"
-                :class="{ selected: selectedFilter === '필요' }"
-                block
-                depressed
-                @click="selectedFilter = '필요'"
-              >
+              <v-btn class="filter_btn" :class="{ selected: selectedFilter === '필요' }" block depressed
+                @click="selectedFilter = '필요'">
                 필요
               </v-btn>
             </v-col>
             <v-col cols="5">
-              <v-btn
-                class="filter_btn"
-                :class="{ selected: selectedFilter === '충분' }"
-                block
-                depressed
-                @click="selectedFilter = '충분'"
-              >
+              <v-btn class="filter_btn" :class="{ selected: selectedFilter === '충분' }" block depressed
+                @click="selectedFilter = '충분'">
                 충분
               </v-btn>
             </v-col>
@@ -288,15 +283,12 @@ const addInventoryItem = (item) => {
       </v-window>
     </v-col>
     <v-col cols="auto" class="d-flex justify-center">
-      <div
-        class="divider"
-        style="
+      <div class="divider" style="
           width: 2px;
           background-color: #ccc;
           height: 100%;
           margin-left: -75px;
-        "
-      ></div>
+        "></div>
     </v-col>
     <!-- 오른쪽: 재고 테이블 -->
     <v-col cols="3" md="8" style="max-width: 1200px">
@@ -305,33 +297,28 @@ const addInventoryItem = (item) => {
 
         <div class="search_container">
           <div class="search_box">
-            <input
-              type="text"
-              class="search_input"
-              placeholder="재료명 검색"
-              v-model="searchKeyword"
-            />
+            <input type="text" class="search_input" placeholder="재료명 검색" v-model="searchKeyword" />
             <button class="search_btn">
               <img src="@/assets/image/search_button.png" class="search_icon" />
             </button>
           </div>
           <div class="action_buttons">
             <button @click="openStoreModal" class="register_btn">입고</button>
-
             <button @click="openSaleModal" class="particular_btn">판매</button>
           </div>
         </div>
 
-        <table class="inventory_table">
+        <!-- 로딩 인디케이터 -->
+        <div v-if="isLoading" class="loading-container">
+          <div class="loading-spinner"></div>
+          <p>데이터를 불러오는 중...</p>
+        </div>
+
+        <table v-else class="inventory_table">
           <thead>
             <tr>
               <th>
-                <input
-                  type="checkbox"
-                  v-model="select_all"
-                  @change="toggle_select_all"
-                  class="circle_checkbox"
-                />
+                <input type="checkbox" v-model="select_all" @change="toggle_select_all" class="circle_checkbox" />
               </th>
               <th>재고명</th>
               <th>수량</th>
@@ -342,17 +329,9 @@ const addInventoryItem = (item) => {
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="(item, index) in filteredItems"
-              :key="index"
-              :class="{ 'selected-row': item.selected }"
-            >
+            <tr v-for="(item, index) in filteredItems" :key="item.id" :class="{ 'selected-row': item.selected }">
               <td>
-                <input
-                  type="checkbox"
-                  v-model="item.selected"
-                  class="circle_checkbox"
-                />
+                <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
               </td>
               <td class="bold-text">{{ item.name }}</td>
               <td>{{ item.quantity }}</td>
@@ -366,49 +345,23 @@ const addInventoryItem = (item) => {
               </td>
 
               <td>
-                <button
-                  @click="openParticularModal(item)"
-                  class="particular_btn"
-                >
+                <button @click="openParticularModal(item)" class="particular_btn">
                   상세
                 </button>
               </td>
             </tr>
           </tbody>
         </table>
-        <InventoryParticularModal
-          v-if="modalType === 'particular' && isModalOpen && selectedItem"
-          :item="selectedItem"
-          :isOpen="isModalOpen"
-          @close="closeModal"
-        />
-        <InventoryStoreModal
-          v-if="isStoreOpen"
-          :isOpen="isStoreOpen"
-          @close="isStoreOpen = false"
-          @totalInventory="addInventoryItem"
-        />
+        <InventoryParticularModal v-if="modalType === 'particular' && isModalOpen && selectedItem" :item="selectedItem"
+          :isOpen="isModalOpen" :storeInventoryId="selectedItem.id" @close="closeModal" />
+        <InventoryStoreModal v-if="isStoreOpen" :isOpen="isStoreOpen" @close="isStoreOpen = false"
+          @totalInventory="addInventoryItem" />
 
-        <InventoryCorrectionModal
-          v-if="modalType === 'correction'"
-          :isOpen="isModalOpen"
-          @close="closeModal"
-        />
-        <InventorySaleModal
-          v-if="modalType === 'sale'"
-          :isOpen="isModalOpen"
-          @close="closeModal"
-        />
+        <InventoryCorrectionModal v-if="modalType === 'correction'" :isOpen="isModalOpen" @close="closeModal" />
+        <InventorySaleModal v-if="modalType === 'sale'" :isOpen="isModalOpen" @close="closeModal" />
 
-        <DeleteConfirmModal
-          :isOpen="isDeleteConfirmOpen"
-          @confirm="deleteSelectedItems"
-          @cancel="closeDeleteConfirm"
-        />
-        <DeleteAlertModal
-          :isOpen="isDeleteAlertOpen"
-          @close="closeDeleteAlert"
-        />
+        <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
+        <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
       </div>
     </v-col>
   </v-row>

@@ -307,4 +307,21 @@ export const api = {
         return false;
       });
   },
+  getRecipes(inventoryId) {
+    const payload =
+      typeof inventoryId === "object"
+        ? inventoryId
+        : { inventoryId: inventoryId };
+
+    return instance
+      .post("/inventory/getRecipes", payload)
+      .then((res) => {
+        if (res.data.code !== 200) return { menuItems: [] };
+        return res.data.data;
+      })
+      .catch((error) => {
+        console.error("Error in getRecipes: ", error);
+        return { menuItems: [] };
+      });
+  },
 };
