@@ -339,6 +339,16 @@ export const api = {
       });
   },
 
+  getInventoryCall() {
+    return instance
+      .get("inventory/inventoryCall")
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error in inventoryCall:", error);
+        throw error;
+      });
+  },
+
   getOrdersList() {
     return instance
       .get("order/getList")

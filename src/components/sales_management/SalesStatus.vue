@@ -7,6 +7,27 @@ const xaxisCategories = ref([]);
 const series = ref([]);
 const bestMenuList = ref([]);
 
+const inventoryStatus = ref({
+    expiringCount: 0,
+    reorderRequiredCount: 0,
+    receivedTodayCount: 0,
+});
+
+const getInventoryStatus = async () => {
+    try {
+        const response = await api.getInventoryCall();
+
+        if (response) {
+            inventoryStatus.value = response.data;
+            console.log('재고 상태:', inventoryStatus.value);
+        } else {
+            console.error('재고 API 호출 실패:', response.message);
+        }
+    } catch (error) {
+        console.error('재고 API 호출 중 오류 발생:', error);
+    }
+};
+
 const chartOptions = ref({
     chart: {
         id: 'sales-chart',
@@ -95,6 +116,7 @@ const getBestMenu = async () => {
 };
 getBestMenu();
 getTodaySales();
+getInventoryStatus();
 
 const summaries = [
     {
@@ -208,7 +230,7 @@ const summaries = [
             <span class="status-label">만료임박</span>
             <div class="icon_place">
                 <img src="@/assets/image/calendar.png" alt="만료임박 아이콘" class="status-icon" />
-                <span class="status-number text-red">4</span>
+                <span class="status-number text-red">{{ inventoryStatus.expiringCount }}</span>
             </div>
         </div>
 
@@ -216,7 +238,7 @@ const summaries = [
             <span class="status-label">발주 필요</span>
             <div class="icon_place">
                 <img src="@/assets/image/stock.png" alt="발주 필요 아이콘" class="status-icon" />
-                <span class="status-number text-yellow">5</span>
+                <span class="status-number text-yellow">{{ inventoryStatus.reorderRequiredCount }}</span>
             </div>
         </div>
 
@@ -224,7 +246,7 @@ const summaries = [
             <span class="status-label">금일 입고</span>
             <div class="icon_place">
                 <img src="@/assets/image/completed.png" alt="금일 입고 아이콘" class="status-icon" />
-                <span class="status-number text-gray">8</span>
+                <span class="status-number text-gray">{{ inventoryStatus.receivedTodayCount }}</span>
             </div>
         </div>
     </div>
