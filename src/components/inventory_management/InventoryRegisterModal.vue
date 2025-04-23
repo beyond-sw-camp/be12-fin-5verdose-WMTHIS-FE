@@ -1,35 +1,32 @@
 <script setup>
 import { defineProps, defineEmits, ref } from "vue";
-import { useInventoryStore } from "@/stores/useInventoryStore";
-import useAuthStore from "@/stores/useAuthStore";
-const authStore = useAuthStore();
+import { useInventoryStore } from "../../stores/useInventoryStore";
+const inventoryStore = useInventoryStore();
 // props & emits
 const props = defineProps({
   isOpen: Boolean,
 });
 const emit = defineEmits(["close", "registerInventory"]);
-const quantity = ref(0);
-// pinia store
-const inventoryStore = useInventoryStore();
 
 // 입력 필드 상태
 const name = ref("");
 const unit = ref("");
 const miniquantity = ref(0);
+const quantity = ref(0);
 
-// 유통기한 관련
+// 유통기한 관련 상태
 const selectedDays = ref("1");
 const isCustomInput = ref(false);
 const customDays = ref("");
 
-// 유통기한 선택 옵션
+// 유통기한 옵션
 const expiryDate = [
   { label: "1일", value: "1" },
   { label: "3일", value: "3" },
   { label: "5일", value: "5" },
 ];
 
-// 유통기한 선택
+// 유통기한 선택 핸들러
 const selectDay = (value) => {
   selectedDays.value = value;
   isCustomInput.value = false;
@@ -50,33 +47,31 @@ const disableCustomInput = () => {
   }
 };
 
-// 등록 처리
+// 재고 등록 처리 함수
 const registerInventory = async () => {
-  if (!name.value || !unit.value || miniquantity.value <= 0) {
-    alert("필수 항목을 모두 입력해주세요.");
-    return;
-  }
-  disabled = "!authStore.token";
+  // 등록할 데이터 세팅
   const storeInventoryData = {
     name: name.value,
-    quantity: quantity.value,
-    unit: unit.value,
+    quantity: quantity.value, // 예: "5", "10"
+    unit: `${unit.value}`, // 예: "100g", "1 Kg"
     miniquantity: miniquantity.value,
     expiryDate:
       selectedDays.value === "custom" ? customDays.value : selectedDays.value,
   };
 
+  // Pinia store의 registerStoreInventory 함수 호출
   const result = await inventoryStore.registerStoreInventory(
     storeInventoryData
   );
   if (result) {
     emit("registerInventory", storeInventoryData);
-    alert("재고가 성공적으로 등록되었습니다."); // 성공 알림
+  }
+  if (result) {
+    emit("registerInventory"); // 성공 시 모달 닫기
   } else {
     console.error("등록 실패");
-    alert("등록에 실패했습니다. 다시 시도해주세요."); // 실패 알림
+    // 실패 시 알림을 추가하는 로직 추가 가능
   }
-  emit("close");
 };
 </script>
 
