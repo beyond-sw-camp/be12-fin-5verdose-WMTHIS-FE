@@ -1,5 +1,6 @@
 <script setup>
-import { ref, computed, watch } from "vue"
+import { ref, computed, watch, nextTick, onMounted } from "vue"
+
 const props = defineProps({
     salesData: {
         type: Object,
@@ -17,44 +18,276 @@ const props = defineProps({
         type: [String, Object],
         required: true,
     },
+    // 새로 추가된 props
+    chartData: {
+        type: Array,
+        default: () => [],
+    },
+    dateRangeType: {
+        type: String,
+        default: 'hour',
+    },
+    isLoading: {
+        type: Boolean,
+        default: false,
+    }
 })
-watch(
-    () => props.salesData,
-    (newVal) => {
-        console.log("salesData:", newVal)
-    },
-)
-watch(
-    () => props.selectedDate,
-    (newVal) => {
-        console.log("selectedDate:", newVal)
-    },
-)
 
-watch(
-    () => props.selectedPeriod,
-    (val) => {
-        console.log("선택된 기간:", val)
+// 차트 시리즈 데이터 계산
+// 차트 시리즈 데이터 계산 수정
+const chartSeries = computed(() => {
+    if (!props.chartData || props.chartData.length === 0) return [
+        { name: "홀", data: [] },
+        { name: "배민", data: [] },
+        { name: "쿠팡", data: [] },
+        { name: "요기요", data: [] }
+    ];
+
+    // 모든 x축 카테고리에 대해 초기값 0으로 설정
+    const categories = xAxisCategories.value;
+    const hallData = new Array(categories.length).fill(0);
+    const baeminData = new Array(categories.length).fill(0);
+    const coupangData = new Array(categories.length).fill(0);
+    const yogiyoData = new Array(categories.length).fill(0);
+
+    props.chartData.forEach(item => {
+        let index = -1;
+
+        if (props.dateRangeType === 'hour') {
+            // 시간별 데이터
+            const hour = item.createdAt.split(' ')[1].substring(0, 2);
+            index = categories.findIndex(cat => cat === `${hour}시`);
+        } else if (props.dateRangeType === 'day') {
+            // 일별 데이터
+            const day = item.createdAt.split(' ')[0].split('-')[2];
+            index = categories.findIndex(cat => cat === `${parseInt(day)}일`);
+        } else {
+            // 월별 데이터
+            const month = item.createdAt.split(' ')[0].split('-')[1];
+            index = categories.findIndex(cat => cat === `${parseInt(month)}월`);
+        }
+
+        if (index !== -1) {
+            if (item.orderType === "hall") {
+                hallData[index] += item.totalPrice;
+            } else if (item.orderType === "baemin") {
+                baeminData[index] += item.totalPrice;
+            } else if (item.orderType === "coupang") {
+                coupangData[index] += item.totalPrice;
+            } else if (item.orderType === "yogiyo") {
+                yogiyoData[index] += item.totalPrice;
+            }
+        }
+    });
+
+    return [
+        { name: "홀", data: hallData },
+        { name: "배민", data: baeminData },
+        { name: "쿠팡", data: coupangData },
+        { name: "요기요", data: yogiyoData }
+    ];
+})
+
+// X축 카테고리 계산
+const xAxisCategories = computed(() => {
+    if (props.dateRangeType === 'hour') {
+        // 시간별 표시 (0~23시)
+        return Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}시`);
+    } else if (props.dateRangeType === 'day') {
+        // 일별 표시 - 데이터에서 고유한 날짜 추출
+        const dateMap = {};
+
+        if (props.chartData && props.chartData.length > 0) {
+            props.chartData.forEach(item => {
+                const date = item.createdAt.split(' ')[0].split('-')[2]; // "YYYY-MM-DD" 형식에서 "DD" 추출
+                dateMap[date] = true;
+            });
+        }
+
+        // 날짜가 없으면 현재 월의 모든 날짜 표시
+        if (Object.keys(dateMap).length === 0) {
+            const today = new Date();
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+            for (let i = 1; i <= lastDay; i++) {
+                dateMap[String(i).padStart(2, '0')] = true;
+            }
+        }
+
+        const dates = Object.keys(dateMap).sort((a, b) => parseInt(a) - parseInt(b));
+        return dates.map(date => `${parseInt(date)}일`);
+    } else {
+        // 월별 표시
+        const monthMap = {};
+
+        if (props.chartData && props.chartData.length > 0) {
+            props.chartData.forEach(item => {
+                const month = item.createdAt.split(' ')[0].split('-')[1]; // "YYYY-MM-DD" 형식에서 "MM" 추출
+                monthMap[month] = true;
+            });
+        }
+
+        // 월 데이터가 없으면 1~12월 표시
+        if (Object.keys(monthMap).length === 0) {
+            for (let i = 1; i <= 12; i++) {
+                monthMap[String(i).padStart(2, '0')] = true;
+            }
+        }
+
+        const months = Object.keys(monthMap).sort((a, b) => parseInt(a) - parseInt(b));
+        return months.map(month => `${parseInt(month)}월`);
+    }
+})
+
+const chartOptions = computed(() => ({
+    chart: {
+        type: "bar",
+        stacked: true,
+        toolbar: {
+            show: false,  // 툴바 자체를 완전히 숨김
+            tools: {
+                download: false,
+                selection: false,
+                zoom: false,
+                zoomin: false,
+                zoomout: false,
+                pan: false,
+                reset: false
+            }
+        },
+        animations: {
+            enabled: false
+        }
     },
-)
-const chartSeries = computed(() => [
-    {
-        name: "홀",
-        data: hourlyData.value.map((h) => h.hall),
+    plotOptions: {
+        bar: {
+            horizontal: false,
+            columnWidth: "60%",
+            // 0 값에 대한 데이터 라벨 표시 설정
+            dataLabels: {
+                enabled: false, // 데이터 라벨 비활성화
+            },
+        },
     },
-    {
-        name: "배민",
-        data: hourlyData.value.map((h) => h.baemin),
+    // 데이터 라벨 활성화
+    dataLabels: {
+        enabled: false,
+        formatter: function (val) {
+            // 0 값에 대해서도 라벨 표시
+            if (val === 0) return '0';
+            return val >= 1000 ? (val / 1000).toFixed(1) + 'k' : val;
+        },
+        offsetY: -20,
+        style: {
+            fontSize: '10px',
+            colors: ["#304758"]
+        }
     },
-    {
-        name: "쿠팡",
-        data: hourlyData.value.map((h) => h.coupang),
+    xaxis: {
+        categories: xAxisCategories.value,
+        title: {
+            text: props.dateRangeType === 'hour' ? '시간' :
+                props.dateRangeType === 'day' ? '일자' : '월',
+        },
+        // 모든 x축 라벨 표시 강제
+        tickPlacement: 'on',
+        labels: {
+            rotate: 0,
+            trim: false,
+            hideOverlappingLabels: false,
+            style: {
+                fontSize: '7px', // x축 글자 크기 조정 (원하는 크기로 변경 가능)
+                fontWeight: 300,  // 글자 굵기 설정
+                colors: '#333333' // 글자 색상 설정
+            }
+        }
     },
-    {
-        name: "요기요",
-        data: hourlyData.value.map((h) => h.yogiyo),
+    yaxis: {
+        title: {
+            text: '매출액 (원)'
+        },
+        labels: {
+            formatter: (val) => `${val.toLocaleString()}원`,
+        },
+        // y축 범위 설정 - 0 값이 보이도록 약간의 여백 추가
+        min: -100,  // 음수 값으로 설정하여 0 값이 보이도록 함
+        max: function (max) {
+            return max + max * 0.1;  // 최대값에 10% 여백 추가
+        }
     },
-])
+    tooltip: {
+        y: {
+            formatter: (val) => `${val.toLocaleString()}원`,
+        },
+        // 값이 0인 경우에도 툴팁 표시
+        intersect: false,
+        shared: true
+    },
+    legend: {
+        position: "top",
+    },
+    colors: ["#FFD666", "#87E8DE", "#FF9C6E", "#B37FEB"],
+    noData: {
+        text: '데이터가 없습니다',
+        align: 'center',
+        verticalAlign: 'middle',
+        offsetX: 0,
+        offsetY: 0,
+        style: {
+            color: '#999',
+            fontSize: '14px',
+            fontFamily: 'sans-serif'
+        }
+    },
+    // 0 값 처리 설정
+    stroke: {
+        show: true,
+        width: 2,
+        colors: ['transparent']
+    },
+    // 모든 데이터 포인트에 마커 표시
+    markers: {
+        size: 4,
+        colors: ["#FFD666", "#87E8DE", "#FF9C6E", "#B37FEB"],
+        strokeColors: "#fff",
+        strokeWidth: 2,
+        hover: {
+            size: 6
+        }
+    },
+    // 0 값에 대한 특별한 스타일 설정
+    states: {
+        hover: {
+            filter: {
+                type: 'none'
+            }
+        },
+        active: {
+            filter: {
+                type: 'none'
+            }
+        }
+    }
+}))
+
+// 차트 렌더링 관련 상태
+const chartKey = ref(0);
+const chartReady = ref(false);
+
+// 차트 데이터가 변경될 때마다 차트 다시 렌더링
+watch(() => props.chartData, async () => {
+    chartReady.value = false;
+    chartKey.value++; // 차트 컴포넌트 강제 재렌더링
+    await nextTick();
+    chartReady.value = true;
+}, { deep: true });
+
+// 날짜 범위 타입이 변경될 때도 차트 다시 렌더링
+watch(() => props.dateRangeType, async () => {
+    chartReady.value = false;
+    chartKey.value++; // 차트 컴포넌트 강제 재렌더링
+    await nextTick();
+    chartReady.value = true;
+});
 
 // 날짜를 문자열로 변환하는 헬퍼 함수
 const formatDateToString = (date) => {
@@ -143,7 +376,6 @@ const filteredSalesData = computed(() => {
 
     // 기본: 선택된 날짜의 데이터 반환 (단일 날짜 선택)
     const dateStr = formatDateToString(props.selectedDate)
-    console.log("선택된 날짜:", dateStr, "데이터:", salesData[dateStr])
     return salesData[dateStr] || []
 })
 
@@ -220,9 +452,11 @@ const totalOrders = computed(() => {
 const totalSales = computed(() => {
     return currentDateData.value.reduce((sum, item) => sum + item.amount, 0)
 })
+
 const deliveryTotal = computed(() => {
     return categorySales.value.baemin + categorySales.value.coupang + categorySales.value.yogiyo
 })
+
 const categorySales = computed(() => {
     const result = {
         hall: 0,
@@ -238,48 +472,6 @@ const categorySales = computed(() => {
     })
 
     return result
-})
-
-const hourlyData = computed(() => {
-    const hours = {}
-
-    for (let i = 0; i < 24; i++) {
-        hours[i] = {
-            hour: i,
-            hall: 0,
-            baemin: 0,
-            coupang: 0,
-            yogiyo: 0,
-        }
-    }
-
-    currentDateData.value.forEach((item) => {
-        const paidTime = new Date(item.paidAt)
-        const hour = paidTime.getHours()
-
-        if (hours[hour] && hours[hour][item.type] !== undefined) {
-            hours[hour][item.type] += item.amount
-        }
-    })
-
-    return Object.values(hours)
-})
-
-const formatCurrency = (amount) => {
-    return amount.toLocaleString() + "원"
-}
-
-const yAxisValues = computed(() => {
-    let maxValue = 0
-    hourlyData.value.forEach((hour) => {
-        const total = hour.hall + hour.baemin + hour.coupang + hour.yogiyo
-        if (total > maxValue) maxValue = total
-    })
-
-    if (maxValue < 20000) maxValue = 20000
-
-    const step = Math.ceil(maxValue / 5 / 10000) * 10000
-    return [0, step, step * 2, step * 3, step * 4, step * 5]
 })
 
 const categoryOrderCount = computed(() => {
@@ -304,44 +496,19 @@ const deliveryOrderCount = computed(() => {
     return categoryOrderCount.value.baemin + categoryOrderCount.value.coupang + categoryOrderCount.value.yogiyo
 })
 
-const chartOptions = computed(() => ({
-    chart: {
-        type: "bar",
-        stacked: true, // 스택형 막대 그래프 활성화
-        toolbar: { show: false },
-    },
-    plotOptions: {
-        bar: {
-            horizontal: false, // 수직 막대 그래프
-            columnWidth: "40%", // 막대 너비
-        },
-    },
-    dataLabels: {
-        enabled: false, // 데이터 레이블 비활성화
-    },
-    xaxis: {
-        categories: hourlyData.value.map((item) => `${item.hour}시`), // 시간대별 카테고리
-    },
-    yaxis: {
-        labels: {
-            formatter: (val) => `${val.toLocaleString()}원`, // Y축 값 포맷
-        },
-    },
-    tooltip: {
-        y: {
-            formatter: (val) => `${val.toLocaleString()}원`, // 툴팁 값 포맷
-        },
-    },
-    legend: {
-        position: "top", // 범례 위치
-    },
-    colors: ["#FFD666", "#87E8DE", "#FF9C6E", "#B37FEB"], // 카테고리별 색상
-}))
+const formatCurrency = (amount) => {
+    return amount.toLocaleString() + "원"
+}
 
+// 컴포넌트 마운트 후 차트 준비
+onMounted(() => {
+    nextTick(() => {
+        chartReady.value = true;
+    });
+});
 </script>
 
 <template>
-    <!-- 템플릿 부분은 변경 없음 -->
     <div class="sales-detail">
         <div v-if="props.selectedDate" class="date-info">
             <h2>{{ formattedDate }} 매출 정보</h2>
@@ -357,8 +524,7 @@ const chartOptions = computed(() => ({
                 <hr>
                 <div>
                     <div class="delivery-summary-title">
-                        <p>홀</p><span>{{ formatCurrency(categorySales.hall) }} ({{ categoryOrderCount.hall
-                            }}건)</span>
+                        <p>홀</p><span>{{ formatCurrency(categorySales.hall) }} ({{ categoryOrderCount.hall }}건)</span>
                     </div>
                     <div class="delivery-summary-title">
                         <p>배달</p> <span>총 {{ formatCurrency(deliveryTotal) }} ({{ deliveryOrderCount }}건)</span>
@@ -366,17 +532,16 @@ const chartOptions = computed(() => ({
 
                     <hr>
                     <div class="delivery-summary">
-                        <p>배민</p><span>{{ formatCurrency(categorySales.baemin) }}
-                            ({{ categoryOrderCount.baemin
-                            }}건)</span>
+                        <p>배민</p><span>{{ formatCurrency(categorySales.baemin) }} ({{ categoryOrderCount.baemin
+                        }}건)</span>
                     </div>
                     <div class="delivery-summary">
                         <p>쿠팡</p><span>{{ formatCurrency(categorySales.coupang) }} ({{ categoryOrderCount.coupang
-                            }}건)</span>
+                        }}건)</span>
                     </div>
                     <div class="delivery-summary">
                         <p>요기요</p><span>{{ formatCurrency(categorySales.yogiyo) }} ({{ categoryOrderCount.yogiyo
-                            }}건)</span>
+                        }}건)</span>
                     </div>
                 </div>
             </div>
@@ -385,11 +550,23 @@ const chartOptions = computed(() => ({
                 <div class="date-info">
                     <div class="chart-container">
                         <div class="chart-header">
-                            <div class="chart-title">시간대별 매출</div>
-
+                            <div class="chart-title">
+                                {{ dateRangeType === 'hour' ? '시간대별 매출' :
+                                    dateRangeType === 'day' ? '일별 매출' : '월별 매출' }}
+                            </div>
                         </div>
 
-                        <apexchart type="bar" height="350" :options="chartOptions" :series="chartSeries" />
+                        <div v-if="isLoading" class="loading-indicator">
+                            데이터를 불러오는 중...
+                        </div>
+
+                        <div v-else-if="chartData && chartData.length > 0 && chartReady">
+                            <apexchart :key="chartKey" type="bar" height="350" :options="chartOptions"
+                                :series="chartSeries" />
+                        </div>
+                        <div v-else class="no-data-message">
+                            데이터가 없습니다
+                        </div>
                     </div>
                 </div>
             </div>
@@ -464,29 +641,6 @@ const chartOptions = computed(() => ({
     font-weight: bold;
 }
 
-.summary_title {
-    margin-bottom: 10px;
-    font-weight: bold;
-    font-size: 20px;
-}
-
-.second-row {
-    grid-template-columns: repeat(2, 1fr);
-    margin-bottom: 20px;
-}
-
-.card-label {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 5px;
-}
-
-.card-value {
-    font-size: 16px;
-    font-weight: 700;
-    color: #333;
-}
-
 .chart-container {
     flex: 1;
     display: flex;
@@ -495,9 +649,8 @@ const chartOptions = computed(() => ({
     border-radius: 8px;
     padding: 15px;
     padding-bottom: 50px;
-    /* 기존 padding-bottom에 여유 공간 추가 */
     position: relative;
-    /* 절대 위치 요소를 포함하기 위해 relative 설정 */
+    min-height: 350px;
 }
 
 .chart-header {
@@ -512,134 +665,21 @@ const chartOptions = computed(() => ({
     font-weight: bold;
 }
 
-.chart-legend {
+.loading-indicator {
     display: flex;
-    gap: 15px;
-}
-
-.legend-item {
-    display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 5px;
-}
-
-.legend-color {
-    width: 16px;
-    height: 16px;
-    border-radius: 2px;
-}
-
-.legend-color.hall {
-    background-color: #ffd666;
-}
-
-.legend-color.baemin {
-    background-color: #87e8de;
-}
-
-.legend-color.coupang {
-    background-color: #ff9c6e;
-}
-
-.legend-color.yogiyo {
-    background-color: #b37feb;
-}
-
-.legend-label {
-    font-size: 12px;
+    height: 350px;
     color: #666;
 }
 
-.chart {
-    flex: 1;
+.no-data-message {
     display: flex;
-    position: relative;
-}
-
-.y-axis {
-    display: flex;
-    flex-direction: column-reverse;
-    justify-content: space-between;
-    padding-right: 10px;
-    width: 40px;
-}
-
-.y-axis-label {
-    font-size: 12px;
+    justify-content: center;
+    align-items: center;
+    height: 350px;
     color: #999;
-}
-
-.chart-bars {
-    flex: 1;
-    display: flex;
-    align-items: flex-end;
-    gap: 10px;
-    position: relative;
-}
-
-.chart-bars::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -5px;
-    height: 1px;
-    background-color: #eee;
-}
-
-.hour-column {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100%;
-    position: relative;
-    /* position 설정 추가 */
-}
-
-.bar-container {
-    width: 100%;
-    margin-top: 25px;
-    height: calc(100% - 10px);
-    display: flex;
-    flex-direction: column-reverse;
-    align-items: center;
-}
-
-.bar {
-    width: 70%;
-    transition: height 0.3s;
-}
-
-.hall-bar {
-    background-color: #ffd666;
-    border-radius: 2px 2px 0 0;
-    z-index: 4;
-}
-
-.baemin-bar {
-    background-color: #87e8de;
-    margin-top: 1px;
-    z-index: 3;
-}
-
-.coupang-bar {
-    background-color: #ff9c6e;
-    margin-top: 1px;
-    z-index: 2;
-}
-
-.yogiyo-bar {
-    background-color: #b37feb;
-    margin-top: 1px;
-    z-index: 1;
-}
-
-.hour-label {
-    font-size: 12px;
-    color: #666;
-    position: absolute;
-    bottom: -40px;
+    font-size: 14px;
 }
 
 .no-data {
@@ -654,54 +694,5 @@ const chartOptions = computed(() => ({
     .summary-cards {
         grid-template-columns: repeat(2, 1fr);
     }
-
-    .second-row {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-.chart-buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    /* 버튼들을 오른쪽으로 정렬 */
-    flex: 1;
-    margin-top: 10px;
-}
-
-button {
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px 20px;
-    font-size: 12px;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #e0e0e0;
-    transform: scale(1.05);
-}
-
-button.active {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
-}
-
-button:focus {
-    outline: none;
-}
-
-.chart-buttons button {
-    margin-right: 8px;
-    padding: 6px 10px;
-    border: none;
-    background-color: #eee;
-    cursor: pointer;
-}
-
-.chart-buttons button.active {
-    background-color: #333;
-    color: #fff;
 }
 </style>

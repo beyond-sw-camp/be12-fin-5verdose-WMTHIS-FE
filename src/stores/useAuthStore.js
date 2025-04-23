@@ -6,6 +6,8 @@ const useAuthStore = defineStore(
   () => {
     const loginOrNot = ref(false);
 
+    const storeId = ref("");
+
     const uInfo = reactive({
       name: "",
       email: "",
@@ -39,6 +41,12 @@ const useAuthStore = defineStore(
     function getPw() {
       return uInfo.pw;
     }
+    function setStoreId(id) {
+      storeId.value = id;
+    }
+    function getStoreId() {
+      return storeId.value;
+    }
     return {
       loginOrNot,
       uInfo,
@@ -58,7 +66,7 @@ const useAuthStore = defineStore(
       strategies: [
         {
           storage: localStorage, // 데이터를 저장할 저장소 (localStorage 또는 sessionStorage)
-          paths: ["loginOrNot", "uInfo"], // 저장할 상태 항목 (여기서는 loginOrNot만 저장)
+          paths: ["loginOrNot", "uInfo", "storeId"], // 저장할 상태 항목 (여기서는 loginOrNot만 저장)
         },
       ],
     },

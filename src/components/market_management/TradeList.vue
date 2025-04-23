@@ -13,9 +13,14 @@ dayjs.extend(isSameOrBefore);
 
 const statusMap = {
     available: '판매중',
+    PENDING_APPROVAL: '승인대기중',
     waiting: '요청확인',
+    isPaymentInProgress: '결제하기',
+    isPaymentPending: '결제대기중',
+    confirmDelivery: '배송확정',
     delivery: '배송중',
     sold: '거래완료',
+    end: '거래완료',
     cancelled: '거래취소'
 };
 
@@ -80,17 +85,23 @@ const handleButtonClick = async (status, index) => {
         console.log(responseItem.value);
         showRequestListModal.value = true;
     } else {
+        selectedProductId.value = trade_items.value[index].inventoryPurchaseId;
+        console.log(selectedProductId.value);
         modalMessage.value = '결제를 진행하시겠습니까?';
         showModal.value = true;
     }
 };
 
-const confirmModal = () => {
+const confirmModal = async () => {
     const index = currentItemIndex.value;
     const item = trade_items.value[index];
-    if (trade_items.value[index].status === '배송확정') {
+    if (statusMap[trade_items.value[index].status] === '배송확정') {
+        console.log(item.inventoryPurchaseId);
+        marketApi.confirmDelivery(item.inventoryPurchaseId)
+        const response = await marketApi.confirmDelivery(item.inventoryPurchaseId);
+        console.log(response);
         trade_items.value[index].status = '거래완료';
-    } else if (trade_items.value[index].status === '결제하기') {
+    } else if (statusMap[trade_items.value[index].status] === '결제하기') {
         requestPay(item, () => {
             // 결제 성공 시 상태 변경
             item.status = '배송확정';
@@ -126,6 +137,7 @@ const filteredItems = computed(() => {
 
 
 const requestPay = (item, onSuccess) => {
+    console.log("결제 요청", item);
     if (!window.IMP) {
         const script = document.createElement('script');
         script.src = 'https://cdn.iamport.kr/js/iamport.payment-1.2.0.js';
@@ -147,7 +159,7 @@ const runPayment = (item, onSuccess) => {
         pg: 'kakaopay',
         pay_method: 'card',
         merchant_uid: makeMerchantUid,
-        name: item.product,
+        name: item.name,
         amount: item.price * item.quantity,
         buyer_name: 'WHTHIS',
         buyer_tel: '010-1234-5678',
@@ -156,11 +168,12 @@ const runPayment = (item, onSuccess) => {
         if (rsp.success) {
             const data = {
                 impUid: rsp.imp_uid,
-                merchantUid: rsp.merchant_uid
+                merchantUid: rsp.merchant_uid,
+                inventoryPurchaseId: selectedProductId.value,
             };
             // 결제 성공 후 서버에 결제 정보 전송
             // 서버에서 결제 검증 후 성공 여부 확인
-            if (api.verify(data)) {
+            if (await api.verify(data)) {
                 onSuccess(); // 결제 성공 처리
             } else {
                 alert('결제 검증에 실패했습니다.');
