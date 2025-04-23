@@ -77,10 +77,15 @@ const calendarDays = computed(() => {
   return days;
 });
 
-// 날짜에 해당하는 매출 데이터 가져오기
 const getSalesForDate = (date) => {
   const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-  return props.salesData[formattedDate] || [];
+  const sales = props.salesData[formattedDate] || [];
+
+  if (formattedDate === "2025-04-22") { // 특정 날짜에 대한 디버깅
+    console.log(`${formattedDate}의 매출 데이터:`, sales);
+  }
+
+  return sales;
 };
 
 const startRangeSelection = () => {
@@ -142,16 +147,25 @@ const selectDate = (date) => {
 const formatSales = (amount) => {
   return amount.toLocaleString() + "원";
 };
-
 const calculateTotal = (sales) => {
-  if (!Array.isArray(sales)) return { amount: 0, count: 0 };
+  if (!Array.isArray(sales)) {
+    console.log("sales가 배열이 아님:", sales);
+    return { amount: 0, count: 0 };
+  }
 
-  const totalAmount = sales.reduce((sum, item) => sum + (item.amount || 0), 0);
-  const totalCount = sales.length;
+  console.log("계산 전 sales:", sales);
+  const totalAmount = sales.reduce((sum, item) => {
+    if (typeof item.amount !== 'number') {
+      console.log("amount가 숫자가 아님:", item);
+      return sum;
+    }
+    return sum + item.amount;
+  }, 0);
 
+  console.log(`계산 결과: 금액=${totalAmount}, 건수=${sales.length}`);
   return {
     amount: totalAmount,
-    count: totalCount,
+    count: sales.length,
   };
 };
 
@@ -240,10 +254,13 @@ const getDateRange = (startDate, endDate) => {
         </button>
       </div>
       <div class="view-tabs">
-        <button class="tab-btn" :class="{ active: activeTab === 'yesterday' }" @click="setActiveTab('yesterday')">어제</button>
+        <button class="tab-btn" :class="{ active: activeTab === 'yesterday' }"
+          @click="setActiveTab('yesterday')">어제</button>
         <button class="tab-btn" :class="{ active: activeTab === 'today' }" @click="setActiveTab('today')">오늘</button>
-        <button class="tab-btn" :class="{ active: activeTab === 'thisweek' }" @click="setActiveTab('thisweek')">이번주</button>
-        <button class="tab-btn" :class="{ active: activeTab === 'thismonth' }" @click="setActiveTab('thismonth')">이번달</button>
+        <button class="tab-btn" :class="{ active: activeTab === 'thisweek' }"
+          @click="setActiveTab('thisweek')">이번주</button>
+        <button class="tab-btn" :class="{ active: activeTab === 'thismonth' }"
+          @click="setActiveTab('thismonth')">이번달</button>
       </div>
 
       <button class="tab-btn" :class="{ active: activeTab === 'custom' }" @click="startRangeSelection">날짜선택</button>
@@ -252,12 +269,9 @@ const getDateRange = (startDate, endDate) => {
       <div class="weekday" v-for="day in weekdays" :key="day">{{ day }}</div>
     </div>
     <div class="calendar-body">
-      <div
-        v-for="(day, index) in calendarDays"
-        :key="index"
+      <div v-for="(day, index) in calendarDays" :key="index"
         :class="['calendar-day', { 'other-month': !day.currentMonth }, { today: isToday(day.date) }, { selected: isSelected(day.date) }]"
-        @click="selectDate(day.date)"
-      >
+        @click="selectDate(day.date)">
         <div class="day-number">{{ day.day }}</div>
         <div v-if="day.sales && day.sales.length" class="sales-indicator">
           <div class="sales-box1">{{ formatSales(calculateTotal(day.sales).amount) }}</div>

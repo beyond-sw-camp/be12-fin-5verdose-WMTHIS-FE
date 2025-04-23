@@ -307,6 +307,26 @@ export const api = {
       });
   },
 
+  getSalesData(data) {
+    return instance
+      .post("order/saleDetail", data)
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error in SalesData:", error);
+        throw error;
+      });
+  },
+
+  getOrdersList() {
+    return instance
+      .get("order/getList")
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error in OrderListData:", error);
+        throw error;
+      });
+  },
+
   async SearchMonthSales(yearMonthData) {
     try {
       const res = await instance.post(`/order/monthSales`, yearMonthData);
