@@ -20,30 +20,11 @@ export const useInventoryStore = defineStore("inventoryStore", {
   actions: {
     async registerStoreInventory(storeInventoryData) {
       try {
-        const authStore = useAuthStore();
-        const token = localStorage.getItem("accessToken"); // 로그인 상태와 관계없이 항상 토큰 가져오기
-
-        // 토큰이 없다면 API 요청을 보낼 수 없음
-        if (!token) {
-          alert("로그인이 필요한 작업입니다.");
-          return;
-        }
-
-        const result = await axios.post(
-          "/api/inventory/registerInventory",
-          storeInventoryData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        // 성공적으로 등록되었을 경우
-        return result.data;
+        const result = await api.registerInventory(storeInventoryData);
+        return result;
       } catch (error) {
-        console.error("재고 등록 중 오류 발생:", error);
-        alert("재고 등록 중 오류가 발생했습니다. 다시 시도해주세요.");
+        console.error("registerStoreInventory 실패:", error);
+        return false;
       }
     },
 
