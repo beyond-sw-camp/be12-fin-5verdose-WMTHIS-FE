@@ -167,7 +167,10 @@ export const api = {
     console.log("updateInventory storeInventoryData", storeInventoryData);
 
     try {
-      const res = instance.put(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
+      const res = instance.put(
+        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
+        storeInventoryData
+      );
       console.log("updateRes", res);
       console.log("code:", res.data.code);
 
@@ -184,7 +187,10 @@ export const api = {
 
   async SearchInventory(storeInventoryData) {
     try {
-      const res = await instance.get(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
+      const res = await instance.get(
+        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
+        storeInventoryData
+      );
       console.log("searchRes", res);
       console.log("code:", res.data.code);
 
@@ -286,11 +292,20 @@ export const api = {
 
   posOrder(data) {
     return instance
-      .post("/order/create", data) // 주문 제출 API 엔드포인트
-      .then((res) => res.data)
+      .post("/order/create", data)
+      .then((res) => {
+        if (res.data.code !== 200) {
+          // 실패한 응답인 경우 에러로 던짐
+          throw new Error(
+            res.data.message || "결제 처리 중 오류가 발생했습니다."
+          );
+        }
+        return res.data; // 성공한 응답만 반환
+      })
       .catch((error) => {
-        console.error("Error in submitOrder:", error);
-        throw error;
+        // axios 에러이거나 서버 응답 오류를 처리
+        const message = error?.message || "결제 처리 중 오류가 발생했습니다.";
+        throw new Error(message);
       });
   },
 
