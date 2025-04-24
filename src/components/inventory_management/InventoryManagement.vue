@@ -1,188 +1,189 @@
 <script setup>
-import { ref, watch, computed, onMounted } from "vue";
-import InventoryCorrectionModal from "@/components/inventory_management/InventoryCorrectionModal.vue";
-import InventoryStoreModal from "@/components/inventory_management/InventoryStoreModal.vue";
-import DeleteConfirmModal from "@/components/alerts/DeleteConfirmModal.vue";
-import DeleteAlertModal from "@/components/alerts/DeleteAlertModal.vue";
-import InventoryParticularModal from "@/components/inventory_management/InventoryParticularModal.vue";
-import InventorySaleModal from "@/components/inventory_management/InventorySaleModal.vue";
-import { api } from "@/api/MenuApi.js"; // API 임포트 추가
+import { ref, watch, computed, onMounted } from "vue"
+import InventoryCorrectionModal from "@/components/inventory_management/InventoryCorrectionModal.vue"
+import InventoryStoreModal from "@/components/inventory_management/InventoryStoreModal.vue"
+import DeleteConfirmModal from "@/components/alerts/DeleteConfirmModal.vue"
+import DeleteAlertModal from "@/components/alerts/DeleteAlertModal.vue"
+import InventoryParticularModal from "@/components/inventory_management/InventoryParticularModal.vue"
+import InventorySaleModal from "@/components/inventory_management/InventorySaleModal.vue"
+import { api } from "@/api/MenuApi.js" // API 임포트 추가
 
-const tab = ref("exp");
-const isStoreOpen = ref(false);
-const selectedFilter = ref("전체");
-const stockStatus = ref("필요");
-const isModalOpen = ref(false);
-const isDetailModalOpen = ref(false);
-const isDeleteConfirmOpen = ref(false);
-const isDeleteAlertOpen = ref(false);
-const modalType = ref("");
-const selectedItem = ref(null);
-const isLoading = ref(false); // 로딩 상태 추가
+const tab = ref("exp")
+const isStoreOpen = ref(false)
+const selectedFilter = ref("전체")
+const stockStatus = ref("필요")
+const isModalOpen = ref(false)
+const isDetailModalOpen = ref(false)
+const isDeleteConfirmOpen = ref(false)
+const isDeleteAlertOpen = ref(false)
+const modalType = ref("")
+const selectedItem = ref(null)
+const isLoading = ref(false) // 로딩 상태 추가
 
 // 재고 아이템 데이터
-const inventory_items = ref([]);
+const inventory_items = ref([])
 
 const handleInventoryRegistered = (data) => {
-  console.log("입고 완료된 재고 데이터:", data);
+  console.log("입고 완료된 재고 데이터:", data)
   // 입고 후 테이블 갱신
-  fetchInventoryData();
-};
+  fetchInventoryData()
+}
 
 // API에서 데이터 가져오기
 const fetchInventoryData = async () => {
-  isLoading.value = true;
+  isLoading.value = true
   try {
-    const data = await api.getStoreInventoryList();
+    const data = await api.getStoreInventoryList()
     if (data) {
       // API 응답에서 필요한 필드만 추출하여 매핑
-      inventory_items.value = data.map(item => ({
+      inventory_items.value = data.map((item) => ({
         id: item.id, // API의 id를 inventoryId로 사용
         inventoryId: item.id, // 명시적으로 inventoryId 필드 추가
         name: item.name,
         miniquantity: item.miniquantity,
-        quantity: item.miniquantity, // 임시로 miniquantity를 quantity로 사용
-        totalquantity: `${item.miniquantity} ${item.unit}`, // 단위와 함께 표시
+        quantity: item.quantity, // 임시로 miniquantity를 quantity로 사용
+        totalquantity: `${item.quantity} ${item.unit}`, // 단위와 함께 표시
         unit: item.unit,
         expiryDate: item.expiryDate,
-        status: getStatusFromExpiryDate(item.expiryDate), // 유통기한 기반 상태 계산
-        orderNeed: item.miniquantity < 100 ? "필요" : "-", // 임의의 로직으로 발주 필요 여부 결정
-        selected: false
-      }));
-      console.log("API에서 가져온 재고 데이터:", inventory_items.value);
+        purchaseDate: item.purchaseDate,
+        status: getStatusFromExpiryDate(item.expiryDate, item.purchaseDate), // 유통기한과 구매일자 기반 상태 계산
+        orderNeed: item.quantity < item.miniquantity ? "필요" : "-", // 수량이 최소수량보다 작으면 발주 필요
+        selected: false,
+      }))
+      console.log("API에서 가져온 재고 데이터:", inventory_items.value)
     } else {
-      console.error("재고 데이터를 가져오는데 실패했습니다.");
+      console.error("재고 데이터를 가져오는데 실패했습니다.")
     }
   } catch (error) {
-    console.error("재고 데이터 로딩 중 오류 발생:", error);
+    console.error("재고 데이터 로딩 중 오류 발생:", error)
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
-};
+}
 
-// 유통기한 기반으로 상태 결정 (임의의 로직)
-const getStatusFromExpiryDate = (days) => {
-  if (days <= 3) return "만료";
-  if (days <= 7) return "임박";
-  return "유효";
-};
+// 유통기한 기반으로 상태 결정
+const getStatusFromExpiryDate = (expiryDate, purchaseDate = null) => {
+  const currentDate = new Date()
+  const expiry = new Date(expiryDate)
+
+  // 만료된 경우
+  if (expiry < currentDate) return "만료"
+
+  // purchaseDate가 있는 경우 유통기한 임박 여부 계산
+  if (purchaseDate) {
+    const purchase = new Date(purchaseDate)
+    const totalShelfLife = expiry - purchase // 총 유통기간 (밀리초)
+    const remainingTime = expiry - currentDate // 남은 유통기간 (밀리초)
+
+    // 남은 유통기간이 총 유통기간의 10% 이하인 경우 임박
+    if (remainingTime <= totalShelfLife * 0.1) return "임박"
+  } else {
+    // purchaseDate가 없는 경우 임시 로직 (나중에 purchaseDate 데이터가 추가되면 위 로직 사용)
+    const daysUntilExpiry = Math.ceil((expiry - currentDate) / (1000 * 60 * 60 * 24))
+    if (daysUntilExpiry <= 7) return "임박"
+  }
+
+  return "유효"
+}
 
 const openParticularModal = (item) => {
-  console.log("✅ 상세 보기 클릭됨:", item);
-  selectedItem.value = item;
-  modalType.value = "particular";
-  isModalOpen.value = true;
-};
+  console.log("✅ 상세 보기 클릭됨:", item)
+  selectedItem.value = item
+  modalType.value = "particular"
+  isModalOpen.value = true
+}
 
 const openStoreModal = () => {
-  isStoreOpen.value = true;
-};
+  isStoreOpen.value = true
+}
 
 const openSaleModal = () => {
-  modalType.value = "sale";
-  isModalOpen.value = true;
-};
+  modalType.value = "sale"
+  isModalOpen.value = true
+}
 
 const openDetailModal = () => {
-  modalType.value = "detail";
-  isModalOpen.value = true;
-};
+  modalType.value = "detail"
+  isModalOpen.value = true
+}
 
 const setFilter = (status) => {
-  selectedFilter.value = status;
-  filterStatus.value = status; // 둘 다 필요할 경우
-};
+  selectedFilter.value = status
+  filterStatus.value = status // 둘 다 필요할 경우
+}
 
-const closeModal = () => (isModalOpen.value = false);
-const closeDetailModal = () => (isDetailModalOpen.value = false);
+const closeModal = () => (isModalOpen.value = false)
+const closeDetailModal = () => (isDetailModalOpen.value = false)
 
 watch(selectedFilter, (newVal) => {
-  stockStatus.value = newVal;
-});
+  stockStatus.value = newVal
+})
 
-const searchKeyword = ref("");
+const searchKeyword = ref("")
 
-const select_all = ref(false);
-const isBlocked = computed(
-  () => isDeleteConfirmOpen.value || isDeleteAlertOpen.value
-);
+const select_all = ref(false)
+const isBlocked = computed(() => isDeleteConfirmOpen.value || isDeleteAlertOpen.value)
 
 const toggle_select_all = () => {
-  if (!isBlocked.value)
-    inventory_items.value.forEach((item) => (item.selected = select_all.value));
-};
+  if (!isBlocked.value) inventory_items.value.forEach((item) => (item.selected = select_all.value))
+}
 
 const filteredItems = computed(() => {
-  let items = inventory_items.value;
+  let items = inventory_items.value
 
   // 탭 필터 처리
   if (tab.value === "exp") {
     if (selectedFilter.value !== "전체") {
-      items = items.filter((item) => item.status === selectedFilter.value);
+      items = items.filter((item) => item.status === selectedFilter.value)
     }
   } else if (tab.value === "order") {
     if (selectedFilter.value === "필요") {
-      items = items.filter((item) => item.orderNeed !== "-");
+      items = items.filter((item) => item.orderNeed !== "-")
     } else if (selectedFilter.value === "충분") {
-      items = items.filter((item) => item.orderNeed === "-");
+      items = items.filter((item) => item.orderNeed === "-")
     }
   }
 
   // 검색 필터 처리
   if (searchKeyword.value.trim() !== "") {
-    const keyword = searchKeyword.value.trim().toLowerCase();
-    items = items.filter((item) => item.name.toLowerCase().includes(keyword));
+    const keyword = searchKeyword.value.trim().toLowerCase()
+    items = items.filter((item) => item.name.toLowerCase().includes(keyword))
   }
 
-  return items;
-});
+  return items
+})
 
 // 컴포넌트 마운트 시 API에서 데이터 가져오기
 onMounted(() => {
-  fetchInventoryData();
-});
+  fetchInventoryData()
+})
 
 const openDeleteConfirm = () => {
   if (!isBlocked.value) {
-    const selectedItems = inventory_items.value.some((item) => item.selected);
-    if (selectedItems) isDeleteConfirmOpen.value = true;
-    else isDeleteAlertOpen.value = true;
+    const selectedItems = inventory_items.value.some((item) => item.selected)
+    if (selectedItems) isDeleteConfirmOpen.value = true
+    else isDeleteAlertOpen.value = true
   }
-};
+}
 
-const closeDeleteConfirm = () => (isDeleteConfirmOpen.value = false);
-const closeDeleteAlert = () => (isDeleteAlertOpen.value = false);
-
-const deleteSelectedItems = async () => {
-  isDeleteConfirmOpen.value = false;
-
-  // 선택된 아이템 ID 목록
-  const selectedIds = inventory_items.value
-    .filter(item => item.selected)
-    .map(item => item.id);
-
-  // 여기에 삭제 API 호출 로직을 추가할 수 있습니다
-  // 예: await api.deleteInventoryItems(selectedIds);
-
-  // 삭제 후 목록 다시 불러오기
-  await fetchInventoryData();
-};
+const closeDeleteConfirm = () => (isDeleteConfirmOpen.value = false)
+const closeDeleteAlert = () => (isDeleteAlertOpen.value = false)
 
 const addInventoryItem = (item) => {
-  console.log("입고 완료된 재고 데이터:", item);
+  console.log("입고 완료된 재고 데이터:", item)
   // 입고 후 데이터 다시 불러오기
-  fetchInventoryData();
-};
+  fetchInventoryData()
+}
 
 // 만료 임박 아이템 계산
 const expiringItems = computed(() => {
-  return inventory_items.value.filter(item => item.status === "임박");
-});
+  return inventory_items.value.filter((item) => item.status === "임박")
+})
 
 // 발주 필요 아이템 계산
 const orderNeededItems = computed(() => {
-  return inventory_items.value.filter(item => item.orderNeed !== "-");
-});
+  return inventory_items.value.filter((item) => item.orderNeed !== "-")
+})
 </script>
 
 <template>
@@ -317,11 +318,7 @@ const orderNeededItems = computed(() => {
         <table v-else class="inventory_table">
           <thead>
             <tr>
-              <th>
-                <input type="checkbox" v-model="select_all" @change="toggle_select_all" class="circle_checkbox" />
-              </th>
               <th>재고명</th>
-              <th>수량</th>
               <th>총수량</th>
               <th>만료임박</th>
               <th>발주필요재고</th>
@@ -330,11 +327,7 @@ const orderNeededItems = computed(() => {
           </thead>
           <tbody>
             <tr v-for="(item, index) in filteredItems" :key="item.id" :class="{ 'selected-row': item.selected }">
-              <td>
-                <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
-              </td>
               <td class="bold-text">{{ item.name }}</td>
-              <td>{{ item.quantity }}</td>
               <td>{{ item.totalquantity }}</td>
               <td>
                 <span :class="'status ' + item.status">{{ item.status }}</span>

@@ -120,19 +120,16 @@ onMounted(async () => {
             <div class="modal_title2"></div>
             <div class="inventory_info">
               <p v-if="props.item">
-                <strong>재고명:</strong> {{ props.item.name }}
+                <strong>재고명 :</strong> {{ props.item.name }}
               </p>
               <p v-if="props.item">
-                <strong>총수량:</strong> {{ props.item.totalquantity }}
-              </p>
-              <p v-if="props.item">
-                <strong>현재 수량:</strong> {{ props.item.quantity }}
+                <strong>총 수량 :</strong> {{ props.item.totalquantity }}
               </p>
               <p v-if="recipeList.length">
-                <strong>사용메뉴:</strong> {{ recipeList.join(', ') }}
+                <strong>사용메뉴 :</strong> {{ recipeList.join(', ') }}
               </p>
               <p v-else>
-                <strong>사용메뉴:</strong> 메뉴 정보가 없습니다.
+                <strong>사용메뉴 :</strong> 메뉴 정보가 없습니다.
               </p>
             </div>
           </div>
