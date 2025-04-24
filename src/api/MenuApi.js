@@ -173,7 +173,7 @@ export const api = {
       });
   },
 
-  registerInventory(storeInventoryData) {
+  registerStoreInventory(storeInventoryData) {
     console.log("registerInventory storeInventoryData", storeInventoryData);
     return instance
       .post("/inventory/registerStoreInventory", storeInventoryData)
@@ -181,7 +181,7 @@ export const api = {
         console.log("registerRes", res);
         console.log("code:", res.data.code);
 
-        return res.data.code === 200 ? res.data.data : false; // 성공 시 데이터 반환
+        return res.data.code === 200 ? res.data.data : false;
       })
       .catch((error) => {
         console.error("Error in registerInventory:", error);
