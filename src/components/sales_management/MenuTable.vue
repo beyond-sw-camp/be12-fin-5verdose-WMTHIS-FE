@@ -23,6 +23,7 @@ watch([startDate, endDate], ([newStart, newEnd]) => {
 
     fetchAndSetSalesData();
     fetchAndSetMarketData();
+    fetchAndSetStockData();
   }
 });
 
@@ -94,42 +95,76 @@ async function fetchAndSetMarketData() {
   }
 }
 
-const changeStock = [
-  { date: "2025-04-06", time: "09:12:34", stockName: "우유", changeReason: "", quantity: 0.75, unit: "L" },
-  { date: "2025-04-07", time: "11:43:21", stockName: "김치", changeReason: "", quantity: -1.2, unit: "kg" },
-  { date: "2025-04-05", time: "13:05:56", stockName: "양파", changeReason: "", quantity: 2.5, unit: "kg" },
-  { date: "2025-04-06", time: "08:22:19", stockName: "마늘", changeReason: "", quantity: -0.15, unit: "kg" },
-  { date: "2025-04-07", time: "14:14:14", stockName: "간장", changeReason: "", quantity: 0.4, unit: "L" },
-  { date: "2025-04-05", time: "12:00:01", stockName: "고등어", changeReason: "", quantity: -1.0, unit: "kg" },
-  { date: "2025-04-07", time: "15:10:45", stockName: "양파", changeReason: "", quantity: -0.8, unit: "kg" },
-  { date: "2025-04-06", time: "16:55:55", stockName: "우유", changeReason: "", quantity: 1.2, unit: "L" },
-  { date: "2025-04-05", time: "17:17:17", stockName: "김치", changeReason: "", quantity: -0.6, unit: "kg" },
-  { date: "2025-04-07", time: "18:18:18", stockName: "마늘", changeReason: "", quantity: 0.2, unit: "kg" },
-  { date: "2025-04-06", time: "07:07:07", stockName: "간장", changeReason: "", quantity: -0.3, unit: "L" },
-  { date: "2025-04-05", time: "19:30:30", stockName: "고등어", changeReason: "", quantity: 0.5, unit: "kg" },
-  { date: "2025-04-07", time: "20:20:20", stockName: "양파", changeReason: "", quantity: 1.7, unit: "kg" },
-  { date: "2025-04-06", time: "21:21:21", stockName: "우유", changeReason: "", quantity: -0.4, unit: "L" },
-  { date: "2025-04-05", time: "22:22:22", stockName: "김치", changeReason: "", quantity: 2.0, unit: "kg" },
-  { date: "2025-04-06", time: "23:23:23", stockName: "마늘", changeReason: "", quantity: -0.25, unit: "kg" },
-  { date: "2025-04-07", time: "06:06:06", stockName: "간장", changeReason: "", quantity: 0.7, unit: "L" },
-  { date: "2025-04-05", time: "05:05:05", stockName: "고등어", changeReason: "", quantity: -0.9, unit: "kg" },
-  { date: "2025-04-07", time: "04:04:04", stockName: "우유", changeReason: "", quantity: 1.0, unit: "L" },
-  { date: "2025-04-06", time: "03:03:03", stockName: "양파", changeReason: "", quantity: -0.65, unit: "kg" },
-  { date: "2025-04-05", time: "02:02:02", stockName: "김치", changeReason: "", quantity: 1.1, unit: "kg" },
-  { date: "2025-04-06", time: "01:01:01", stockName: "마늘", changeReason: "", quantity: -0.1, unit: "kg" },
-  { date: "2025-04-07", time: "00:00:00", stockName: "간장", changeReason: "", quantity: 0.5, unit: "L" },
-  { date: "2025-04-05", time: "10:10:10", stockName: "고등어", changeReason: "", quantity: 0.3, unit: "kg" },
-  { date: "2025-04-06", time: "11:11:11", stockName: "우유", changeReason: "", quantity: -0.6, unit: "L" },
-  { date: "2025-04-07", time: "09:09:09", stockName: "양파", changeReason: "", quantity: 1.0, unit: "kg" },
-  { date: "2025-04-05", time: "08:08:08", stockName: "김치", changeReason: "", quantity: -0.4, unit: "kg" },
-  { date: "2025-04-06", time: "13:13:13", stockName: "마늘", changeReason: "", quantity: 0.1, unit: "kg" },
-  { date: "2025-04-07", time: "12:12:12", stockName: "간장", changeReason: "", quantity: -0.2, unit: "L" },
-  { date: "2025-04-05", time: "14:14:14", stockName: "고등어", changeReason: "", quantity: 1.5, unit: "kg" },
-];
+const changeStock = ref([]);
+async function fetchAndSetStockData() {
+  try {
+    const payload = {
+      startDate: startDate.value,
+      endDate: endDate.value,
+    };
+    console.log(payload);
+    const data = await api.SearchInventoryUpdate(payload);
+    console.log("📦 받은 데이터:", data);
+
+    if (data !== 404) {
+      changeStock.value = data.map((item) => {
+        const fullDate = new Date(item.date);
+        const date = fullDate.toISOString().slice(0, 10); // "YYYY-MM-DD"
+        const time = fullDate.toTimeString().slice(0, 8); // "HH:mm:ss"
+
+        return {
+          date,
+          time,
+          stockName: item.stockName,
+          changeReason: item.changeReason,
+          quantity: item.quantity,
+          unit: item.unit,
+        };
+      });
+    } else {
+      console.error("❌ 판매 데이터를 불러오지 못했습니다.");
+    }
+  } catch (error) {
+    console.error("🔥 에러 발생:", error);
+  }
+}
+
+// const changeStock = [
+//   { date: "2025-04-06", time: "09:12:34", stockName: "우유", changeReason: "", quantity: 0.75, unit: "L" },
+//   { date: "2025-04-07", time: "11:43:21", stockName: "김치", changeReason: "", quantity: -1.2, unit: "kg" },
+//   { date: "2025-04-05", time: "13:05:56", stockName: "양파", changeReason: "", quantity: 2.5, unit: "kg" },
+//   { date: "2025-04-06", time: "08:22:19", stockName: "마늘", changeReason: "", quantity: -0.15, unit: "kg" },
+//   { date: "2025-04-07", time: "14:14:14", stockName: "간장", changeReason: "", quantity: 0.4, unit: "L" },
+//   { date: "2025-04-05", time: "12:00:01", stockName: "고등어", changeReason: "", quantity: -1.0, unit: "kg" },
+//   { date: "2025-04-07", time: "15:10:45", stockName: "양파", changeReason: "", quantity: -0.8, unit: "kg" },
+//   { date: "2025-04-06", time: "16:55:55", stockName: "우유", changeReason: "", quantity: 1.2, unit: "L" },
+//   { date: "2025-04-05", time: "17:17:17", stockName: "김치", changeReason: "", quantity: -0.6, unit: "kg" },
+//   { date: "2025-04-07", time: "18:18:18", stockName: "마늘", changeReason: "", quantity: 0.2, unit: "kg" },
+//   { date: "2025-04-06", time: "07:07:07", stockName: "간장", changeReason: "", quantity: -0.3, unit: "L" },
+//   { date: "2025-04-05", time: "19:30:30", stockName: "고등어", changeReason: "", quantity: 0.5, unit: "kg" },
+//   { date: "2025-04-07", time: "20:20:20", stockName: "양파", changeReason: "", quantity: 1.7, unit: "kg" },
+//   { date: "2025-04-06", time: "21:21:21", stockName: "우유", changeReason: "", quantity: -0.4, unit: "L" },
+//   { date: "2025-04-05", time: "22:22:22", stockName: "김치", changeReason: "", quantity: 2.0, unit: "kg" },
+//   { date: "2025-04-06", time: "23:23:23", stockName: "마늘", changeReason: "", quantity: -0.25, unit: "kg" },
+//   { date: "2025-04-07", time: "06:06:06", stockName: "간장", changeReason: "", quantity: 0.7, unit: "L" },
+//   { date: "2025-04-05", time: "05:05:05", stockName: "고등어", changeReason: "", quantity: -0.9, unit: "kg" },
+//   { date: "2025-04-07", time: "04:04:04", stockName: "우유", changeReason: "", quantity: 1.0, unit: "L" },
+//   { date: "2025-04-06", time: "03:03:03", stockName: "양파", changeReason: "", quantity: -0.65, unit: "kg" },
+//   { date: "2025-04-05", time: "02:02:02", stockName: "김치", changeReason: "", quantity: 1.1, unit: "kg" },
+//   { date: "2025-04-06", time: "01:01:01", stockName: "마늘", changeReason: "", quantity: -0.1, unit: "kg" },
+//   { date: "2025-04-07", time: "00:00:00", stockName: "간장", changeReason: "", quantity: 0.5, unit: "L" },
+//   { date: "2025-04-05", time: "10:10:10", stockName: "고등어", changeReason: "", quantity: 0.3, unit: "kg" },
+//   { date: "2025-04-06", time: "11:11:11", stockName: "우유", changeReason: "", quantity: -0.6, unit: "L" },
+//   { date: "2025-04-07", time: "09:09:09", stockName: "양파", changeReason: "", quantity: 1.0, unit: "kg" },
+//   { date: "2025-04-05", time: "08:08:08", stockName: "김치", changeReason: "", quantity: -0.4, unit: "kg" },
+//   { date: "2025-04-06", time: "13:13:13", stockName: "마늘", changeReason: "", quantity: 0.1, unit: "kg" },
+//   { date: "2025-04-07", time: "12:12:12", stockName: "간장", changeReason: "", quantity: -0.2, unit: "L" },
+//   { date: "2025-04-05", time: "14:14:14", stockName: "고등어", changeReason: "", quantity: 1.5, unit: "kg" },
+// ];
 // 재고 수동 수정
 
 //const total = [...salesMenu, ...changeStock, ...salesMarket];
-const total = computed(() => [...salesMenu.value, ...salesMarket.value]);
+const total = computed(() => [...salesMenu.value, ...changeStock.value, ...salesMarket.value]);
 
 const flatList = ref([]);
 async function fetchAndSetFlatList() {
@@ -159,7 +194,7 @@ const selectItem = (index) => {
 const selectedTab = ref("total");
 const currentDataSource = computed(() => {
   if (selectedTab.value === "menu") return salesMenu.value;
-  if (selectedTab.value === "change") return changeStock;
+  if (selectedTab.value === "change") return changeStock.value;
   if (selectedTab.value === "market") return salesMarket.value;
   if (selectedTab.value === "total") return total.value;
   return [];

@@ -286,11 +286,18 @@ export const api = {
 
   posOrder(data) {
     return instance
-      .post("/order/create", data) // 주문 제출 API 엔드포인트
-      .then((res) => res.data)
+      .post("/order/create", data)
+      .then((res) => {
+        if (res.data.code !== 200) {
+          // 실패한 응답인 경우 에러로 던짐
+          throw new Error(res.data.message || "결제 처리 중 오류가 발생했습니다.");
+        }
+        return res.data; // 성공한 응답만 반환
+      })
       .catch((error) => {
-        console.error("Error in submitOrder:", error);
-        throw error;
+        // axios 에러이거나 서버 응답 오류를 처리
+        const message = error?.message || "결제 처리 중 오류가 발생했습니다.";
+        throw new Error(message);
       });
   },
 
@@ -320,6 +327,16 @@ export const api = {
       .then((res) => res.data)
       .catch((error) => {
         console.error("Error in SalesData:", error);
+        throw error;
+      });
+  },
+
+  getInventoryCall() {
+    return instance
+      .get("inventory/inventoryCall")
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error in inventoryCall:", error);
         throw error;
       });
   },
@@ -441,6 +458,21 @@ export const api = {
   async SearchInventoryMarket(PeroidRange) {
     try {
       const res = await instance.post(`/inventory/marketSale`, PeroidRange);
+
+      if (res.data.code === 200) {
+        return res.data.data; // 데이터를 반환
+      } else {
+        return 404; // 오류 처리
+      }
+    } catch (error) {
+      console.error("Error in searchMonthSales:", error);
+      return 404; // 오류 처리
+    }
+  },
+
+  async SearchInventoryUpdate(PeroidRange) {
+    try {
+      const res = await instance.post(`/inventory/updateSolo`, PeroidRange);
 
       if (res.data.code === 200) {
         return res.data.data; // 데이터를 반환
