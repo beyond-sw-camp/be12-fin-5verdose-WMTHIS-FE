@@ -66,18 +66,8 @@ const handleUpdateInventory = (updatedItem) => {
 };
 
 // 추가 (등록)
-const addNewInventoryItem = (item) => {
-  if (!item) return;
-
-  const newItem = {
-    name: item.name,
-    unit: item.unit,
-    quantity: item.miniquantity + "개",
-    Expirationdate: `입고일로부터 ${item.expiryDate}일`,
-    selected: false,
-  };
-
-  inventory_items.value.push(newItem);
+const addNewInventoryItem = async () => {
+  await InventoryItems(); // 서버에서 다시 받아오기
   closeModal();
 };
 
@@ -222,6 +212,7 @@ const deleteSelectedItems = () => {
     <!-- 모달 컴포넌트들 -->
     <InventoryRegisterModal
       v-if="modalType === 'register'"
+      :item="selectedItem"
       :isOpen="isModalOpen"
       @close="closeModal"
       @registerInventory="addNewInventoryItem"
