@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import POSOption from './POSOption.vue';
+import POSOption from '@/components/pos_management/POSOption.vue';
 import { api } from '@/api/MenuAPI.js';
 
 const route = useRoute();
