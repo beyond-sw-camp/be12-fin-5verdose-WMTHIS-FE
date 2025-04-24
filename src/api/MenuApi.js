@@ -173,6 +173,19 @@ export const api = {
       });
   },
 
+  getPOSCategoryList() {
+    return instance
+      .get("/category/getPOSCategoryList")
+      .then((res) => {
+        console.log("getPOSCategoryList res", res);
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in getPOSCategoryList: ", error);
+        return false;
+      });
+  },
+
   registerStoreInventory(storeInventoryData) {
     console.log("registerInventory storeInventoryData", storeInventoryData);
     return instance
