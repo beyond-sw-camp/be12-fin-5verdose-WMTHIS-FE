@@ -89,8 +89,8 @@
           </v-btn>
         </template>
         <v-list class="dropdown-list">
-          <v-list-item v-for="(item, index) in ['MY Page']" :key="index" @click="setActiveDropdown('가게 관리', item)"
-            :class="{ 'active-dropdown': activeDropdowns['가게 관리'] === item }">
+          <v-list-item v-for="(item, index) in ['MY Page', 'POS']" :key="index"
+            @click="setActiveDropdown('가게 관리', item)" :class="{ 'active-dropdown': activeDropdowns['가게 관리'] === item }">
             <v-list-item-title>{{ item }}</v-list-item-title>
           </v-list-item>
         </v-list>
@@ -156,7 +156,8 @@ const menuRoutes = {
     '거래내역': 'CommunityTransactions'
   },
   '가게 관리': {
-    'MY Page': 'MyPage'
+    'MY Page': 'MyPage',
+    'POS': 'POSMain'
   }
 };
 
