@@ -11,7 +11,9 @@ const isModalOpen = ref(false);
 const isDetailModalOpen = ref(false);
 const isDeleteConfirmOpen = ref(false);
 const isDeleteAlertOpen = ref(false);
-
+const currentPage = ref(0); // 현재 페이지
+const totalPages = ref(1); // 총 페이지 수
+const pageSize = 10; // 페이지당 항목 수
 const selectedItem = ref(null);
 const modalType = ref("register");
 
@@ -40,6 +42,13 @@ onMounted(() => {
 const openModal = () => {
   modalType.value = "register";
   isModalOpen.value = true;
+};
+const goToPage = (page) => {
+  console.log(currentPage.value, totalPages.value);
+  console.log("페이지 이동:", page);
+  if (page >= 0 && page < totalPages.value) {
+    fetchMenus(page);
+  }
 };
 
 const openDetailModal = (item) => {
@@ -182,6 +191,33 @@ const deleteSelectedItems = () => {
         </tr>
       </tbody>
     </table>
+
+    <!-- ✨ 항목이 없을 경우 메시지 출력 -->
+
+    <div v-if="inventory_items.length === 0" class="no_items_message">
+      등록된 재고가 없습니다.
+    </div>
+    <div class="pagination_container">
+      <button :disabled="currentPage === 0" @click="goToPage(currentPage - 1)">
+        ◀ 이전
+      </button>
+
+      <span
+        v-for="page in totalPages"
+        :key="page"
+        @click="goToPage(page - 1)"
+        :class="{ 'page-number': true, active: currentPage === page - 1 }"
+      >
+        {{ page }}
+      </span>
+
+      <button
+        :disabled="currentPage === totalPages - 1"
+        @click="goToPage(currentPage + 1)"
+      >
+        다음 ▶
+      </button>
+    </div>
 
     <!-- 모달 컴포넌트들 -->
     <InventoryRegisterModal
@@ -386,5 +422,23 @@ const deleteSelectedItems = () => {
   height: 8px;
   background: #708090;
   border-radius: 50%;
+}
+.pagination_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+  gap: 0.5rem;
+}
+
+.page-number {
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.page-number.active {
+  background-color: #ffcc00;
+  font-weight: bold;
 }
 </style>
