@@ -2,7 +2,9 @@
 
   <v-app-bar app floating elevation="2" :class="{ 'mt-2': true, 'scrolled': isScrolled }" color="transparent">
     <div class="d-flex align-center">
-      <v-app-bar-title class="font-weight-bold text-white" style="margin-left: 20px;">WMTHIS</v-app-bar-title>
+      <v-app-bar-title class="font-weight-bold text-white clickable-title" @click="goToDashboard">
+        WMTHIS
+      </v-app-bar-title>
     </div>
 
     <div class="d-none d-md-flex">
@@ -103,15 +105,25 @@
       <v-icon>mdi-bell</v-icon>
     </v-btn>
 
-    <v-btn icon class="text-white custom-icon-btn">
-      <v-icon>mdi-dots-vertical</v-icon>
-    </v-btn>
+    <v-menu open-on-click offset-y>
+      <template v-slot:activator="{ props }">
+        <v-btn icon class="text-white custom-icon-btn" v-bind="props">
+          <v-icon>mdi-dots-vertical</v-icon>
+        </v-btn>
+      </template>
+      <v-list class="dropdown-list">
+        <v-list-item @click="logout">
+          <v-list-item-title>로그아웃</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
   </v-app-bar>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, reactive } from 'vue';
 import { useRouter } from 'vue-router';
+import { api } from '@/api/index.js';
 
 const router = useRouter();
 
@@ -129,6 +141,16 @@ const handleScroll = () => {
 
 const setActiveMenu = (menu) => {
   activeMenu.value = menu;
+};
+
+const logout = async () => {
+  try {
+    await api.getLogout();
+    alert("로그아웃 되었습니다.");
+    router.push({ name: 'login' });
+  } catch (error) {
+    console.error("로그아웃 실패:", error);
+  }
 };
 
 const goToDashboard = () => {
@@ -261,5 +283,17 @@ onBeforeUnmount(() => {
 /* 활성화된 드롭다운 아이템 스타일 */
 .active-dropdown .v-list-item__title {
   color: white !important;
+}
+
+.clickable-title {
+  margin-left: 20px;
+  cursor: pointer;
+}
+
+.logout-dropdown-list {
+  background-color: #708090 !important;
+  border-radius: 8px;
+  margin-top: 5px;
+  padding: 0;
 }
 </style>
