@@ -1,16 +1,28 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { api } from '@/api/index';
 
 const currentCarousel = ref(0);
 const xaxisCategories = ref([]);
 const series = ref([]);
 const bestMenuList = ref([]);
+const salesData = ref(null);
 
 const inventoryStatus = ref({
     expiringCount: 0,
     reorderRequiredCount: 0,
     receivedTodayCount: 0,
+});
+
+// Computed properties for hall and delivery totals
+const hallTotal = computed(() => {
+    if (!salesData.value) return 0;
+    return salesData.value.orderTodayTimeList.reduce((sum, entry) => sum + entry.timeHall, 0);
+});
+
+const deliveryTotal = computed(() => {
+    if (!salesData.value) return 0;
+    return salesData.value.orderTodayTimeList.reduce((sum, entry) => sum + entry.timeDelivery, 0);
 });
 
 const getInventoryStatus = async () => {
@@ -66,21 +78,21 @@ const getTodaySales = async () => {
         const response = await api.getTodaySales();
 
         if (response) {
-            const salesData = response.data;
+            salesData.value = response.data;
 
             // xaxis와 series 데이터 업데이트
-            xaxisCategories.value = salesData.orderTodayTimeList.map((entry) => entry.time); // 숫자 배열 유지
+            xaxisCategories.value = salesData.value.orderTodayTimeList.map((entry) => entry.time); // 숫자 배열 유지
             series.value = [
                 {
                     name: '홀',
-                    data: salesData.orderTodayTimeList.map((entry) => ({
+                    data: salesData.value.orderTodayTimeList.map((entry) => ({
                         x: entry.time, // x축 값
                         y: entry.timeHall, // y축 값
                     })),
                 },
                 {
                     name: '배달',
-                    data: salesData.orderTodayTimeList.map((entry) => ({
+                    data: salesData.value.orderTodayTimeList.map((entry) => ({
                         x: entry.time, // x축 값
                         y: entry.timeDelivery, // y축 값
                     })),
@@ -144,6 +156,11 @@ const summaries = [
         line4: "기록했어요!",
     },
 ];
+
+// 숫자 포맷팅 함수 (천 단위 콤마 추가)
+const formatNumber = (number) => {
+    return number.toLocaleString('ko-KR');
+};
 </script>
 
 
@@ -153,24 +170,24 @@ const summaries = [
             <v-card>
                 <v-card-title>매출 현황</v-card-title>
                 <v-card-text>
-                    <div class="amount">232,100원</div>
+                    <div class="amount">{{ salesData ? formatNumber(salesData.todayTotal) : 0 }}원</div>
                     <div class="comment_main">
                         <p>저번주 오늘보다</p>
-                        <p class="amount_highlight"> -161,400원</p>
+                        <p class="amount_highlight"> {{ salesData ? formatNumber(salesData.interval) : 0 }}원</p>
                     </div>
                     <div class="comment_sub">
                         <div class="comment_sub1">
                             <p class="hall_box">■ </p>
                             <div class="flex-between">
                                 <p>홀</p>
-                                <p>106,100원</p>
+                                <p>{{ formatNumber(hallTotal) }}원</p>
                             </div>
                         </div>
                         <div class="comment_sub1">
                             <p class="delivery_box">■ </p>
                             <div class="flex-between">
                                 <p>배달</p>
-                                <p>106,100원</p>
+                                <p>{{ formatNumber(deliveryTotal) }}원</p>
                             </div>
                         </div>
                     </div>
