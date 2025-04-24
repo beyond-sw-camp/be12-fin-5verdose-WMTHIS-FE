@@ -1,7 +1,7 @@
 <script setup>
 import { defineProps, defineEmits, ref, watch, onMounted } from "vue";
 import { useInventoryStore } from "@/stores/useInventoryStore"; // Pinia store\
-
+import { api } from "@/api/MenuApi.js";
 // props & emits
 const props = defineProps({
   isOpen: Boolean,
@@ -15,6 +15,7 @@ const emit = defineEmits(["close", "registerInventory", "totalInventory"]);
 // Pinia store
 const inventoryStore = useInventoryStore();
 const closeModal = () => {
+  a;
   console.log("모달 닫기 호출됨");
   emit("close");
 };
@@ -33,7 +34,7 @@ const selectedDays = ref("1");
 const isCustomInput = ref(false);
 const customDays = ref("");
 const isExpirationDifferent = ref(false);
-
+const purchaseDate = new Date().toISOString(); // ISO 형식으로 입고 날짜 설정
 // 유통기한 선택 옵션
 const days = [
   { label: "1일", value: "1" },
@@ -64,17 +65,33 @@ const disableCustomInput = () => {
 
 // 등록 처리
 const totalInventory = async () => {
-  // 등록할 데이터 세팅
+  if (!ingredient.value || !ingredient.value.id) {
+    console.error("재료가 선택되지 않았습니다.");
+    return;
+  }
+
   const storeInventoryData = {
-    storeInventoryId: ingredient.value.id,
-    quantity: quantity.value, // 예: "5", "10"
-    unit: unit.value, // 예: "100g", "1 Kg"
-    miniquantity: miniquantity.value,
+    inventoryId: ingredient.value.id,
+    name: name.value,
+    unit: unit.value,
     expiryDate:
       selectedDays.value === "custom" ? customDays.value : selectedDays.value,
   };
+
   console.log("등록할 재고 데이터:", storeInventoryData);
-  // 재고 등록 API 호출
+
+  try {
+    const success = await api.totalStoreInventory(storeInventoryData); // API 호출
+    if (success) {
+      console.log("입고 완료!");
+      emit("totalInventory");
+      closeModal();
+    } else {
+      console.error("입고 실패");
+    }
+  } catch (error) {
+    console.error("입고 중 오류 발생:", error);
+  }
 };
 
 const fetchIngredients = async () => {
@@ -165,22 +182,7 @@ onMounted(() => {
               </div>
             </div>
           </div>
-          <p class="sub_title">현재 재고의 보유량을 입력해주세요.</p>
-        </div>
-
-        <div class="input_group">
-          <div class="modal_title2 between">
-            <label>최소수량</label>
-            <input
-              type="text"
-              v-model="miniquantity"
-              placeholder="5"
-              class="min_qty_input"
-            />
-          </div>
-          <p class="sub_title">
-            최소 보유하고 있어야하는 재고의 수를 입력해 주세요.
-          </p>
+          <p class="sub_title">입고할 수량을 입력해주세요.</p>
         </div>
 
         <div class="input_group">

@@ -241,22 +241,17 @@ export const api = {
     }
   },
 
-  totalInventory(storeInventoryData) {
-    console.log("totalInventory storeInventoryData", storeInventoryData);
+  totalStoreInventory(storeInventoryData) {
     return instance
       .post("/inventory/totalInventory", storeInventoryData)
       .then((res) => {
-        console.log("totalRes", res);
-        console.log("code:", res.data.code);
-
-        return res.data.code === 200 ? res.data.data : false; // 성공 시 데이터 반환
+        return res.data.code === 200 ? res.data.data : false;
       })
       .catch((error) => {
         console.error("Error in totalInventory:", error);
         return false;
       });
   },
-
   getMenuDetail(menuId) {
     console.log("getMenuDetail menuId", menuId);
     return instance
