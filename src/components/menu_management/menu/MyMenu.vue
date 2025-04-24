@@ -96,8 +96,8 @@ const fetchMenus = async (page = 0) => {
                 ...item,
                 selected: false
             }));
-            currentPage.value = response.page.number;
-            totalPages.value = response.page.totalPages;
+            currentPage.value = response.data.page.number;
+            totalPages.value = response.data.page.totalPages;
             console.log("메뉴 목록:", menu_items.value);
             if (menu_items.value.length === 0) {
                 errorMessage.value = "메뉴가 없습니다.";
