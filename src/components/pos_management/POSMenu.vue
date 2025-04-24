@@ -23,12 +23,24 @@ const showPaymentCompleteModal = ref(false);
 // 주문 목록
 const orderList = ref([]);
 
+// 카테고리 목록
+const categories = ref([]);
+// 선택된 카테고리 ID (null은 전체 메뉴, -1은 카테고리 없음)
+const selectedCategoryId = ref(null);
+
+// 메뉴 아이템 목록
+const menu_items = ref([]);
+
+// 메뉴 아이템 가져오기
 const fetchMenuItems = async () => {
     try {
         const response = await api.getPOSMenuList();
         if (response && response.data) {
             menu_items.value = response.data; // API 응답 데이터를 menu_items에 저장
             console.log('Menu items loaded:', menu_items.value);
+
+            // 메뉴 아이템에서 고유한 카테고리 ID 추출
+            extractCategoriesFromMenuItems();
         } else {
             console.error('메뉴 데이터를 가져오는 데 실패했습니다.');
             menu_items.value = []; // 실패 시 빈 배열로 설정
@@ -38,11 +50,41 @@ const fetchMenuItems = async () => {
         menu_items.value = []; // 실패 시 빈 배열로 설정
     }
 };
+
+// 메뉴 아이템에서 카테고리 정보 추출
+const extractCategoriesFromMenuItems = () => {
+    if (!menu_items.value || !Array.isArray(menu_items.value)) {
+        return;
+    }
+
+    // 카테고리 ID 맵 생성 (중복 제거)
+    const categoryMap = new Map();
+
+    menu_items.value.forEach(item => {
+        if (item.category !== null && item.category !== undefined) {
+            // 카테고리 ID를 문자열로 변환하여 저장 (타입 일관성 유지)
+            const categoryId = String(item.category);
+
+            // 이미 맵에 없는 경우에만 추가
+            if (!categoryMap.has(categoryId)) {
+                categoryMap.set(categoryId, {
+                    id: item.category,
+                    name: `카테고리 ${categoryId}` // 기본 이름 설정
+                });
+            }
+        }
+    });
+
+    // 맵에서 카테고리 배열로 변환
+    categories.value = Array.from(categoryMap.values());
+    console.log('Extracted categories:', categories.value);
+};
+
 // 컴포넌트 마운트 시 주문 정보 로드
-onMounted(() => {
+onMounted(async () => {
     loadOrderInfo();
     loadExistingOrders();
-    fetchMenuItems();
+    await fetchMenuItems(); // 메뉴 아이템을 먼저 가져온 후 카테고리 추출
 });
 
 // 라우트 변경 감지
@@ -117,23 +159,52 @@ const getDeliveryServiceName = (serviceCode) => {
     }
 };
 
-const menu_items = ref([]);
+// 카테고리별로 필터링된 메뉴 아이템
+const filteredMenuItems = computed(() => {
+    if (!menu_items.value || !Array.isArray(menu_items.value)) {
+        return [];
+    }
+
+    console.log('Filtering with selectedCategoryId:', selectedCategoryId.value);
+
+    // 전체 메뉴 선택 시
+    if (selectedCategoryId.value === null) {
+        return menu_items.value;
+    }
+
+    // 카테고리 없음 선택 시
+    if (selectedCategoryId.value === -1) {
+        return menu_items.value.filter(item => item.category === null);
+    }
+
+    // 특정 카테고리 선택 시 (문자열 변환 후 비교)
+    return menu_items.value.filter(item => {
+        // 디버깅을 위한 로그
+        console.log('Comparing item.category:', item.category, 'with selectedCategoryId:', selectedCategoryId.value);
+
+        // 타입 변환 없이 직접 비교 (===)
+        return item.category === selectedCategoryId.value;
+    });
+});
 
 const currentPage = ref(1); // 현재 페이지
 const itemsPerPage = 16; // 한 페이지에 표시할 아이템 개수
 
 // 총 페이지 수 계산
-const totalPages = computed(() => Math.ceil(menu_items.value.length / itemsPerPage));
+const totalPages = computed(() => {
+    const count = filteredMenuItems.value.length;
+    return count > 0 ? Math.ceil(count / itemsPerPage) : 1;
+});
 
 // 현재 페이지의 아이템만 보여주도록 필터링
 const paginatedMenuItems = computed(() => {
-    if (!menu_items.value || !Array.isArray(menu_items.value)) {
-        // 아직 로드 안 되었거나 잘못된 데이터일 경우
+    if (!filteredMenuItems.value || filteredMenuItems.value.length === 0) {
+        // 아직 로드 안 되었거나 필터링된 아이템이 없을 경우
         return Array(itemsPerPage).fill(null); // null로 16개 채워서 리턴
     }
 
     const start = (currentPage.value - 1) * itemsPerPage;
-    const items = menu_items.value.slice(start, start + itemsPerPage);
+    const items = filteredMenuItems.value.slice(start, start + itemsPerPage);
 
     // 항상 16개의 아이템을 보여주기 위해 빈 슬롯으로 채우기
     const filledItems = [...items];
@@ -143,6 +214,13 @@ const paginatedMenuItems = computed(() => {
 
     return filledItems;
 });
+
+// 카테고리 변경 시 페이지 초기화
+const changeCategory = (categoryId) => {
+    console.log('Changing category to:', categoryId);
+    selectedCategoryId.value = categoryId;
+    currentPage.value = 1; // 페이지 초기화
+};
 
 const total_quantity = computed(() => {
     return orderList.value.reduce((sum, item) => sum + item.quantity, 0);
@@ -159,10 +237,7 @@ const selectedItem = ref(null);
 
 const openModal = (item) => {
     if (item) {
-        selectedItem.value = {
-            ...item,
-            category: item.category
-        };
+        selectedItem.value = { ...item };
         showModal.value = true;
     } else {
         console.error('Invalid item passed to openModal:', item);
@@ -288,6 +363,31 @@ const processPayment = () => {
                 <h2 class="order_info">{{ orderInfoText }}</h2>
             </div>
 
+            <!-- 카테고리 탭 추가 -->
+            <div class="category_tabs">
+                <button class="category_tab" :class="{ 'active': selectedCategoryId === null }"
+                    @click="changeCategory(null)">
+                    전체
+                </button>
+                <button v-for="category in categories" :key="category.id" class="category_tab"
+                    :class="{ 'active': selectedCategoryId === category.id }" @click="changeCategory(category.id)">
+                    {{ category.name }}
+                </button>
+                <button class="category_tab" :class="{ 'active': selectedCategoryId === -1 }"
+                    @click="changeCategory(-1)">
+                    카테고리 없음
+                </button>
+            </div>
+
+            <!-- 디버깅 정보 (개발 중에만 표시) -->
+            <div v-if="false" class="debug-info">
+                <p>선택된 카테고리: {{ selectedCategoryId === null ? '전체' : selectedCategoryId === -1 ? '카테고리 없음' :
+                    selectedCategoryId }}</p>
+                <p>필터링된 메뉴 수: {{ filteredMenuItems.length }}</p>
+                <p>총 페이지: {{ totalPages }}</p>
+                <p>현재 페이지: {{ currentPage }}</p>
+            </div>
+
             <div class="menu_grid">
                 <div v-for="(item, index) in paginatedMenuItems" :key="index" class="menu_item" @click="openModal(item)"
                     :class="{ 'empty-item': !item }">
@@ -302,7 +402,7 @@ const processPayment = () => {
             <div class="pagination">
                 <button @click="prevPage" :disabled="currentPage === 1">◀ 이전</button>
                 <span>{{ currentPage }} / {{ totalPages }}</span>
-                <button @click="nextPage" :disabled="currentPage === totalPages">다음 ▶</button>
+                <button @click="nextPage" :disabled="currentPage === totalPages || totalPages === 0">다음 ▶</button>
             </div>
         </div>
 
@@ -365,7 +465,6 @@ button:disabled {
     cursor: not-allowed;
 }
 
-
 .menu_container {
     display: flex;
     flex-direction: row;
@@ -414,6 +513,38 @@ button:disabled {
     color: #333;
     margin: 0;
     flex-grow: 1;
+}
+
+/* 카테고리 탭 스타일 */
+.category_tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.category_tab {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.category_tab:hover {
+    background-color: #e0e0e0;
+}
+
+.category_tab.active {
+    background-color: #6c3ce9;
+    color: white;
+    border-color: #6c3ce9;
 }
 
 /* 메뉴 목록 */
@@ -716,6 +847,11 @@ button:disabled {
         grid-template-columns: repeat(2, 1fr);
         grid-template-rows: repeat(8, minmax(100px, 1fr));
     }
+
+    .category_tabs {
+        overflow-x: auto;
+        padding-bottom: 15px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -728,6 +864,11 @@ button:disabled {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
+    }
+
+    .category_tab {
+        padding: 6px 12px;
+        font-size: 12px;
     }
 }
 </style>
