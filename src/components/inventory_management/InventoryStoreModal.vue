@@ -1,6 +1,6 @@
 <script setup>
 import { defineProps, defineEmits, ref, watch, onMounted } from "vue";
-import { useInventoryStore } from "@/stores/useInventoryStore"; // Pinia store\
+import { useInventoryStore } from "@/stores/useInventoryStore"; // Pinia store
 import { api } from "@/api/MenuApi.js";
 // props & emits
 const props = defineProps({
@@ -15,7 +15,6 @@ const emit = defineEmits(["close", "registerInventory", "totalInventory"]);
 // Pinia store
 const inventoryStore = useInventoryStore();
 const closeModal = () => {
-  a;
   console.log("모달 닫기 호출됨");
   emit("close");
 };
@@ -28,13 +27,15 @@ const miniquantity = ref(0);
 const unitCategory = ref("Kg");
 const ingredients = ref([]); // 재료 목록을 저장할 변수
 const ingredient = ref(""); // 선택된 재료 (ingredient 변수 정의)
-
+const unitPrice = ref(0); // 단가
 // 유통기한 관련
-const selectedDays = ref("1");
+const selectedDays = ref("1"); // 기본값: 1일
 const isCustomInput = ref(false);
 const customDays = ref("");
 const isExpirationDifferent = ref(false);
+const expiryDate = ref(""); // 유통기한
 const purchaseDate = new Date().toISOString(); // ISO 형식으로 입고 날짜 설정
+
 // 유통기한 선택 옵션
 const days = [
   { label: "1일", value: "1" },
@@ -63,6 +64,28 @@ const disableCustomInput = () => {
   }
 };
 
+// 유통기한 계산 함수
+const calculateExpiryDate = () => {
+  const today = new Date(); // 오늘 날짜 기본 설정
+
+  if (isExpirationDifferent.value) {
+    // 유통기한이 달라요 체크된 경우 customDays 기준으로 유통기한 계산
+    const daysToAdd = parseInt(customDays.value || 0);
+    today.setDate(today.getDate() + daysToAdd);
+  } else if (ingredient.value && ingredient.value.expiryDate) {
+    // 체크 안 됐으면, 기존 재고의 유통기한을 오늘 날짜 기준으로 설정
+    const expiry = new Date(ingredient.value.expiryDate);
+    today.setFullYear(
+      expiry.getFullYear(),
+      expiry.getMonth(),
+      expiry.getDate()
+    );
+  }
+
+  // 계산된 유통기한 반환 (yyyy-MM-dd 형식)
+  return today.toISOString().split("T")[0];
+};
+
 // 등록 처리
 const totalInventory = async () => {
   if (!ingredient.value || !ingredient.value.id) {
@@ -70,21 +93,39 @@ const totalInventory = async () => {
     return;
   }
 
+  const expiry = calculateExpiryDate();
+
+  // 단위당 가격 계산
+  const unit = ingredient.value.unit;
+  let unitLabel = "";
+  let unitCost = 0;
+
+  if (unit === "kg" || unit === "L") {
+    unitLabel = `1${unit}당`;
+    unitCost = unitPrice.value / quantity.value;
+  } else if (unit === "g" || unit === "ml") {
+    unitLabel = `100${unit}당`;
+    unitCost = (unitPrice.value / quantity.value) * 100;
+  }
+
+  console.log(`단위당 가격 (${unitLabel}): ${unitCost.toFixed(2)}원`);
+
   const storeInventoryData = {
-    inventoryId: ingredient.value.id,
-    name: name.value,
-    unit: unit.value,
-    expiryDate:
-      selectedDays.value === "custom" ? customDays.value : selectedDays.value,
+    storeInventoryId: ingredient.value.id,
+    quantity: quantity.value,
+    expiryDate: expiry,
+    unitPrice: parseFloat(unitCost.toFixed(2)), // 계산된 단위당 가격을 반영
+    purchaseDate: purchaseDate,
   };
 
   console.log("등록할 재고 데이터:", storeInventoryData);
 
   try {
-    const success = await api.totalStoreInventory(storeInventoryData); // API 호출
-    if (success) {
-      console.log("입고 완료!");
-      emit("totalInventory");
+    const newItem = await api.totalStoreInventory(storeInventoryData);
+
+    if (newItem) {
+      console.log("입고 완료:", newItem);
+      emit("totalInventory", newItem);
       closeModal();
     } else {
       console.error("입고 실패");
@@ -101,6 +142,8 @@ const fetchIngredients = async () => {
       id: item.id,
       name: item.name,
       unit: item.unit,
+      quantity: item.quantity,
+      expiryDate: item.expiryDate,
     }));
     console.log("Fetched ingredients:", ingredients.value);
   } catch (error) {
@@ -109,6 +152,7 @@ const fetchIngredients = async () => {
 };
 
 // 모달이 열릴 때 재료 목록을 가져옴
+// 모달 열릴 때 재료 목록 불러오기
 watch(
   () => props.isOpen,
   (newVal) => {
@@ -119,6 +163,24 @@ watch(
   },
   { immediate: true }
 );
+
+// ingredient 변경 시 기본 유통기한 세팅
+watch(ingredient, (newVal) => {
+  if (newVal) {
+    // 유통기한이 달라요 체크되지 않았을 경우 기존 유통기한 사용
+    if (!isExpirationDifferent.value) {
+      // 유효한 expiryDate가 있을 경우만 사용, 없으면 기본값으로 처리
+      if (newVal.expiryDate) {
+        expiryDate.value = newVal.expiryDate;
+      } else {
+        // expiryDate가 없으면 오늘 날짜로 설정
+        const today = new Date();
+        expiryDate.value = today.toISOString().split("T")[0];
+      }
+      console.log("기존 유통기한 설정:", expiryDate.value);
+    }
+  }
+});
 onMounted(() => {
   // 컴포넌트가 마운트될 때 재료 목록을 가져옴
   console.log("Component mounted, fetching ingredients...");
@@ -184,7 +246,14 @@ onMounted(() => {
           </div>
           <p class="sub_title">입고할 수량을 입력해주세요.</p>
         </div>
-
+        <div class="input_group">
+          <div class="modal_title2">
+            <label>재고 단가</label>
+            <p class="title_warn">(필수)</p>
+          </div>
+          <p class="sub_title">상품의 정확한 가격을 입력해 주세요.</p>
+          <input type="text" v-model="unitPrice" placeholder="32000원" />
+        </div>
         <div class="input_group">
           <div class="modal_title2 flex_between">
             <label>유통기한</label>
@@ -207,12 +276,8 @@ onMounted(() => {
               v-for="day in days"
               :key="day.value"
               :class="[
-                {
-                  selected_btn: selectedDays === day.value,
-                },
-                {
-                  no_opacity_disabled: !isExpirationDifferent,
-                },
+                { selected_btn: selectedDays === day.value },
+                { no_opacity_disabled: !isExpirationDifferent },
               ]"
               @click="selectDay(day.value)"
               variant="outlined"

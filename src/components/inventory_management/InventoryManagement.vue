@@ -89,7 +89,6 @@ const getStatusFromExpiryDate = (expiryDate, purchaseDate = null) => {
 };
 
 const openParticularModal = (item) => {
-  console.log("✅ 상세 보기 클릭됨:", item);
   selectedItem.value = item;
   modalType.value = "particular";
   isModalOpen.value = true;
@@ -177,9 +176,22 @@ const closeDeleteAlert = () => (isDeleteAlertOpen.value = false);
 const addInventoryItem = (item) => {
   console.log("입고 완료된 재고 데이터:", item);
   // 입고 후 데이터 다시 불러오기
-  fetchInventoryData();
+  fetchInventoryList(); // 이 함수는 이미 정의되어 있습니다.
 };
-
+// fetchInventoryData를 fetchInventoryList로 변경
+const fetchInventoryList = async () => {
+  try {
+    const res = await api.getInvenList(); // API 호출
+    if (res) {
+      inventory_items.invenList = res; // API에서 받은 데이터를 inventoryStore에 저장
+      console.log("Fetched inventory list:", inventory_items.invenList);
+    } else {
+      console.error("Failed to fetch inventory list.");
+    }
+  } catch (error) {
+    console.error("Error fetching inventory list:", error);
+  }
+};
 // 만료 임박 아이템 계산
 const expiringItems = computed(() => {
   return inventory_items.value.filter((item) => item.status === "임박");

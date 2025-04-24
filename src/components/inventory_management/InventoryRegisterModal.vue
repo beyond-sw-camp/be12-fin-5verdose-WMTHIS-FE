@@ -1,10 +1,10 @@
 <script setup>
 import { defineProps, defineEmits, ref } from "vue";
-import { useInventoryStore } from "../../stores/useInventoryStore";
-const inventoryStore = useInventoryStore();
+import { api } from "@/api/MenuApi.js";
 // props & emits
 const props = defineProps({
   isOpen: Boolean,
+  item: Object,
 });
 const emit = defineEmits(["close", "registerInventory"]);
 
@@ -49,20 +49,21 @@ const disableCustomInput = () => {
 
 // 재고 등록 처리 함수
 const registerInventory = async () => {
+  console.log("api:", api);
   // 등록할 데이터 세팅
   const storeInventoryData = {
     name: name.value,
-    quantity: quantity.value, // 예: "5", "10"
-    unit: `${unit.value}`, // 예: "100g", "1 Kg"
-    miniquantity: miniquantity.value,
     expiryDate:
-      selectedDays.value === "custom" ? customDays.value : selectedDays.value,
+      selectedDays.value === "custom"
+        ? parseInt(customDays.value)
+        : parseInt(selectedDays.value),
+    miniquantity: miniquantity.value,
+    unit: unit.value,
   };
 
   // Pinia store의 registerStoreInventory 함수 호출
-  const result = await inventoryStore.registerStoreInventory(
-    storeInventoryData
-  );
+  const result = await api.registerStoreInventory(storeInventoryData);
+  console.log("등록 결과:", result);
   if (result) {
     emit("registerInventory", storeInventoryData);
   }
