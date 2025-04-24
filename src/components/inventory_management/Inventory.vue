@@ -4,36 +4,59 @@ import InventoryRegisterModal from "@/components/inventory_management/InventoryR
 import InventoryModifyModal from "@/components/inventory_management/InventoryModifyModal.vue";
 import DeleteConfirmModal from "@/components/alerts/DeleteConfirmModal.vue";
 import DeleteAlertModal from "@/components/alerts/DeleteAlertModal.vue";
+import { api } from "@/api/MenuApi.js"; // api import
 
+// 모달 상태
 const isModalOpen = ref(false);
 const isDetailModalOpen = ref(false);
 const isDeleteConfirmOpen = ref(false);
-const isDeleteAlertOpen = ref(false); // 삭제 항목 선택 안내 모달
-const selectedItem = ref(null);
+const isDeleteAlertOpen = ref(false);
 
+const selectedItem = ref(null);
+const modalType = ref("register");
+
+const inventory_items = ref([]);
+
+const InventoryItems = async () => {
+  const res = await api.getInvenList();
+  console.log("InventoryItems 응답:", res);
+
+  // 구조 맞게 수정
+  if (res && res.code === 200 && res.data) {
+    inventory_items.value = res.data.map((item) => ({
+      ...item,
+      selected: false,
+    }));
+  } else {
+    console.error("재고 목록 불러오기 실패", res);
+  }
+};
+
+onMounted(() => {
+  InventoryItems();
+});
+
+// 모달 열기/닫기
 const openModal = () => {
-  modalType.value = "register"; // 이 줄 추가
+  modalType.value = "register";
   isModalOpen.value = true;
 };
+
 const openDetailModal = (item) => {
-  selectedItem.value = item; // .value 추가
+  selectedItem.value = item;
   modalType.value = "modify";
   isModalOpen.value = true;
 };
-const modalType = ref("register");
+
 const closeModal = () => {
   isModalOpen.value = false;
 };
-onMounted(() => {
-  const savedItems = localStorage.getItem("inventory_items");
-  if (savedItems) {
-    inventory_items.value = JSON.parse(savedItems);
-  }
-});
+
 const handleUpdateInventory = (updatedItem) => {
   selectedItem.value = updatedItem;
 };
 
+// 추가 (등록)
 const addNewInventoryItem = (item) => {
   if (!item) return;
 
@@ -46,31 +69,21 @@ const addNewInventoryItem = (item) => {
   };
 
   inventory_items.value.push(newItem);
-
-  // 🧠 로컬스토리지에 저장
-  localStorage.setItem(
-    "inventory_items",
-    JSON.stringify(inventory_items.value)
-  );
-
   closeModal();
 };
 
-const inventory_items = ref([]);
-
+// 전체 선택 기능
 const select_all = ref(false);
 const isBlocked = computed(
   () => isDeleteConfirmOpen.value || isDeleteAlertOpen.value
 );
 
-// 전체 선택 토글
 const toggle_select_all = () => {
   if (!isBlocked.value) {
     inventory_items.value.forEach((item) => (item.selected = select_all.value));
   }
 };
 
-// 개별 선택 체크 시 전체 선택 여부 감지
 watch(
   inventory_items,
   (new_items) => {
@@ -79,7 +92,7 @@ watch(
   { deep: true }
 );
 
-// 삭제 확인 모달 열기
+// 삭제 모달 열기/닫기/실행
 const openDeleteConfirm = () => {
   if (!isBlocked.value) {
     const selectedItems = inventory_items.value.some((item) => item.selected);
@@ -91,17 +104,14 @@ const openDeleteConfirm = () => {
   }
 };
 
-// 삭제 확인 모달 닫기
 const closeDeleteConfirm = () => {
   isDeleteConfirmOpen.value = false;
 };
 
-// 삭제 경고 모달 닫기
 const closeDeleteAlert = () => {
   isDeleteAlertOpen.value = false;
 };
 
-// 삭제 실행
 const deleteSelectedItems = () => {
   isDeleteConfirmOpen.value = false;
   inventory_items.value = inventory_items.value.filter(
@@ -109,6 +119,7 @@ const deleteSelectedItems = () => {
   );
 };
 </script>
+
 <template>
   <div class="inventory_container">
     <h1 class="page_title">재고 관리</h1>
