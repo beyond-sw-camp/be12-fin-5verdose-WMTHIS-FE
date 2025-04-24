@@ -209,7 +209,18 @@ export const api = {
       return 404;
     }
   },
-
+  getInvenList() {
+    return instance
+      .get("/inventory/inventoryList")
+      .then((res) => {
+        console.log("getInvenList res", res);
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in getInvenList: ", error);
+        return false;
+      });
+  },
   async SearchInventory(storeInventoryData) {
     try {
       const res = await instance.get(
@@ -229,15 +240,23 @@ export const api = {
       return 404; // 오류 처리
     }
   },
-  async totalStoreInventory(storeInventoryData) {
-    try {
-      const response = await axios.post("/api/inventory", storeInventoryData); // API 요청 예시
-      return response;
-    } catch (error) {
-      console.error("API 요청 실패", error);
-      throw error;
-    }
+
+  totalInventory(storeInventoryData) {
+    console.log("totalInventory storeInventoryData", storeInventoryData);
+    return instance
+      .post("/inventory/totalInventory", storeInventoryData)
+      .then((res) => {
+        console.log("totalRes", res);
+        console.log("code:", res.data.code);
+
+        return res.data.code === 200 ? res.data.data : false; // 성공 시 데이터 반환
+      })
+      .catch((error) => {
+        console.error("Error in totalInventory:", error);
+        return false;
+      });
   },
+
   getMenuDetail(menuId) {
     console.log("getMenuDetail menuId", menuId);
     return instance

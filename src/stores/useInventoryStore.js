@@ -1,4 +1,3 @@
-// src/stores/useInventoryStore.js
 import { defineStore } from "pinia";
 import axios from "axios"; // axios를 사용하여 API 요청을 처리합니다.
 import { api } from "@/api/MenuApi.js"; // api 모듈을 가져옵니다.
@@ -43,6 +42,26 @@ export const useInventoryStore = defineStore("inventoryStore", {
         return true;
       } catch (error) {
         console.error("Error in updateInventory:", error);
+        return false;
+      }
+    },
+
+    // storeInventoryData를 쿼리 파라미터로 보내기
+    async ListInventory(storeInventoryData) {
+      try {
+        const response = await api.get("/api/inventory/InventoryList", {
+          params: storeInventoryData, // GET 요청의 쿼리 파라미터로 보냄
+        });
+
+        const index = this.inventories.findIndex(
+          (item) => item.id === storeInventoryData.id
+        );
+        if (index !== -1) {
+          this.inventories[index] = response.data;
+        }
+        return true;
+      } catch (error) {
+        console.error("Error in ListInventory:", error);
         return false;
       }
     },
@@ -101,6 +120,7 @@ export const useInventoryStore = defineStore("inventoryStore", {
         console.error("Error fetching inventory list:", error);
       }
     },
+
     // 재고 정보 선택
     selectInventory(inventoryId) {
       const inventory = this.inventoryList.find(
