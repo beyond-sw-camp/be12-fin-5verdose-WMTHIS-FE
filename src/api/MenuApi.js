@@ -221,6 +221,21 @@ export const api = {
         return false;
       });
   },
+  getPartiInvenList(storeInventoryId) {
+    return instance
+      .get(`/inventory/totalInventory/${storeInventoryId}`, {
+        withCredentials: true, // 꼭 넣어야 쿠키 전송됨
+      })
+      .then((res) => {
+        console.log("getPartiInvenList res", res);
+        return res;
+      })
+      .catch((error) => {
+        console.error("Error in getPartiInvenList: ", error);
+        return false;
+      });
+  },
+
   async SearchInventory(storeInventoryData) {
     try {
       const res = await instance.get(

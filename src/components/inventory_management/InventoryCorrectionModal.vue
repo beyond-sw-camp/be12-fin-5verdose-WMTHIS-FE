@@ -95,20 +95,6 @@ const removeIngredient = (index) => {
         </div>
 
         <div class="input_group">
-          <div class="modal_title2 between">
-            <label>최소수량</label>
-            <input
-              type="text"
-              v-model="Minimumquantity"
-              placeholder="5"
-              class="min-qty-input"
-            />
-          </div>
-          <p class="sub_title">
-            최소 보유하고 있어야하는 재고의 수를 입력해 주세요.
-          </p>
-        </div>
-        <div class="input_group">
           <div class="modal_title2 flex-between">
             <label>유통기한</label>
             <div class="checkbox-group">
