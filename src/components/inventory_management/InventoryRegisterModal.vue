@@ -53,10 +53,8 @@ const registerInventory = async () => {
   // 등록할 데이터 세팅
   const storeInventoryData = {
     name: name.value,
-    expiryDate:
-      selectedDays.value === "custom"
-        ? parseInt(customDays.value)
-        : parseInt(selectedDays.value),
+    expiryDate: isCustomInput.value ? customDays.value : selectedDays.value,
+
     miniquantity: miniquantity.value,
     unit: unit.value,
   };

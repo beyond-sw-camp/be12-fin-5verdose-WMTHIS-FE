@@ -34,6 +34,19 @@ const InventoryItems = async () => {
   }
 };
 
+const addNewInventoryItem = (item) => {
+  if (!item) return;
+
+  const newItem = {
+    name: item.name,
+    unit: item.unit,
+    miniquantity: item.miniquantity + "개",
+    Expirationdate: `입고일로부터 ${item.expiryDate}일`,
+    selected: false,
+  };
+
+  inventory_items.value.push(newItem);
+};
 onMounted(() => {
   InventoryItems();
 });
@@ -65,11 +78,11 @@ const handleUpdateInventory = (updatedItem) => {
   selectedItem.value = updatedItem;
 };
 
-// 추가 (등록)
-const addNewInventoryItem = async () => {
-  await InventoryItems(); // 서버에서 다시 받아오기
-  closeModal();
-};
+// // 추가 (등록)
+// const addNewInventoryItem = async () => {
+//   await InventoryItems(); // 서버에서 다시 받아오기
+//   closeModal();
+// };
 
 // 전체 선택 기능
 const select_all = ref(false);

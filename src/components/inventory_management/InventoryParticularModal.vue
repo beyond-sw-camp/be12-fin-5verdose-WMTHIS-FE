@@ -1,7 +1,7 @@
 <script setup>
-import { defineProps, defineEmits, ref, onMounted, watch } from "vue"
-import InventoryCorrectionModal from "@/components/inventory_management/InventoryCorrectionModal.vue"
-import { api } from "@/api/MenuApi.js"
+import { defineProps, defineEmits, ref, onMounted, watch } from "vue";
+import InventoryCorrectionModal from "@/components/inventory_management/InventoryCorrectionModal.vue";
+import { api } from "@/api/MenuApi.js";
 
 const props = defineProps({
   isOpen: Boolean,
@@ -9,99 +9,87 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  inventory_items: {
+    type: Array,
+    required: true,
+  },
   storeInventoryId: {
     type: Number, // String 타입 제거, Number만 허용
     default: null,
   },
-})
+});
 
-const recipeList = ref([])
-const emit = defineEmits(["close"])
-const isCorrectionModalOpen = ref(false)
-const correctionItem = ref(null)
-const isParticularModalOpen = ref(false)
-const selectedDays = ref("1")
-const customDays = ref("")
-const isCustomInput = ref(false)
-const modalType = ref("")
-const isModalOpen = ref(false)
-const isLoading = ref(true) // 로딩 상태 추가
+const recipeList = ref([]);
+const emit = defineEmits(["close"]);
+const isCorrectionModalOpen = ref(false);
+const correctionItem = ref(null);
+const isParticularModalOpen = ref(false);
+const selectedDays = ref("1");
+const customDays = ref("");
+const isCustomInput = ref(false);
+const modalType = ref("");
+const isModalOpen = ref(false);
+const isLoading = ref(true); // 로딩 상태 추가
 
 const closeModal = () => {
-  isModalOpen.value = false
-}
-const selectedItem = ref(null)
+  isModalOpen.value = false;
+};
+const selectedItem = ref(null);
 
 const openParticularModal = (item) => {
-  console.log("✅ 상세 보기 클릭됨:", item)
-  selectedItem.value = item
-  modalType.value = "particular"
-  isModalOpen.value = true
-}
+  console.log("✅ 상세 보기 클릭됨:", item);
+  selectedItem.value = item;
+  modalType.value = "particular";
+  isModalOpen.value = true;
+};
 
 const openCorrectionModal = (item) => {
-  correctionItem.value = item
-  isCorrectionModalOpen.value = false
-  modalType.value = "correction"
-  isModalOpen.value = true
-}
+  correctionItem.value = item;
+  isCorrectionModalOpen.value = false;
+  modalType.value = "correction";
+  isModalOpen.value = true;
+};
 
-const inventory_items = ref([
-  {
-    store: "2025-04-05",
-    totalquantity: "2025-04-08",
-    status: "1.6k",
-    selected: false,
-  },
-  {
-    store: "2025-04-05",
-    totalquantity: "2025-04-08",
-    status: "1.2kg",
-    selected: false,
-  },
-  {
-    store: "2025-04-05",
-    totalquantity: "2025-04-08",
-    status: "1kg",
-    selected: false,
-  },
-])
+const inventory_items = ref([]);
 onMounted(async () => {
-  isLoading.value = true
+  isLoading.value = true;
 
   // storeInventoryId가 있으면 사용, 없으면 item.id 또는 item.inventoryId 사용
   // 모든 경우에 parseInt를 사용하여 정수로 변환
   const inventoryId = props.storeInventoryId
     ? parseInt(props.storeInventoryId, 10)
     : props.item
-      ? parseInt(props.item.inventoryId || props.item.id, 10)
-      : null
+    ? parseInt(props.item.inventoryId || props.item.id, 10)
+    : null;
 
   if (inventoryId) {
-    console.log("모달 열림, inventoryId(int):", inventoryId)
+    console.log("모달 열림, inventoryId(int):", inventoryId);
     try {
-      const res = await api.getRecipes(inventoryId)
+      const res = await api.getRecipes(inventoryId);
       if (res) {
-        recipeList.value = res.menuItems
-        console.log("레시피 목록:", recipeList.value)
+        recipeList.value = res.menuItems;
+        console.log("레시피 목록:", recipeList.value);
       } else {
-        console.error("레시피 데이터 형식이 예상과 다릅니다:", res)
-        recipeList.value = []
+        console.error("레시피 데이터 형식이 예상과 다릅니다:", res);
+        recipeList.value = [];
       }
     } catch (err) {
-      console.error("레시피 가져오기 실패:", err)
-      recipeList.value = []
+      console.error("레시피 가져오기 실패:", err);
+      recipeList.value = [];
     }
   } else {
-    console.error("inventoryId가 전달되지 않았습니다. item:", props.item)
+    console.error("inventoryId가 전달되지 않았습니다. item:", props.item);
   }
 
-  isLoading.value = false
-})
-
+  isLoading.value = false;
+});
 </script>
 <template>
-  <div class="particular_modal_container" @click.self="emit('close')" style="z-index: 9999">
+  <div
+    class="particular_modal_container"
+    @click.self="emit('close')"
+    style="z-index: 9999"
+  >
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
@@ -126,11 +114,9 @@ onMounted(async () => {
                 <strong>총 수량 :</strong> {{ props.item.totalquantity }}
               </p>
               <p v-if="recipeList.length">
-                <strong>사용메뉴 :</strong> {{ recipeList.join(', ') }}
+                <strong>사용메뉴 :</strong> {{ recipeList.join(", ") }}
               </p>
-              <p v-else>
-                <strong>사용메뉴 :</strong> 메뉴 정보가 없습니다.
-              </p>
+              <p v-else><strong>사용메뉴 :</strong> 메뉴 정보가 없습니다.</p>
             </div>
           </div>
 
@@ -145,13 +131,11 @@ onMounted(async () => {
             </thead>
             <tbody>
               <tr v-for="(item, index) in inventory_items" :key="index">
-                <td>{{ item.store }}</td>
-                <td>{{ item.totalquantity }}</td>
+                <td>{{ item.purchaseDate }}</td>
+                <td>{{ item.expiryDate }}</td>
+                <td>{{ item.quantity }}</td>
                 <td>
-                  <span :class="'status ' + item.status">{{ item.status }}</span>
-                </td>
-                <td>
-                  <button @click="openCorrectionModal(item)" class="delete_btn">
+                  <button @click="openCorrectionModal(item)" class="update_btn">
                     보정
                   </button>
                 </td>
@@ -164,8 +148,16 @@ onMounted(async () => {
         <button class="confirm_btn" @click="emit('close')">확인</button>
       </div>
     </div>
-    <InventoryParticularModal v-if="modalType === 'particular'" :isOpen="isModalOpen" @close="closeModal" />
-    <InventoryCorrectionModal v-if="modalType === 'correction'" :isOpen="isModalOpen" @close="closeModal" />
+    <InventoryParticularModal
+      v-if="modalType === 'particular'"
+      :isOpen="isModalOpen"
+      @close="closeModal"
+    />
+    <InventoryCorrectionModal
+      v-if="modalType === 'correction'"
+      :isOpen="isModalOpen"
+      @close="closeModal"
+    />
   </div>
 </template>
 
@@ -554,7 +546,9 @@ onMounted(async () => {
   /* 드롭다운 크기 */
   appearance: none;
   /* 기본 스타일 제거 */
-  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
+  background: white
+    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
   background-size: 16px;
 }
 
@@ -612,7 +606,15 @@ onMounted(async () => {
   cursor: pointer;
   font-weight: bold;
 }
-
+.update_btn {
+  padding: 8px 12px;
+  background-color: #b8c0c8;
+  border: none;
+  border-radius: 20px;
+  width: 80px;
+  cursor: pointer;
+  font-weight: bold;
+}
 .input_label_group {
   display: flex;
   align-items: center;
