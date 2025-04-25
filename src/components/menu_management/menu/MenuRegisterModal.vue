@@ -13,7 +13,7 @@ const ingredientName = ref('');
 const ingredientAmount = ref('');
 const ingredients = ref([
 ]);
-const category = ref('');
+const category = ref(null);
 const categoryList = ref([]);
 const selectedUnit = computed(() => {
     const selected = ingredientOptions.value.find(item => item.name === ingredientName.value.name);
@@ -58,14 +58,13 @@ const registerMenu = async () => {
         // 백엔드에 보내는 데이터
         const data = {
             name: menuName.value,
-            categoryId: category.value.id,
+            categoryId: category.value ? category.value.id : null,
             price: price.value,
             ingredients: ingredients.value.map(ingredient => ({
                 storeInventoryId: ingredient.id,
                 quantity: ingredient.amount
-
             }))
-        }
+        };
         console.log('등록할 메뉴 데이터:', data);
         const response = await api.registerMenu(data); // API 호출
         console.log('API 응답:', response);
@@ -153,8 +152,8 @@ onMounted(() => {
                     <label>카테고리</label>
                     <p class="sub_title"> 메뉴가 속한 카테고리를 입력해 주세요.</p>
                     <select v-model="category">
-                        <option value="" disabled selected>카테고리 선택</option>
-                        <option v-for="item in categoryList" :key="item" :value="item">{{ item.name }}</option>
+                        <option :value="null" selected>카테고리 없음</option>
+                        <option v-for="item in categoryList" :key="item.id" :value="item">{{ item.name }}</option>
                     </select>
                 </div>
 

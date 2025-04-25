@@ -187,6 +187,9 @@ routes.beforeEach(async (to, from, next) => {
 
     // ✅ 로그인 여부 판단 (response.data가 true일 때만 통과)
     if (response.code === 200) {
+      if (!response.data) {
+        return next("/account/login");
+      }
       return next(); // 로그인된 상태 → 다음 라우트로 이동
     } else if (response.code === 1016) {
       return next("/account/register"); // 로그인 안 됨 → 로그인 페이지로 이동

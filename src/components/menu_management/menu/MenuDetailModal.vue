@@ -32,9 +32,10 @@ watch(() => props.menu, (newVal) => {
 const loadCategories = async () => {
     const result = await api.getCategoryList();
     if (result) {
-        categoryList.value = result.content;
+        // "카테고리 없음" 항목을 추가
+        categoryList.value = [...result.content, { id: null, name: '카테고리 없음' }];
     } else {
-        console("카테고리 목록을 불러오는 데 실패했습니다.");
+        console.log("카테고리 목록을 불러오는 데 실패했습니다.");
     }
 };
 
@@ -77,24 +78,24 @@ const addIngredient = (id) => {
 const removeIngredient = (index) => {
     ingredients.value.splice(index, 1);
 };
-
 const registerMenu = async () => {
     if (menuName.value && category.value && price.value) {
-        console.log(ingredients.value);
-        console.log('메뉴명:', menuName);
-        // 백엔드에 보내는 데이터
+        // 카테고리 값이 '카테고리 없음'인 경우, null을 전송
+        const categoryId = category.value.name === '카테고리 없음' ? null : category.value.id;
+
         const data = {
             menuId: props.menu.id,
             name: menuName.value,
-            categoryId: category.value.id,
+            categoryId: categoryId, // 수정된 카테고리 ID
             price: price.value,
             ingredients: ingredients.value.map(ingredient => ({
                 storeInventoryId: ingredient.id,
                 quantity: ingredient.amount
-
             }))
-        }
+        };
+
         console.log('수정할 메뉴 데이터:', data);
+
         const response = await api.updateMenu(data); // API 호출
         console.log('API 응답:', response);
         if (response) {
@@ -180,7 +181,6 @@ onMounted(async () => {
                     <label>카테고리</label>
                     <p class="sub_title"> 메뉴가 속한 카테고리를 입력해 주세요.</p>
                     <select v-model="category">
-                        <option value="" disabled selected>카테고리 선택</option>
                         <option v-for="item in categoryList" :key="item" :value="item">{{ item.name }}</option>
                     </select>
                 </div>
