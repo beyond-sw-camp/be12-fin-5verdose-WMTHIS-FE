@@ -143,7 +143,7 @@ const chartOptions = computed(() => ({
         type: "bar",
         stacked: true,
         toolbar: {
-            show: false,  // 툴바 자체를 완전히 숨김
+            show: false,
             tools: {
                 download: false,
                 selection: false,
@@ -162,19 +162,16 @@ const chartOptions = computed(() => ({
         bar: {
             horizontal: false,
             columnWidth: "60%",
-            // 0 값에 대한 데이터 라벨 표시 설정
             dataLabels: {
                 enabled: false, // 데이터 라벨 비활성화
             },
         },
     },
-    // 데이터 라벨 활성화
     dataLabels: {
         enabled: false,
         formatter: function (val) {
-            // 0 값에 대해서도 라벨 표시
             if (val === 0) return '0';
-            return val >= 1000 ? (val / 1000).toFixed(1) + 'k' : val;
+            return val >= 1000 ? Math.floor(val).toLocaleString() : val;
         },
         offsetY: -20,
         style: {
@@ -188,16 +185,15 @@ const chartOptions = computed(() => ({
             text: props.dateRangeType === 'hour' ? '시간' :
                 props.dateRangeType === 'day' ? '일자' : '월',
         },
-        // 모든 x축 라벨 표시 강제
         tickPlacement: 'on',
         labels: {
             rotate: 0,
             trim: false,
             hideOverlappingLabels: false,
             style: {
-                fontSize: '7px', // x축 글자 크기 조정 (원하는 크기로 변경 가능)
-                fontWeight: 300,  // 글자 굵기 설정
-                colors: '#333333' // 글자 색상 설정
+                fontSize: '7px',
+                fontWeight: 300,
+                colors: '#333333'
             }
         }
     },
@@ -206,19 +202,27 @@ const chartOptions = computed(() => ({
             text: '매출액 (원)'
         },
         labels: {
-            formatter: (val) => `${val.toLocaleString()}원`,
+            formatter: (val) => {
+                // 백원 단위로 반올림 (예: 1,250원 -> 1,300원)
+                const roundedValue = Math.round(val / 100) * 100;
+                const formattedValue = roundedValue.toLocaleString();
+                return `${formattedValue} 원`;
+            },
         },
-        // y축 범위 설정 - 0 값이 보이도록 약간의 여백 추가
-        min: -100,  // 음수 값으로 설정하여 0 값이 보이도록 함
+        min: 0,
         max: function (max) {
-            return max + max * 0.1;  // 최대값에 10% 여백 추가
+            return max + max * 0.1;
         }
     },
     tooltip: {
         y: {
-            formatter: (val) => `${val.toLocaleString()}원`,
+            formatter: (val) => {
+                // 툴팁에도 백원 단위로 반올림 표시
+                const roundedValue = Math.round(val / 100) * 100;
+                const formattedValue = roundedValue.toLocaleString();
+                return `${formattedValue} 원`;
+            },
         },
-        // 값이 0인 경우에도 툴팁 표시
         intersect: false,
         shared: true
     },
@@ -238,13 +242,11 @@ const chartOptions = computed(() => ({
             fontFamily: 'sans-serif'
         }
     },
-    // 0 값 처리 설정
     stroke: {
         show: true,
         width: 2,
         colors: ['transparent']
     },
-    // 모든 데이터 포인트에 마커 표시
     markers: {
         size: 4,
         colors: ["#FFD666", "#87E8DE", "#FF9C6E", "#B37FEB"],
@@ -254,7 +256,6 @@ const chartOptions = computed(() => ({
             size: 6
         }
     },
-    // 0 값에 대한 특별한 스타일 설정
     states: {
         hover: {
             filter: {
@@ -268,6 +269,7 @@ const chartOptions = computed(() => ({
         }
     }
 }))
+
 
 // 차트 렌더링 관련 상태
 const chartKey = ref(0);
