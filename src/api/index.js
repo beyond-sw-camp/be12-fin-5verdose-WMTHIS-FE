@@ -71,7 +71,7 @@ export const api = {
       .post("/user/smssend", { phoneNum: data })
       .then((res) => {
         console.log("smsSendRes", res);
-        return res.data.code === 200; // 성공 여부 반환
+        return res.data; // 성공 여부 반환
       })
       .catch((error) => {
         console.error("Error in SMS Send:", error);
@@ -168,7 +168,10 @@ export const api = {
     console.log("updateInventory storeInventoryData", storeInventoryData);
 
     try {
-      const res = instance.put(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
+      const res = instance.put(
+        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
+        storeInventoryData
+      );
       console.log("updateRes", res);
       console.log("code:", res.data.code);
 
@@ -185,7 +188,10 @@ export const api = {
 
   async SearchInventory(storeInventoryData) {
     try {
-      const res = await instance.get(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
+      const res = await instance.get(
+        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
+        storeInventoryData
+      );
       console.log("searchRes", res);
       console.log("code:", res.data.code);
 
@@ -291,7 +297,9 @@ export const api = {
       .then((res) => {
         if (res.data.code !== 200) {
           // 실패한 응답인 경우 에러로 던짐
-          throw new Error(res.data.message || "결제 처리 중 오류가 발생했습니다.");
+          throw new Error(
+            res.data.message || "결제 처리 중 오류가 발생했습니다."
+          );
         }
         return res.data; // 성공한 응답만 반환
       })
