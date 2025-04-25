@@ -87,7 +87,6 @@ const submitForm = () => {
 // 컴포넌트 마운트 시 저장된 이메일 불러오기
 onMounted(() => {
   loadSavedEmail(); // ✅ 마운트 시 실행
-  checkIsLogin();
 });
 </script>
 
