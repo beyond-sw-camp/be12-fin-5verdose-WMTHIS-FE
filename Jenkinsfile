@@ -58,7 +58,7 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+                stage('Deploy to Kubernetes') {
             when {
                 expression {
                     return env.GIT_BRANCH == 'origin/main' || env.BRANCH_NAME == 'main'
@@ -68,31 +68,32 @@ pipeline {
                 script {
                     sh """
                     cat <<EOF | kubectl apply -f -
-                    apiVersion: apps/v1
-                    kind: Deployment
-                    metadata:
-                      name: ${DEPLOYMENT_NAME}
-                      labels:
-                        app: wmthis-front
-                    spec:
-                      replicas: 3
-                      selector:
-                        matchLabels:
-                          app: wmthis-front
-                      template:
-                        metadata:
-                          labels:
-                            app: wmthis-front
-                        spec:
-                          containers:
-                            - name: wmthis-front-container
-                              image: ${IMAGE_NAME}:${IMAGE_TAG}
-                              ports:
-                                - containerPort: 80
-                    EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${DEPLOYMENT_NAME}
+  labels:
+    app: wmthis-front
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: wmthis-front
+  template:
+    metadata:
+      labels:
+        app: wmthis-front
+    spec:
+      containers:
+        - name: wmthis-front-container
+          image: ${IMAGE_NAME}:${IMAGE_TAG}
+          ports:
+            - containerPort: 80
+EOF
                     """
                 }
             }
         }
+
     }
 }
