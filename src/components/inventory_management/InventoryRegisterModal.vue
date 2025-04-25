@@ -109,6 +109,7 @@ const registerInventory = async () => {
                 <option value="g">g</option>
                 <option value="L">L</option>
                 <option value="ml">ml</option>
+                <option value="ml">개</option>
               </select>
             </div>
           </div>

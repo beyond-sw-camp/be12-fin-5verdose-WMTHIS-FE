@@ -40,7 +40,7 @@ const addNewInventoryItem = (item) => {
   const newItem = {
     name: item.name,
     unit: item.unit,
-    miniquantity: item.miniquantity + "개",
+    miniquantity: item.miniquantity,
     Expirationdate: `입고일로부터 ${item.expiryDate}일`,
     selected: false,
   };
@@ -184,7 +184,7 @@ const deleteSelectedItems = () => {
           </td>
           <td class="bold_text">{{ item.name }}</td>
           <td>{{ item.unit }}</td>
-          <td>{{ item.quantity }}</td>
+          <td>{{ item.miniquantity }}</td>
           <td>{{ item.Expirationdate }}</td>
           <td>
             <button class="detail_btn" @click="openDetailModal(item)">
