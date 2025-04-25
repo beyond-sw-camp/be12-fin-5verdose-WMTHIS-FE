@@ -343,7 +343,7 @@ const getDateRange = (startDate, endDate) => {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .sales-box1 {
