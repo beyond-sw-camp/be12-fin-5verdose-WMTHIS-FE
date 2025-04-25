@@ -40,7 +40,7 @@ const fetchMenuItems = async () => {
       console.log("Menu items loaded:", menu_items.value);
 
       // 메뉴 아이템에서 고유한 카테고리 ID 추출
-      extractCategoriesFromMenuItems();
+      //extractCategoriesFromMenuItems();
     } else {
       console.error("메뉴 데이터를 가져오는 데 실패했습니다.");
       menu_items.value = []; // 실패 시 빈 배열로 설정
@@ -51,40 +51,69 @@ const fetchMenuItems = async () => {
   }
 };
 
-// 메뉴 아이템에서 카테고리 정보 추출
-const extractCategoriesFromMenuItems = () => {
+// Add a new function to fetch categories
+const fetchCategories = async () => {
+  try {
+    const response = await api.getPOSCategoryList();
+    if (response && response.data) {
+      return response.data;
+    } else {
+      console.error("카테고리 데이터를 가져오는 데 실패했습니다.");
+      return [];
+    }
+  } catch (error) {
+    console.error("Error in fetchCategories:", error);
+    return [];
+  }
+};
+
+// Modify the extractCategoriesFromMenuItems function to use actual category names
+const extractCategoriesFromMenuItems = async () => {
   if (!menu_items.value || !Array.isArray(menu_items.value)) {
     return;
   }
 
-  // 카테고리 ID 맵 생성 (중복 제거)
+  // Fetch categories from API
+  const categoryList = await fetchCategories();
+
+  // Create a map of category id to name for quick lookup
+  const categoryNameMap = {};
+  categoryList.forEach(category => {
+    categoryNameMap[category.id] = category.name;
+  });
+
+  // Category ID map creation (for deduplication)
   const categoryMap = new Map();
 
   menu_items.value.forEach((item) => {
     if (item.category !== null && item.category !== undefined) {
-      // 카테고리 ID를 문자열로 변환하여 저장 (타입 일관성 유지)
+      // Convert category ID to string for consistency
       const categoryId = String(item.category);
 
-      // 이미 맵에 없는 경우에만 추가
+      // Only add if not already in the map
       if (!categoryMap.has(categoryId)) {
+        // Use the actual category name if available, otherwise fallback to default
+        const categoryName = categoryNameMap[item.category] || `카테고리 ${categoryId}`;
+
         categoryMap.set(categoryId, {
           id: item.category,
-          name: `카테고리 ${categoryId}`, // 기본 이름 설정
+          name: categoryName,
         });
       }
     }
   });
 
-  // 맵에서 카테고리 배열로 변환
+  // Convert map to array of categories
   categories.value = Array.from(categoryMap.values());
-  console.log("Extracted categories:", categories.value);
+  console.log("Extracted categories with names:", categories.value);
 };
 
 // 컴포넌트 마운트 시 주문 정보 로드
 onMounted(async () => {
   loadOrderInfo();
   loadExistingOrders();
-  await fetchMenuItems(); // 메뉴 아이템을 먼저 가져온 후 카테고리 추출
+  await fetchMenuItems(); // First fetch menu items
+  await extractCategoriesFromMenuItems(); // Then extract categories with names
 });
 
 // 라우트 변경 감지
@@ -372,29 +401,28 @@ const processPayment = () => {
 
       <!-- 카테고리 탭 추가 -->
       <div class="category_tabs">
-        <button class="category_tab" :class="{ active: selectedCategoryId === null }" @click="changeCategory(null)">전체</button>
-        <button
-          v-for="category in categories"
-          :key="category.id"
-          class="category_tab"
-          :class="{ active: selectedCategoryId === category.id }"
-          @click="changeCategory(category.id)"
-        >
+        <button class="category_tab" :class="{ active: selectedCategoryId === null }"
+          @click="changeCategory(null)">전체</button>
+        <button v-for="category in categories" :key="category.id" class="category_tab"
+          :class="{ active: selectedCategoryId === category.id }" @click="changeCategory(category.id)">
           {{ category.name }}
         </button>
-        <button class="category_tab" :class="{ active: selectedCategoryId === -1 }" @click="changeCategory(-1)">카테고리 없음</button>
+        <button class="category_tab" :class="{ active: selectedCategoryId === -1 }" @click="changeCategory(-1)">카테고리
+          없음</button>
       </div>
 
       <!-- 디버깅 정보 (개발 중에만 표시) -->
       <div v-if="false" class="debug-info">
-        <p>선택된 카테고리: {{ selectedCategoryId === null ? "전체" : selectedCategoryId === -1 ? "카테고리 없음" : selectedCategoryId }}</p>
+        <p>선택된 카테고리: {{ selectedCategoryId === null ? "전체" : selectedCategoryId === -1 ? "카테고리 없음" : selectedCategoryId
+        }}</p>
         <p>필터링된 메뉴 수: {{ filteredMenuItems.length }}</p>
         <p>총 페이지: {{ totalPages }}</p>
         <p>현재 페이지: {{ currentPage }}</p>
       </div>
 
       <div class="menu_grid">
-        <div v-for="(item, index) in paginatedMenuItems" :key="index" class="menu_item" @click="openModal(item)" :class="{ 'empty-item': !item }">
+        <div v-for="(item, index) in paginatedMenuItems" :key="index" class="menu_item" @click="openModal(item)"
+          :class="{ 'empty-item': !item }">
           <div v-if="item">
             <div class="menu_name">{{ item.name }}</div>
             <div class="menu_price">{{ item?.price?.toLocaleString() || "가격 없음" }}원</div>
@@ -462,7 +490,6 @@ const processPayment = () => {
     </div>
   </div>
 </template>
-
 <style scoped>
 button:disabled {
   opacity: 0.5;
