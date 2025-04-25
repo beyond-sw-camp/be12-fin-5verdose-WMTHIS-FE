@@ -40,7 +40,7 @@ const addNewInventoryItem = (item) => {
   const newItem = {
     name: item.name,
     unit: item.unit,
-    quantity: item.miniquantity + "개",
+    miniquantity: item.miniquantity + "개",
     Expirationdate: `입고일로부터 ${item.expiryDate}일`,
     selected: false,
   };

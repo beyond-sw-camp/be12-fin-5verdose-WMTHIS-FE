@@ -66,24 +66,52 @@ const disableCustomInput = () => {
 
 // 유통기한 계산 함수
 const calculateExpiryDate = () => {
-  const today = new Date(); // 오늘 날짜 기본 설정
+  const today = new Date();
+  let daysToAdd = 0;
 
-  if (isExpirationDifferent.value) {
-    // 유통기한이 달라요 체크된 경우 customDays 기준으로 유통기한 계산
-    const daysToAdd = parseInt(customDays.value || 0);
-    today.setDate(today.getDate() + daysToAdd);
-  } else if (ingredient.value && ingredient.value.expiryDate) {
-    // 체크 안 됐으면, 기존 재고의 유통기한을 오늘 날짜 기준으로 설정
-    const expiry = new Date(ingredient.value.expiryDate);
-    today.setFullYear(
-      expiry.getFullYear(),
-      expiry.getMonth(),
-      expiry.getDate()
-    );
+  // 1. ingredient.expiryDate 기준으로 더함 (체크박스 선택 안 됨)
+  if (ingredient.value?.expiryDate && !isExpirationDifferent.value) {
+    let ingredientExpiryDate = ingredient.value.expiryDate; // ingredient.expiryDate가 int 형식
+
+    // ingredientExpiryDate가 숫자 형식이라면, 이를 날짜 형식으로 변환
+    if (typeof ingredientExpiryDate === "number") {
+      const expiryYear = Math.floor(ingredientExpiryDate / 10000); // 연도 추출
+      const expiryMonth = Math.floor((ingredientExpiryDate % 10000) / 100); // 월 추출
+      const expiryDay = ingredientExpiryDate % 100; // 일 추출
+
+      // 유효한 날짜인지 체크
+      if (expiryYear && expiryMonth && expiryDay) {
+        const parsedDate = new Date(expiryYear, expiryMonth - 1, expiryDay); // 월은 0부터 시작하므로 1을 빼줍니다.
+        daysToAdd = Math.ceil((parsedDate - today) / (1000 * 3600 * 24)); // 날짜 차이 계산 (일수)
+      } else {
+        console.error("유효하지 않은 유통기한:", ingredientExpiryDate);
+        return today.toISOString().split("T")[0]; // 유효하지 않은 경우 오늘 날짜로 반환
+      }
+    } else {
+      console.error("유효하지 않은 유통기한:", ingredientExpiryDate);
+    }
+  }
+  // 2. 유통기한이 다름을 체크했고, 선택된 일수가 있음
+  else if (isExpirationDifferent.value && selectedDays.value) {
+    if (selectedDays.value === "custom") {
+      daysToAdd = parseInt(customDays.value || "0");
+    } else {
+      daysToAdd = parseInt(selectedDays.value);
+    }
+  }
+  // 3. 그 외 fallback (예: 등록 과정 등)
+  else if (selectedDays.value === "custom") {
+    daysToAdd = parseInt(customDays.value || "0");
+  } else if (selectedDays.value) {
+    daysToAdd = parseInt(selectedDays.value);
   }
 
-  // 계산된 유통기한 반환 (yyyy-MM-dd 형식)
-  return today.toISOString().split("T")[0];
+  // 최종 계산된 날짜
+  today.setDate(today.getDate() + daysToAdd);
+  const result = today.toISOString().split("T")[0]; // "yyyy-MM-dd" 형식으로 리턴
+
+  console.log("계산된 유통기한:", result);
+  return result;
 };
 
 // 등록 처리
@@ -93,9 +121,8 @@ const totalInventory = async () => {
     return;
   }
 
-  const expiry = calculateExpiryDate();
+  const expiry = calculateExpiryDate(); // 유통기한 계산
 
-  // 단위당 가격 계산
   const unit = ingredient.value.unit;
   let unitLabel = "";
   let unitCost = 0;
@@ -108,13 +135,11 @@ const totalInventory = async () => {
     unitCost = (unitPrice.value / quantity.value) * 100;
   }
 
-  console.log(`단위당 가격 (${unitLabel}): ${unitCost.toFixed(2)}원`);
-
   const storeInventoryData = {
     storeInventoryId: ingredient.value.id,
     quantity: quantity.value,
     expiryDate: expiry,
-    unitPrice: parseFloat(unitCost.toFixed(2)), // 계산된 단위당 가격을 반영
+    unitPrice: parseFloat(unitCost.toFixed(2)),
     purchaseDate: purchaseDate,
   };
 
@@ -125,7 +150,16 @@ const totalInventory = async () => {
 
     if (newItem) {
       console.log("입고 완료:", newItem);
-      emit("totalInventory", newItem);
+
+      emit("totalInventory", {
+        storeInventoryId: ingredient.value.id,
+        name: ingredient.value.name,
+        quantity: quantity.value,
+        expiryDate: expiry,
+        purchaseDate,
+        unitPrice: parseFloat(unitCost.toFixed(2)),
+      });
+
       closeModal();
     } else {
       console.error("입고 실패");

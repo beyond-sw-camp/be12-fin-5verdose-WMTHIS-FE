@@ -174,7 +174,7 @@ const closeDeleteConfirm = () => (isDeleteConfirmOpen.value = false);
 const closeDeleteAlert = () => (isDeleteAlertOpen.value = false);
 
 const addInventoryItem = (item) => {
-  console.log("입고 완료된 재고 데이터:", item);
+  console.log("입고 완료된 재고 데이터:", item.storeInventoryId);
   // 입고 후 데이터 다시 불러오기
   fetchInventoryList(); // 이 함수는 이미 정의되어 있습니다.
 };
@@ -435,6 +435,7 @@ const orderNeededItems = computed(() => {
           :isOpen="isStoreOpen"
           @close="isStoreOpen = false"
           @totalInventory="addInventoryItem"
+          :inventory_items="inventory_items"
         />
 
         <InventoryCorrectionModal
