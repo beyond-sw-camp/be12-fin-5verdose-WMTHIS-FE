@@ -149,9 +149,9 @@
 휴대폰 인증의 경우, 여러 번 시도하면 요금이 발생할 수 있습니다.  
 임시로 콘솔 창에 **휴대폰 인증 번호**가 나타나도록 설정해두었습니다.
 
-[휴대폰 인증 예시 이미지]
-<img src="./src/assets/image/phoneverify.png" width="500" height="300"/>
 
+<img src="./src/assets/image/phoneverify.png" width="700" height="450"/>
+---
 #### **자동 재고 관리 시스템**
 
 - 메뉴 판매 시 **레시피에 명시된 정량**에 따라 **재료 소비량을 자동 측정**
