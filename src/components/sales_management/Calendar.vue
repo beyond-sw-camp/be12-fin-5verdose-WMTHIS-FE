@@ -347,7 +347,7 @@ const getDateRange = (startDate, endDate) => {
 }
 
 .sales-box1 {
-  padding: 2px 4px;
+  padding: 2px 0px;
   background-color: #b1d5c2;
   border-radius: 4px;
   color: #333;
