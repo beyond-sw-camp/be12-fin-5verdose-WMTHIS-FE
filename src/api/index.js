@@ -112,6 +112,7 @@ export const api = {
       .get("/user/isLogin")
       .then((res) => {
         console.log("LoginRes");
+        console.log("code:", res.data);
         return res.data;
       })
       .catch((error) => {
