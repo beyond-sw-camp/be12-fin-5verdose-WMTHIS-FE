@@ -32,10 +32,29 @@ const loadCategories = async () => {
         console.log("카테고리 목록을 불러오는 데 실패했습니다.");
     }
 };
-
+const init = () => {
+    menuName.value = '';
+    ingredientName.value = '';
+    ingredientAmount.value = '';
+    ingredients.value = [];
+    category.value = null;
+    price.value = 0;
+};
 
 const addIngredient = (id) => {
     console.log('id', id);
+    if (!ingredientName.value || !ingredientAmount.value) {
+        alert('재료와 수량을 모두 입력해주세요.');
+        return;
+    }
+    const alreadyExists = ingredients.value.some(
+        (ingredient) => ingredient.id === ingredientName.value.id
+    );
+
+    if (alreadyExists) {
+        alert('이미 추가된 재료입니다.');
+        return;
+    }
     if (ingredientName.value && ingredientAmount.value) {
         ingredients.value.push({
             id: ingredientName.value.id,
@@ -69,14 +88,16 @@ const registerMenu = async () => {
         const response = await api.registerMenu(data); // API 호출
         console.log('API 응답:', response);
         if (response) {
-
+            init();
             emit('refresh');
-            emit('close'); // 모달 닫기
         } else {
+
             alert('메뉴 등록에 실패했습니다. 다시 시도해주세요.');
         }
+
+        emit('close'); // 모달 닫기
     } else {
-        alert('모든 필드를 입력해주세요.');
+        alert('이름과 가격을 입력해주세요.');
     }
 };
 const getStoreInventoryList = async () => {
@@ -159,7 +180,7 @@ onMounted(() => {
 
                 <div class="input_group">
                     <label>가격</label>
-                    <p class="sub_title">메뉴에 가격을 입력해주세요.</p>
+                    <p class="sub_title">메뉴의 가격을 입력해주세요.</p>
                     <input type="number" v-model="price" min="1" placeholder="(ex) 50000" />
                 </div>
             </div>

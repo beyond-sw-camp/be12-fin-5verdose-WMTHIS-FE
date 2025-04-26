@@ -1,6 +1,5 @@
 <script setup>
 import { defineProps, defineEmits, ref, watch, onMounted } from "vue";
-import { useInventoryStore } from "@/stores/useInventoryStore"; // Pinia store
 import { api } from "@/api/MenuApi.js";
 // props & emits
 const props = defineProps({
@@ -12,29 +11,18 @@ const props = defineProps({
 });
 const emit = defineEmits(["close", "registerInventory", "totalInventory"]);
 
-// Pinia store
-const inventoryStore = useInventoryStore();
-const closeModal = () => {
-  console.log("모달 닫기 호출됨");
-  emit("close");
-};
 
 // 입력 필드 상태
-const name = ref("");
-const unit = ref("");
 const quantity = ref(0); // 재고 수량
-const miniquantity = ref(0);
-const unitCategory = ref("Kg");
 const ingredients = ref([]); // 재료 목록을 저장할 변수
 const ingredient = ref(""); // 선택된 재료 (ingredient 변수 정의)
-const unitPrice = ref(0); // 단가
+const price = ref(0); // 단가
 // 유통기한 관련
 const selectedDays = ref("1"); // 기본값: 1일
 const isCustomInput = ref(false);
 const customDays = ref("");
 const isExpirationDifferent = ref(false);
 const expiryDate = ref(""); // 유통기한
-const purchaseDate = new Date().toISOString(); // ISO 형식으로 입고 날짜 설정
 
 // 유통기한 선택 옵션
 const days = [
@@ -64,119 +52,46 @@ const disableCustomInput = () => {
   }
 };
 
-// 유통기한 계산 함수
-const calculateExpiryDate = () => {
-  const today = new Date();
-  let daysToAdd = 0;
-
-  // 1. ingredient.expiryDate 기준으로 더함 (체크박스 선택 안 됨)
-  if (ingredient.value?.expiryDate && !isExpirationDifferent.value) {
-    let ingredientExpiryDate = ingredient.value.expiryDate; // ingredient.expiryDate가 int 형식
-
-    // ingredientExpiryDate가 숫자 형식이라면, 이를 날짜 형식으로 변환
-    if (typeof ingredientExpiryDate === "number") {
-      const expiryYear = Math.floor(ingredientExpiryDate / 10000); // 연도 추출
-      const expiryMonth = Math.floor((ingredientExpiryDate % 10000) / 100); // 월 추출
-      const expiryDay = ingredientExpiryDate % 100; // 일 추출
-
-      // 유효한 날짜인지 체크
-      if (expiryYear && expiryMonth && expiryDay) {
-        const parsedDate = new Date(expiryYear, expiryMonth - 1, expiryDay); // 월은 0부터 시작하므로 1을 빼줍니다.
-        daysToAdd = Math.ceil((parsedDate - today) / (1000 * 3600 * 24)); // 날짜 차이 계산 (일수)
-      } else {
-        console.error("유효하지 않은 유통기한:", ingredientExpiryDate);
-        return today.toISOString().split("T")[0]; // 유효하지 않은 경우 오늘 날짜로 반환
-      }
-    } else {
-      console.error("유효하지 않은 유통기한:", ingredientExpiryDate);
-    }
-  }
-  // 2. 유통기한이 다름을 체크했고, 선택된 일수가 있음
-  else if (isExpirationDifferent.value && selectedDays.value) {
-    if (selectedDays.value === "custom") {
-      daysToAdd = parseInt(customDays.value || "0");
-    } else {
-      daysToAdd = parseInt(selectedDays.value);
-    }
-  }
-  // 3. 그 외 fallback (예: 등록 과정 등)
-  else if (selectedDays.value === "custom") {
-    daysToAdd = parseInt(customDays.value || "0");
-  } else if (selectedDays.value) {
-    daysToAdd = parseInt(selectedDays.value);
-  }
-
-  // 최종 계산된 날짜
-  today.setDate(today.getDate() + daysToAdd);
-  const result = today.toISOString().split("T")[0]; // "yyyy-MM-dd" 형식으로 리턴
-
-  console.log("계산된 유통기한:", result);
-  return result;
+const init = () => {
+  isModalOpen.value = false;
+  selectedItem.value = null;
+  quantity.value = 0;
+  price.value = 0;
+  selectedDays.value = "1";
+  customDays.value = "";
+  isCustomInput.value = false;
+  isExpirationDifferent.value = false;
 };
-
 // 등록 처리
 const totalInventory = async () => {
   if (!ingredient.value || !ingredient.value.id) {
     console.error("재료가 선택되지 않았습니다.");
     return;
   }
-
-  const expiry = calculateExpiryDate(); // 유통기한 계산
-
-  const unit = ingredient.value.unit;
-  let unitLabel = "";
-  let unitCost = 0;
-
-  if (unit === "kg" || unit === "L") {
-    unitLabel = `1${unit}당`;
-    unitCost = unitPrice.value / quantity.value;
-  } else if (unit === "g" || unit === "ml") {
-    unitLabel = `100${unit}당`;
-    unitCost = (unitPrice.value / quantity.value) * 100;
-  }
-
-  const storeInventoryData = {
+  const data = {
     storeInventoryId: ingredient.value.id,
     quantity: quantity.value,
-    expiryDate: expiry,
-    unitPrice: parseFloat(unitCost.toFixed(2)),
-    purchaseDate: purchaseDate,
-  };
-
-  console.log("등록할 재고 데이터:", storeInventoryData);
-
-  try {
-    const newItem = await api.totalStoreInventory(storeInventoryData);
-
-    if (newItem) {
-      console.log("입고 완료:", newItem);
-
-      emit("totalInventory", {
-        storeInventoryId: ingredient.value.id,
-        name: ingredient.value.name,
-        quantity: quantity.value,
-        expiryDate: expiry,
-        purchaseDate,
-        unitPrice: parseFloat(unitCost.toFixed(2)),
-      });
-
-      closeModal();
-    } else {
-      console.error("입고 실패");
-    }
-  } catch (error) {
-    console.error("입고 중 오류 발생:", error);
+    price: price.value,
   }
+
+
+  console.log("등록할 재고 데이터:", data);
+
+  const response = await api.registerInventory(data);
+  console.log("등록 응답:", response);
+  init();
+  emit("close");
 };
 
 const fetchIngredients = async () => {
   try {
-    await inventoryStore.getInventoryList();
-    ingredients.value = inventoryStore.inventoryList.map((item) => ({
+    const response = await api.getStoreInventoryList();
+    console.log("재료 목록 응답:", response);
+    ingredients.value = response.map((item) => ({
       id: item.id,
       name: item.name,
       unit: item.unit,
-      quantity: item.quantity,
+      quantity: item.miniquantity,
       expiryDate: item.expiryDate,
     }));
     console.log("Fetched ingredients:", ingredients.value);
@@ -224,12 +139,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    v-if="isOpen"
-    class="store_modal_container"
-    @click.self="emit('close')"
-    style="z-index: 2000"
-  >
+  <div v-if="isOpen" class="store_modal_container" @click.self="emit('close')" style="z-index: 2000">
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
@@ -245,11 +155,7 @@ onMounted(() => {
           </div>
           <p class="sub_title">입고할 재고명을 선택해주세요.</p>
           <div class="unit-container">
-            <select
-              v-model="ingredient"
-              class="unit-select"
-              style="width: 200px"
-            >
+            <select v-model="ingredient" class="unit-select" style="width: 200px">
               <option value="" disabled>재고 선택</option>
               <option v-for="item in ingredients" :key="item.id" :value="item">
                 {{ item.name }}
@@ -265,12 +171,7 @@ onMounted(() => {
               <p class="title_warn">(필수)</p>
             </div>
             <div class="unit_container">
-              <input
-                type="text"
-                v-model="quantity"
-                placeholder="5"
-                class="min_qty_input"
-              />
+              <input type="text" v-model="quantity" placeholder="5" class="min_qty_input" />
               <div class="inventory_info">
                 <p>
                   {{ ingredient.unit }}
@@ -286,17 +187,15 @@ onMounted(() => {
             <p class="title_warn">(필수)</p>
           </div>
           <p class="sub_title">상품의 입고시 가격을 입력해 주세요.</p>
-          <input type="text" v-model="unitPrice" placeholder="32000원" />
+          <input type="text" v-model="price" placeholder="32000원" />
         </div>
+
+        <!--
         <div class="input_group">
           <div class="modal_title2 flex_between">
             <label>유통기한</label>
             <div class="checkbox_group">
-              <input
-                type="checkbox"
-                class="checkbox"
-                v-model="isExpirationDifferent"
-              />
+              <input type="checkbox" class="checkbox" v-model="isExpirationDifferent" />
               <p class="sub_title">유통기한이 달라요</p>
             </div>
           </div>
@@ -306,45 +205,27 @@ onMounted(() => {
           </p>
 
           <div class="button_group">
-            <v-btn
-              v-for="day in days"
-              :key="day.value"
-              :class="[
-                { selected_btn: selectedDays === day.value },
-                { no_opacity_disabled: !isExpirationDifferent },
-              ]"
-              @click="selectDay(day.value)"
-              variant="outlined"
-              :disabled="!isExpirationDifferent"
-            >
+            <v-btn v-for="day in days" :key="day.value" :class="[
+              { selected_btn: selectedDays === day.value },
+              { no_opacity_disabled: !isExpirationDifferent },
+            ]" @click="selectDay(day.value)" variant="outlined" :disabled="!isExpirationDifferent">
               {{ day.label }}
             </v-btn>
 
-            <!-- 직접입력 버튼 -->
-            <v-btn
-              v-if="!isCustomInput"
-              :class="{ selected_btn: selectedDays === 'custom' }"
-              @click="enableCustomInput"
-              variant="outlined"
-              :disabled="!isExpirationDifferent"
-            >
+            <v-btn v-if="!isCustomInput" :class="{ selected_btn: selectedDays === 'custom' }" @click="enableCustomInput"
+              variant="outlined" :disabled="!isExpirationDifferent">
               직접입력
             </v-btn>
 
-            <v-text-field
-              v-else
-              v-model="customDays"
-              class="custom_input"
-              variant="outlined"
-              density="compact"
-              hide-details
-              @blur="disableCustomInput"
-              :disabled="!isExpirationDifferent"
-            ></v-text-field>
+            <v-text-field v-else v-model="customDays" class="custom_input" variant="outlined" density="compact"
+              hide-details @blur="disableCustomInput" :disabled="!isExpirationDifferent"></v-text-field>
 
             <span class="fixed_text">일 까지</span>
-          </div>
-        </div>
+            
+      </div>
+      
+    </div>
+      -->
       </div>
       <div class="modal_footer">
         <button class="confirm_btn" @click="totalInventory">확인</button>
@@ -603,6 +484,7 @@ onMounted(() => {
   border-radius: 18px;
   font-size: 14px;
 }
+
 .inventory_info {
   display: flex;
   flex-direction: column;
@@ -679,9 +561,7 @@ onMounted(() => {
   /* 드롭다운 크기 */
   appearance: none;
   /* 기본 스타일 제거 */
-  background: white
-    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
-    no-repeat right 10px center;
+  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
   background-size: 16px;
 }
 

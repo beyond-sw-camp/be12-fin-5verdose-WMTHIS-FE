@@ -16,16 +16,19 @@ const totalPages = ref(1); // 총 페이지 수
 const pageSize = 10; // 페이지당 항목 수
 const selectedItem = ref(null);
 const modalType = ref("register");
+const searchKeyword = ref("");
 
 const inventory_items = ref([]);
 
-const fecthStoreInventoryList = async () => {
-  const res = await api.getStoreInventoryList();
+const fecthStoreInventoryList = async (page = 0) => {
+  const res = await api.getStoreInventoryPageList(page, pageSize, searchKeyword.value);
   console.log("InventoryItems 응답:", res);
 
   // 구조 맞게 수정
   if (res && res.code === 200 && res.data) {
-    inventory_items.value = res.data.map((item) => ({
+    currentPage.value = res.data.page.number;
+    totalPages.value = res.data.page.totalPages;
+    inventory_items.value = res.data.content.map((item) => ({
       ...item,
       selected: false,
     }));
@@ -34,19 +37,6 @@ const fecthStoreInventoryList = async () => {
   }
 };
 
-const addNewInventoryItem = (item) => {
-  if (!item) return;
-
-  const newItem = {
-    name: item.name,
-    unit: item.unit,
-    miniquantity: item.miniquantity,
-    Expirationdate: `입고일로부터 ${item.expiryDate}일`,
-    selected: false,
-  };
-
-  inventory_items.value.push(newItem);
-};
 
 // 모달 열기/닫기
 const openModal = () => {
@@ -57,7 +47,7 @@ const goToPage = (page) => {
   console.log(currentPage.value, totalPages.value);
   console.log("페이지 이동:", page);
   if (page >= 0 && page < totalPages.value) {
-    fetchMenus(page);
+    fecthStoreInventoryList(page);
   }
 };
 
@@ -71,9 +61,6 @@ const closeModal = () => {
   isModalOpen.value = false;
 };
 
-const handleUpdateInventory = (updatedItem) => {
-  selectedItem.value = updatedItem;
-};
 
 // // 추가 (등록)
 // const addNewInventoryItem = async () => {
@@ -121,16 +108,26 @@ const closeDeleteAlert = () => {
   isDeleteAlertOpen.value = false;
 };
 
-const deleteSelectedItems = () => {
+const deleteSelectedItems = async () => {
   isDeleteConfirmOpen.value = false;
-  inventory_items.value = inventory_items.value.filter(
-    (item) => !item.selected
-  );
+  const selectedIds = inventory_items.value
+    .filter(item => item.selected)
+    .map((item) => item.id);
+  console.log("선택된 전체 아이템 리스트:", selectedIds);
+  const response = await api.deleteStoreInventorys(selectedIds);
+  const message = response.message || "다시 삭제해주세요.";
+  if (response.code === 200) {
+    alert("삭제되었습니다.");
+  } else {
+    alert(message);
+
+  }
+  fecthStoreInventoryList(0); // 서버에서 다시 받아오기
 };
 
 
 onMounted(() => {
-  fecthStoreInventoryList();
+  fecthStoreInventoryList(0);
 });
 </script>
 
@@ -141,8 +138,9 @@ onMounted(() => {
     <!-- 검색 바 및 등록/삭제 버튼 -->
     <div class="search_container">
       <div class="search_box">
-        <input type="text" class="search_input" placeholder="재고명 검색" />
-        <button class="search_btn">
+        <input type="text" class="search_input" v-model="searchKeyword" placeholder="재고명 검색"
+          @input="fecthStoreInventoryList(0)" />
+        <button class="search_btn" @Click="fecthStoreInventoryList(0)">
           <img src="@/assets/image/search_button.png" class="search_icon" />
         </button>
       </div>
@@ -157,12 +155,7 @@ onMounted(() => {
       <thead>
         <tr>
           <th>
-            <input
-              type="checkbox"
-              v-model="select_all"
-              @change="toggle_select_all"
-              class="circle_checkbox"
-            />
+            <input type="checkbox" v-model="select_all" @change="toggle_select_all" class="circle_checkbox" />
           </th>
           <th>재고명</th>
           <th>단위</th>
@@ -172,22 +165,14 @@ onMounted(() => {
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="(item, index) in inventory_items"
-          :key="index"
-          :class="{ selected_row: item.selected }"
-        >
+        <tr v-for="(item, index) in inventory_items" :key="index" :class="{ selected_row: item.selected }">
           <td>
-            <input
-              type="checkbox"
-              v-model="item.selected"
-              class="circle_checkbox"
-            />
+            <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
           </td>
           <td class="bold_text">{{ item.name }}</td>
-          <td>{{ item.unit }}</td>
+          <td>{{ item.unit === 'unit' ? '개' : item.unit }}</td>
           <td>{{ item.miniquantity }}</td>
-          <td>{{ item.Expirationdate }}</td>
+          <td>{{ item.expiryDate }}일</td>
           <td>
             <button class="detail_btn" @click="openDetailModal(item)">
               상세
@@ -207,45 +192,24 @@ onMounted(() => {
         ◀ 이전
       </button>
 
-      <span
-        v-for="page in totalPages"
-        :key="page"
-        @click="goToPage(page - 1)"
-        :class="{ 'page-number': true, active: currentPage === page - 1 }"
-      >
+      <span v-for="page in totalPages" :key="page" @click="goToPage(page - 1)"
+        :class="{ 'page-number': true, active: currentPage === page - 1 }">
         {{ page }}
       </span>
 
-      <button
-        :disabled="currentPage === totalPages - 1"
-        @click="goToPage(currentPage + 1)"
-      >
+      <button :disabled="currentPage === totalPages - 1" @click="goToPage(currentPage + 1)">
         다음 ▶
       </button>
     </div>
 
     <!-- 모달 컴포넌트들 -->
-    <InventoryRegisterModal
-      v-if="modalType === 'register'"
-      :item="selectedItem"
-      :isOpen="isModalOpen"
-      @close="closeModal"
-      @registerInventory="addNewInventoryItem"
-    />
+    <InventoryRegisterModal v-if="modalType === 'register'" :item="selectedItem" :isOpen="isModalOpen"
+      @close="closeModal" @refresh="fecthStoreInventoryList(0)" />
 
-    <InventoryModifyModal
-      v-if="modalType === 'modify'"
-      :isOpen="isModalOpen"
-      :item="selectedItem"
-      @close="closeModal"
-      @updateInventory="handleUpdateInventory"
-    />
+    <InventoryModifyModal v-if="modalType === 'modify'" :isOpen="isModalOpen" :item="selectedItem" @close="closeModal"
+      @refresh="fecthStoreInventoryList(0)" />
 
-    <DeleteConfirmModal
-      :isOpen="isDeleteConfirmOpen"
-      @confirm="deleteSelectedItems"
-      @cancel="closeDeleteConfirm"
-    />
+    <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
     <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
   </div>
 </template>
@@ -429,6 +393,7 @@ onMounted(() => {
   background: #708090;
   border-radius: 50%;
 }
+
 .pagination_container {
   display: flex;
   justify-content: center;
