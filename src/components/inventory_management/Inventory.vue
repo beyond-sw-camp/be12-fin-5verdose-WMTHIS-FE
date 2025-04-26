@@ -19,8 +19,8 @@ const modalType = ref("register");
 
 const inventory_items = ref([]);
 
-const InventoryItems = async () => {
-  const res = await api.getInvenList();
+const fecthStoreInventoryList = async () => {
+  const res = await api.getStoreInventoryList();
   console.log("InventoryItems 응답:", res);
 
   // 구조 맞게 수정
@@ -47,9 +47,6 @@ const addNewInventoryItem = (item) => {
 
   inventory_items.value.push(newItem);
 };
-onMounted(() => {
-  InventoryItems();
-});
 
 // 모달 열기/닫기
 const openModal = () => {
@@ -130,16 +127,21 @@ const deleteSelectedItems = () => {
     (item) => !item.selected
   );
 };
+
+
+onMounted(() => {
+  fecthStoreInventoryList();
+});
 </script>
 
 <template>
   <div class="inventory_container">
-    <h1 class="page_title">재고 관리</h1>
+    <h1 class="page_title">재고 항목 등록</h1>
 
     <!-- 검색 바 및 등록/삭제 버튼 -->
     <div class="search_container">
       <div class="search_box">
-        <input type="text" class="search_input" placeholder="재료명 검색" />
+        <input type="text" class="search_input" placeholder="재고명 검색" />
         <button class="search_btn">
           <img src="@/assets/image/search_button.png" class="search_icon" />
         </button>
@@ -163,9 +165,9 @@ const deleteSelectedItems = () => {
             />
           </th>
           <th>재고명</th>
-          <th>용량/단위</th>
+          <th>단위</th>
           <th>최소수량</th>
-          <th>소비기한</th>
+          <th>입고 후 유통기한</th>
           <th></th>
         </tr>
       </thead>
@@ -234,7 +236,7 @@ const deleteSelectedItems = () => {
     <InventoryModifyModal
       v-if="modalType === 'modify'"
       :isOpen="isModalOpen"
-      :item="selectedItem.value"
+      :item="selectedItem"
       @close="closeModal"
       @updateInventory="handleUpdateInventory"
     />

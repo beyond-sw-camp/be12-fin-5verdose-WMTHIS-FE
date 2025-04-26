@@ -235,7 +235,7 @@ onMounted(() => {
         <div class="modal_header">
           <button class="close_btn" @click="emit('close')">✕</button>
 
-          <h2 class="modal_title">재고 입고</h2>
+          <h2 class="modal_title">재고 입고 등록</h2>
         </div>
         <!-- 재고명 영역 -->
         <div class="input_group" style="flex: 1">
@@ -243,7 +243,7 @@ onMounted(() => {
             <label>재고명</label>
             <p class="title_warn">(필수)</p>
           </div>
-          <p class="sub_title">판매할 재고명을 선택해주세요.</p>
+          <p class="sub_title">입고할 재고명을 선택해주세요.</p>
           <div class="unit-container">
             <select
               v-model="ingredient"
@@ -261,7 +261,7 @@ onMounted(() => {
         <div class="input_group">
           <div class="input_row">
             <div class="input_label_group">
-              <label>용량/단위</label>
+              <label>수량</label>
               <p class="title_warn">(필수)</p>
             </div>
             <div class="unit_container">
@@ -282,10 +282,10 @@ onMounted(() => {
         </div>
         <div class="input_group">
           <div class="modal_title2">
-            <label>재고 단가</label>
+            <label>입고 가격</label>
             <p class="title_warn">(필수)</p>
           </div>
-          <p class="sub_title">상품의 정확한 가격을 입력해 주세요.</p>
+          <p class="sub_title">상품의 입고시 가격을 입력해 주세요.</p>
           <input type="text" v-model="unitPrice" placeholder="32000원" />
         </div>
         <div class="input_group">
@@ -302,7 +302,7 @@ onMounted(() => {
           </div>
 
           <p class="sub_title">
-            재고의 유통기한이 등록된 정보와 다르면 입력해주세요.
+            재고의 입고 후 유통기한이 등록된 정보와 다르면 입력해주세요.
           </p>
 
           <div class="button_group">

@@ -328,7 +328,7 @@ export const api = {
       .get("/inventory/storeInventory/getList")
       .then((res) => {
         if (res.data.code !== 200) return false;
-        return res.data.data;
+        return res.data;
       })
       .catch((error) => {
         console.error("Error in getStoreInventoryList: ", error);
