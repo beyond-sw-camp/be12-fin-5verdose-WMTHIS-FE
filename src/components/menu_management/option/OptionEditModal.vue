@@ -55,6 +55,18 @@ watch(
 const ingredientOptions = ref([]);
 
 const addIngredient = () => {
+    if (!ingredientName.value || !ingredientAmount.value) {
+        alert('재료와 수량을 모두 입력해주세요.');
+        return;
+    }
+    const alreadyExists = ingredients.value.some(
+        (ingredient) => ingredient.id === ingredientName.value.id
+    );
+
+    if (alreadyExists) {
+        alert('이미 추가된 재료입니다.');
+        return;
+    }
     if (ingredientName.value && ingredientAmount.value) {
         ingredients.value.push({
             id: ingredientName.value.id,
@@ -84,7 +96,10 @@ const removeIngredient = (index) => {
     ingredients.value.splice(index, 1);
 };
 const updateOption = async () => {
-
+    if (!optionName.value || !price.value) {
+        alert('옵션명, 가격을 모두 입력해주세요.');
+        return;
+    }
     const requestData = {
         optionId: props.optionId,
         name: optionName.value,

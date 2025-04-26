@@ -83,7 +83,6 @@ const sendVerificationCode = async () => {
         if (response) {
             alert('인증번호가 발송되었습니다.');
             isVerificationSent.value = true;
-
             // 타이머 시작
             verificationTimer.value = 180;
             if (timerInterval.value) clearInterval(timerInterval.value);
@@ -96,6 +95,9 @@ const sendVerificationCode = async () => {
                     isVerificationSent.value = false; // 타이머가 끝나면 재발송 가능
                 }
             }, 1000);
+
+            verificationCode.value = response.data; // 인증번호 초기화
+            console.log('인증번호:', verificationCode.value); // 인증번호 확인을 위한 로그
         } else {
             alert('인증번호 발송에 실패했습니다. 다시 시도해주세요.');
         }
@@ -124,7 +126,7 @@ const verifyCode = async () => {
         if (response) {
             isVerified.value = true;
             clearInterval(timerInterval.value);
-            alert('인증이 완료되었습니다. 이제 정보를 수정할 수 있습니다.');
+            alert('인증이 완료되었습니다. 비밀번호를 수정할 수 있습니다.');
         } else {
             alert('인증번호가 유효하지 않습니다. 다시 시도해주세요.');
         }
@@ -144,7 +146,7 @@ const formattedTimer = computed(() => {
 // 폼 제출 처리
 const handleSubmit = async () => {
     if (!isVerified.value) {
-        alert('개인정보 수정을 위해 핸드폰 인증이 필요합니다.');
+        alert('비밀번호 수정을 위해 핸드폰 인증이 필요합니다.');
         return;
     }
 
@@ -243,22 +245,10 @@ onMounted(() => {
 
         <div class="verification-notice" v-if="!isVerified">
             <div class="notice-icon">!</div>
-            <p>개인정보 수정을 위해 핸드폰 인증이 필요합니다.</p>
+            <p>비밀번호 수정을 위해 핸드폰 인증이 필요합니다.</p>
         </div>
 
         <form @submit.prevent="handleSubmit" class="profile-form">
-            <!-- 프로필 이미지 섹션 -->
-            <div class="profile-image-section">
-                <div class="profile-image-container" @click="triggerImageUpload">
-                    <img v-if="previewImage" :src="previewImage" alt="프로필 이미지" class="profile-image" />
-                    <img v-else src="@/assets/image/icon.png" alt="기본 프로필" class="profile-image" />
-                    <div class="image-overlay">
-                        <span>이미지 변경</span>
-                    </div>
-                </div>
-                <input type="file" ref="profileImageRef" @change="handleImageUpload" accept="image/*"
-                    style="display: none" />
-            </div>
 
             <!-- 회원정보 입력 폼 -->
             <div class="form-container">
