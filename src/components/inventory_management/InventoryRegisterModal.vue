@@ -12,7 +12,6 @@ const emit = defineEmits(["close", "registerInventory"]);
 const name = ref("");
 const unit = ref("");
 const miniquantity = ref(0);
-const quantity = ref(0);
 
 // 유통기한 관련 상태
 const selectedDays = ref("1");
@@ -86,14 +85,14 @@ const registerInventory = async () => {
         <div class="modal_header">
           <button class="close_btn" @click="emit('close')">✕</button>
 
-          <h2 class="modal_title">재고 등록</h2>
+          <h2 class="modal_title">재고 항목 등록</h2>
         </div>
         <div class="input_group">
           <div class="modal_title2">
             <label>재고명</label>
             <p class="title_warn">(필수)</p>
           </div>
-          <p class="sub_title">상품의 정확한 이름을 입력해 주세요.</p>
+          <p class="sub_title">재고의 정확한 이름을 입력해 주세요.</p>
           <input type="text" v-model="name" placeholder="마늘" />
         </div>
 
@@ -113,7 +112,7 @@ const registerInventory = async () => {
               </select>
             </div>
           </div>
-          <p class="sub_title">현재 재고의 보유량을 입력해주세요.</p>
+          <p class="sub_title">재고를 관리하는 단위를 입력해주세요.</p>
         </div>
 
         <div class="input_group">
@@ -127,12 +126,12 @@ const registerInventory = async () => {
             />
           </div>
           <p class="sub_title">
-            최소 보유하고 있어야하는 재고의 수를 입력해 주세요.
+            최소 보유하고 있어야하는 재고의 수량을 입력해 주세요.
           </p>
         </div>
         <div class="input_group">
           <div class="modal_title2">
-            <label>유통기한</label>
+            <label>입고 후 유통기한</label>
           </div>
           <div class="button_group">
             <v-btn
