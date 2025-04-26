@@ -327,6 +327,7 @@ export const api = {
     return instance
       .get("/inventory/storeInventory/getList")
       .then((res) => {
+        console.log("getStoreInventoryList res", res);
         if (res.data.code !== 200) return false;
         return res.data;
       })

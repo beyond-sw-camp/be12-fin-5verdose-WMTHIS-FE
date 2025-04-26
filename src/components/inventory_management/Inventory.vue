@@ -25,7 +25,7 @@ const fecthStoreInventoryList = async () => {
 
   // 구조 맞게 수정
   if (res && res.code === 200 && res.data) {
-    inventory_items.value = res.data.map((item) => ({
+    inventory_items.value = res.data.content.map((item) => ({
       ...item,
       selected: false,
     }));
@@ -157,12 +157,7 @@ onMounted(() => {
       <thead>
         <tr>
           <th>
-            <input
-              type="checkbox"
-              v-model="select_all"
-              @change="toggle_select_all"
-              class="circle_checkbox"
-            />
+            <input type="checkbox" v-model="select_all" @change="toggle_select_all" class="circle_checkbox" />
           </th>
           <th>재고명</th>
           <th>단위</th>
@@ -172,22 +167,14 @@ onMounted(() => {
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="(item, index) in inventory_items"
-          :key="index"
-          :class="{ selected_row: item.selected }"
-        >
+        <tr v-for="(item, index) in inventory_items" :key="index" :class="{ selected_row: item.selected }">
           <td>
-            <input
-              type="checkbox"
-              v-model="item.selected"
-              class="circle_checkbox"
-            />
+            <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
           </td>
           <td class="bold_text">{{ item.name }}</td>
           <td>{{ item.unit }}</td>
           <td>{{ item.miniquantity }}</td>
-          <td>{{ item.Expirationdate }}</td>
+          <td>{{ item.expiryDate }}일</td>
           <td>
             <button class="detail_btn" @click="openDetailModal(item)">
               상세
@@ -207,45 +194,24 @@ onMounted(() => {
         ◀ 이전
       </button>
 
-      <span
-        v-for="page in totalPages"
-        :key="page"
-        @click="goToPage(page - 1)"
-        :class="{ 'page-number': true, active: currentPage === page - 1 }"
-      >
+      <span v-for="page in totalPages" :key="page" @click="goToPage(page - 1)"
+        :class="{ 'page-number': true, active: currentPage === page - 1 }">
         {{ page }}
       </span>
 
-      <button
-        :disabled="currentPage === totalPages - 1"
-        @click="goToPage(currentPage + 1)"
-      >
+      <button :disabled="currentPage === totalPages - 1" @click="goToPage(currentPage + 1)">
         다음 ▶
       </button>
     </div>
 
     <!-- 모달 컴포넌트들 -->
-    <InventoryRegisterModal
-      v-if="modalType === 'register'"
-      :item="selectedItem"
-      :isOpen="isModalOpen"
-      @close="closeModal"
-      @registerInventory="addNewInventoryItem"
-    />
+    <InventoryRegisterModal v-if="modalType === 'register'" :item="selectedItem" :isOpen="isModalOpen"
+      @close="closeModal" @registerInventory="addNewInventoryItem" />
 
-    <InventoryModifyModal
-      v-if="modalType === 'modify'"
-      :isOpen="isModalOpen"
-      :item="selectedItem"
-      @close="closeModal"
-      @updateInventory="handleUpdateInventory"
-    />
+    <InventoryModifyModal v-if="modalType === 'modify'" :isOpen="isModalOpen" :item="selectedItem" @close="closeModal"
+      @updateInventory="handleUpdateInventory" />
 
-    <DeleteConfirmModal
-      :isOpen="isDeleteConfirmOpen"
-      @confirm="deleteSelectedItems"
-      @cancel="closeDeleteConfirm"
-    />
+    <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
     <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
   </div>
 </template>
@@ -429,6 +395,7 @@ onMounted(() => {
   background: #708090;
   border-radius: 50%;
 }
+
 .pagination_container {
   display: flex;
   justify-content: center;
