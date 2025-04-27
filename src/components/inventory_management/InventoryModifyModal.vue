@@ -13,7 +13,7 @@ const emit = defineEmits(["close", "updateInventory"]);
 // 입력 필드 상태
 const name = ref("");
 const unit = ref("");
-const miniquantity = ref(0); // 최소 수량 정의
+const minQuantity = ref(0); // 최소 수량 정의
 const unitCategory = ref("Kg"); // 단위 접미사 선택
 
 // 유통기한 관련
@@ -56,7 +56,7 @@ const loadData = () => {
     name.value = props.item.name || "";
     unit.value = props.item.unit?.split(" ")[0] || "";
     unitCategory.value = props.item.unit || "Kg";
-    miniquantity.value = props.item.miniquantity || 0;
+    minQuantity.value = props.item.minQuantity || 0;
 
     const days = props.item.expiryDate;
     console.log("유통기한:", days);
@@ -100,7 +100,7 @@ const updateInventory = async () => {
     alert("단위를 선택해 주세요.");
     return;
   }
-  if (miniquantity.value === null || miniquantity.value === "" || isNaN(miniquantity.value)) {
+  if (minQuantity.value === null || minQuantity.value === "" || isNaN(minQuantity.value)) {
     alert("최소수량을 숫자로 입력해 주세요.");
     return;
   }
@@ -122,7 +122,7 @@ const updateInventory = async () => {
     storeInventoryId: props.item.id,
     name: name.value,
     unit: unitCategory.value,
-    miniquantity: miniquantity.value,
+    minQuantity: minQuantity.value,
     expiryDate:
       selectedDays.value === "custom" ? customDays.value : selectedDays.value,
   };
@@ -180,10 +180,10 @@ const updateInventory = async () => {
         <div class="input_group">
           <div class="modal_title2 between">
             <label>최소수량</label>
-            <input type="text" v-model="miniquantity" placeholder="5" class="min-qty-input" />
+            <input type="text" v-model="minQuantity" placeholder="5" class="min-qty-input" />
           </div>
           <p class="sub_title">
-            최소 보유하고 있어야하는 재고의 수를 입력해 주세요.
+            최소 보유하고 있어야하는 재고의 수를 입력해 주세요. <br> 소수점 2자리까지 저장됩니다.
           </p>
         </div>
         <div class="input_group">
