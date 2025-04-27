@@ -64,7 +64,6 @@ const removeIngredient = (index) => {
         <div class="input_group">
           <div class="modal_title2">
             <label>재고명</label>
-            <p class="title_warn">(필수)</p>
           </div>
           <p class="sub_title">상품의 정확한 이름을 입력해 주세요.</p>
           <input type="text" v-model="inventoryName" placeholder="마늘" />
@@ -73,8 +72,7 @@ const removeIngredient = (index) => {
         <div class="input_group">
           <div class="input-row">
             <div class="input-label-group">
-              <label>용량/단위</label>
-              <p class="title_warn">(필수)</p>
+              <label>용량</label>
             </div>
             <div class="unit-container">
               <input
@@ -83,15 +81,14 @@ const removeIngredient = (index) => {
                 placeholder="5"
                 class="min-qty-input"
               />
-              <select v-model="category" class="unit-select">
-                <option value="Kg">Kg</option>
-                <option value="g">g</option>
-                <option value="L">L</option>
-                <option value="ml">ml</option>
-              </select>
+              <div class="inventory_info">
+                <p>
+                  {{ ingredient.unit }}
+                </p>
+              </div>
             </div>
           </div>
-          <p class="sub_title">현재 재고의 보유량을 입력해주세요.</p>
+          <p class="sub_title">재고의 현재 수량을 입력해주세요.</p>
         </div>
 
         <div class="input_group">

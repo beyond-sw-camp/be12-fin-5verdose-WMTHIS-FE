@@ -116,8 +116,7 @@ export const api = {
         return res.data;
       })
       .catch((error) => {
-        console.error("Error in Login:", error);
-        return false;
+        return error.response.data;
       });
   },
 

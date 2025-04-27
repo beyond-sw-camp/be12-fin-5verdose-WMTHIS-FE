@@ -1,6 +1,6 @@
 <script setup>
 import { defineProps, defineEmits, ref, watch, onMounted } from "vue";
-import { useInventoryStore } from "@/stores/useInventoryStore";
+import { api } from "@/api/MenuApi.js"; // api import
 
 // props & emits
 const props = defineProps({
@@ -9,13 +9,11 @@ const props = defineProps({
 });
 const emit = defineEmits(["close", "updateInventory"]);
 
-// pinia store
-const inventoryStore = useInventoryStore();
 
 // 입력 필드 상태
 const name = ref("");
 const unit = ref("");
-const miniquantity = ref(0); // 최소 수량 정의
+const minQuantity = ref(0); // 최소 수량 정의
 const unitCategory = ref("Kg"); // 단위 접미사 선택
 
 // 유통기한 관련
@@ -53,17 +51,22 @@ const disableCustomInput = () => {
 
 // 수정 시 기존 데이터 불러오기
 const loadData = () => {
+  console.log("loadData 호출됨", props.item);
   if (props.item) {
     name.value = props.item.name || "";
     unit.value = props.item.unit?.split(" ")[0] || "";
-    unitCategory.value = props.item.unit?.split(" ")[1] || "Kg";
-    minquantity.value = props.item.miniquantity || 0;
+    unitCategory.value = props.item.unit || "Kg";
+    minQuantity.value = props.item.minQuantity || 0;
 
     const days = props.item.expiryDate;
-    const isPredefined = expiryDate.some((option) => option.value === days);
+    console.log("유통기한:", days);
+    const isPredefined = expiryDate.some((option) => {
+      console.log(option.value);
+      return option.value === String(days);
+    });
 
     if (isPredefined) {
-      selectedDays.value = days;
+      selectedDays.value = String(days);
       isCustomInput.value = false;
       customDays.value = "";
     } else {
@@ -71,6 +74,8 @@ const loadData = () => {
       isCustomInput.value = true;
       customDays.value = days;
     }
+
+    console.log("유통기한:", selectedDays.value, "isPredefined:", isPredefined);
   }
 };
 
@@ -86,60 +91,71 @@ watch(
 // 수정 처리
 
 const updateInventory = async () => {
-  const inventoryId = props.item?.id || props.item?.store_inventory_id;
-
-  if (!inventoryId) {
-    alert("유효하지 않은 재고 ID입니다.");
+  const parsedDays = parseInt(customDays.value, 10);
+  if (!name.value.trim()) {
+    alert("재고명을 입력해 주세요.");
     return;
+  }
+  if (!unit.value) {
+    alert("단위를 선택해 주세요.");
+    return;
+  }
+  if (minQuantity.value === null || minQuantity.value === "" || isNaN(minQuantity.value)) {
+    alert("최소수량을 숫자로 입력해 주세요.");
+    return;
+  }
+  if (isCustomInput.value && (!customDays.value || isNaN(customDays.value)) && customDays.value > 0) {
+    alert("직접 입력한 유통기한을 숫자로 입력해 주세요.");
+    return;
+  }
+  if (isCustomInput.value && !Number.isInteger(parsedDays)) {
+    alert("직접 입력한 유통기한은 정수로 입력해야 합니다.");
+    return false;
+  }
+
+  if (isCustomInput.value && parsedDays < 1 || parsedDays > 30) {
+    alert("직접 입력한 유통기한은 1일에서 30일 사이의 값이어야 합니다.");
+    return false;
   }
 
   const payload = {
-    inventoryId,
+    storeInventoryId: props.item.id,
     name: name.value,
-    unit: `${unit.value} ${unitCategory.value}`,
-    miniquantity: miniquantity.value,
+    unit: unitCategory.value,
+    minQuantity: minQuantity.value,
     expiryDate:
       selectedDays.value === "custom" ? customDays.value : selectedDays.value,
   };
 
-  try {
-    console.log("수정할 재고 데이터:", payload);
-    const result = await inventoryStore.updateInventory(payload);
+  console.log("수정할 재고 데이터:", payload);
+  const response = await api.updateStoreInventory(payload);
 
-    if (result) {
-      alert("재고가 성공적으로 수정되었습니다.");
-      emit("updateInventory", payload);
-      emit("close");
-    } else {
-      throw new Error("수정 실패");
-    }
-  } catch (err) {
-    console.error("재고 수정 실패:", err);
-    alert("재고 수정 중 오류가 발생했습니다.");
+  if (response.code === 200) {
+    alert("수정되었습니다.");
+    emit("refresh");
+  } else {
+    alert("수정에 실패했습니다. 다시 시도해 주세요.");
   }
+
+  emit("close");
 };
 </script>
 
 <template>
-  <div
-    v-if="isOpen"
-    class="modify_modal_container"
-    @click.self="emit('close')"
-    style="z-index: 2000"
-  >
+  <div v-if="isOpen" class="modify_modal_container" @click.self="emit('close')" style="z-index: 2000">
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
           <button class="close_btn" @click="emit('close')">✕</button>
 
-          <h2 class="modal_title">재고 수정</h2>
+          <h2 class="modal_title">재고 항목 수정</h2>
         </div>
         <div class="input_group">
           <div class="modal_title2">
             <label>재고명</label>
             <p class="title_warn">(필수)</p>
           </div>
-          <p class="sub_title">상품의 정확한 이름을 입력해 주세요.</p>
+          <p class="sub_title">재고의 정확한 이름을 입력해 주세요.</p>
           <input type="text" v-model="name" placeholder="마늘" />
         </div>
 
@@ -155,61 +171,42 @@ const updateInventory = async () => {
                 <option value="g">g</option>
                 <option value="L">L</option>
                 <option value="ml">ml</option>
+                <option value="unit">개</option>
               </select>
             </div>
           </div>
-          <p class="sub_title">현재 재고의 보유량을 입력해주세요.</p>
+          <p class="sub_title">재고를 관리하는 단위를 입력해주세요.</p>
         </div>
         <div class="input_group">
           <div class="modal_title2 between">
             <label>최소수량</label>
-            <input
-              type="text"
-              v-model="minimumquantity"
-              placeholder="5"
-              class="min-qty-input"
-            />
+            <input type="text" v-model="minQuantity" placeholder="5" class="min-qty-input" />
           </div>
           <p class="sub_title">
-            최소 보유하고 있어야하는 재고의 수를 입력해 주세요.
+            최소 보유하고 있어야하는 재고의 수를 입력해 주세요. <br> 소수점 2자리까지 저장됩니다.
           </p>
         </div>
         <div class="input_group">
           <div class="modal_title2">
-            <label>유통기한</label>
+            <label>입고 후 유통기한</label>
           </div>
           <div class="button_group">
-            <v-btn
-              v-for="day in expiryDate"
-              :key="day.value"
-              :class="{ 'selected-btn': selectedDays === day.value }"
-              @click="selectDay(day.value)"
-              variant="outlined"
-            >
+            <v-btn v-for="day in expiryDate" :key="day.value" :class="{ 'selected-btn': selectedDays === day.value }"
+              @click="selectDay(day.value)" variant="outlined">
               {{ day.label }}
             </v-btn>
 
             <!-- 직접입력 버튼 -->
-            <v-btn
-              v-if="!isCustomInput"
-              :class="{ 'selected-btn': selectedDays === 'custom' }"
-              @click="enableCustomInput"
-              variant="outlined"
-            >
+            <v-btn v-if="!isCustomInput" :class="{ 'selected-btn': selectedDays === 'custom' }"
+              @click="enableCustomInput" variant="outlined">
               직접입력
             </v-btn>
 
-            <v-text-field
-              v-else
-              v-model="customDays"
-              class="custom_input"
-              variant="outlined"
-              density="compact"
-              hide-details
-              @blur="disableCustomInput"
-            ></v-text-field>
-
-            <span class="fixed_text">일 까지</span>
+            <template v-if="isCustomInput">
+              <v-text-field v-model.number="customDays" class="custom_input" variant="outlined" density="compact"
+                hide-details @blur="disableCustomInput" type="number" min="1" max="30"></v-text-field>
+              <span class="fixed_text">일 까지</span>
+            </template>
           </div>
         </div>
       </div>
@@ -539,9 +536,7 @@ const updateInventory = async () => {
   /* 드롭다운 크기 */
   appearance: none;
   /* 기본 스타일 제거 */
-  background: white
-    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
-    no-repeat right 10px center;
+  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
   background-size: 16px;
 }
 
