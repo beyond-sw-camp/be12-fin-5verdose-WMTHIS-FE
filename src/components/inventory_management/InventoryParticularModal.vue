@@ -28,16 +28,12 @@ const closeModal = () => {
 };
 const selectedItem = ref(null);
 
-const openParticularModal = (item) => {
-  console.log("✅ 상세 보기 클릭됨:", item);
-  selectedItem.value = item;
-  modalType.value = "particular";
-  isModalOpen.value = true;
-};
-
 const openCorrectionModal = (item) => {
+
+  console.log("✅ 재고 보정 클릭됨:", item);
   correctionItem.value = item;
   isCorrectionModalOpen.value = false;
+  console.log("✅ 재고 보정 모달 열림:", correctionItem.value);
   modalType.value = "correction";
   isModalOpen.value = true;
 };
@@ -132,7 +128,6 @@ watch(
         <button class="confirm_btn" @click="emit('close')">확인</button>
       </div>
     </div>
-    <InventoryParticularModal v-if="modalType === 'particular'" :isOpen="isModalOpen" @close="closeModal" />
     <InventoryCorrectionModal v-if="modalType === 'correction'" :isOpen="isModalOpen" @close="closeModal" />
   </div>
 </template>
