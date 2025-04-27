@@ -13,6 +13,29 @@ const orderInfo = ref({
   tableId: null,
   deliveryService: "",
 });
+const checkStockAvailability = async (orderList) => {
+  try {
+    const formattedOrder = {
+      orderMenus: orderList.map(order => ({
+        menuId: order.id,
+        quantity: order.quantity,
+        optionIds: order.options ? order.options.map(option => option.id) : []
+      }))
+    };
+
+    const response = await api.checkStockAvailability(formattedOrder);
+
+    if (response.code !== 200) {
+      alert(response.message);
+      return null;
+    }
+
+    return response.data; // 정상일 때만 data 반환
+  } catch (error) {
+    console.error("재고 확인 오류:", error);
+    return null;
+  }
+};
 
 // 주문 완료 모달
 const showOrderCompleteModal = ref(false);
@@ -353,10 +376,27 @@ const goBack = () => {
 };
 
 // 주문 처리
-const processOrder = () => {
+const processOrder = async () => {
   if (orderList.value.length === 0) {
     alert("주문할 메뉴를 선택해주세요.");
     return;
+  }
+
+  // 재고 확인
+  const stockStatus = await checkStockAvailability(orderList.value);
+  if (stockStatus) {
+    // 재고가 부족한 아이템 확인
+    const outOfStockItems = orderList.value.filter((order) => {
+      const stock = stockStatus[order.id]; // 재고 상태 확인
+      return !stock || order.quantity > stock.quantity; // 재고 부족한 아이템 찾기
+    });
+
+    if (outOfStockItems.length > 0) {
+      // 재고 부족 아이템이 있을 경우 알림 띄우기
+      const itemNames = outOfStockItems.map(item => item.name).join(', ');
+      alert(`주문 불가능한 아이템: ${itemNames}. 재고가 부족합니다.`);
+      return;
+    }
   }
 
   // 주문 목록 저장
@@ -365,7 +405,6 @@ const processOrder = () => {
   // 주문 완료 모달 표시
   showOrderCompleteModal.value = true;
 };
-
 // 주문 완료 후 테이블 선택 화면으로 이동
 const completeOrder = () => {
   showOrderCompleteModal.value = false;
@@ -373,10 +412,27 @@ const completeOrder = () => {
 };
 
 // 결제 처리 - 결제 페이지로 이동
-const processPayment = () => {
+const processPayment = async () => {
   if (orderList.value.length === 0) {
     alert("결제할 메뉴가 없습니다.");
     return;
+  }
+
+  // 재고 확인
+  const stockStatus = await checkStockAvailability(orderList.value);
+  if (stockStatus) {
+    // 재고가 부족한 아이템 확인
+    const outOfStockItems = orderList.value.filter((order) => {
+      const stock = stockStatus[order.id]; // 재고 상태 확인
+      return !stock || order.quantity > stock.quantity; // 재고 부족한 아이템 찾기
+    });
+
+    if (outOfStockItems.length > 0) {
+      // 재고 부족 아이템이 있을 경우 알림 띄우기
+      const itemNames = outOfStockItems.map(item => item.name).join(', ');
+      alert(`결제 불가능한 아이템: ${itemNames}. 재고가 부족합니다.`);
+      return;
+    }
   }
 
   // 주문 목록 저장
@@ -470,7 +526,7 @@ const processPayment = () => {
       <div class="order_actions">
         <button class="order_btn" @click="processOrder">주문</button>
         <router-link :to="{ path: '/pay', query: { orders: JSON.stringify(orderList) } }">
-          <button class="cart_btn" :disabled="orderList.length === 0">
+          <button class="cart_btn" :disabled="orderList.length === 0" @click="processOrder">
             <span class="cart_icon">{{ total_quantity }}</span>
             {{ total_price.toLocaleString() }}원 결제
           </button>
