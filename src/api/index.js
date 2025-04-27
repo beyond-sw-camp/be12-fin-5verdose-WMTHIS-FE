@@ -167,10 +167,7 @@ export const api = {
     console.log("updateInventory storeInventoryData", storeInventoryData);
 
     try {
-      const res = instance.put(
-        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
-        storeInventoryData
-      );
+      const res = instance.put(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
       console.log("updateRes", res);
       console.log("code:", res.data.code);
 
@@ -187,10 +184,7 @@ export const api = {
 
   async SearchInventory(storeInventoryData) {
     try {
-      const res = await instance.get(
-        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
-        storeInventoryData
-      );
+      const res = await instance.get(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
       console.log("searchRes", res);
       console.log("code:", res.data.code);
 
@@ -296,9 +290,7 @@ export const api = {
       .then((res) => {
         if (res.data.code !== 200) {
           // 실패한 응답인 경우 에러로 던짐
-          throw new Error(
-            res.data.message || "결제 처리 중 오류가 발생했습니다."
-          );
+          throw new Error(res.data.message || "결제 처리 중 오류가 발생했습니다.");
         }
         return res.data; // 성공한 응답만 반환
       })
@@ -521,6 +513,21 @@ export const api = {
   async getOneTotalInventory() {
     try {
       const res = await instance.get(`/inventory/totalInventory`);
+
+      if (res.data.code === 200) {
+        return res.data.data; // 데이터를 반환
+      } else {
+        return 404; // 오류 처리
+      }
+    } catch (error) {
+      console.error("Error in searchMonthSales:", error);
+      return 404; // 오류 처리
+    }
+  },
+
+  async getStockChange() {
+    try {
+      const res = await instance.get(`/inventory/inventoryAmount`);
 
       if (res.data.code === 200) {
         return res.data.data; // 데이터를 반환
