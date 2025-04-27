@@ -297,7 +297,7 @@ export const api = {
 
   registerMenu(data) {
     return instance
-      .post("menu/register", data)
+      .post("/menu/register", data)
       .then((res) => {
         if (res.data.code !== 200) {
           return false;
@@ -364,6 +364,22 @@ export const api = {
       .catch((error) => {
         console.error("Error in getRecipes: ", error);
         return { menuItems: [] };
+      });
+  },
+
+  checkStockAvailability(data) {
+    return instance
+      .post("/inventory/validateOrder", data)
+      .then((res) => {
+        return res.data; // 그냥 res.data 통째로 반환 (code, message, data 모두)
+      })
+      .catch((error) => {
+        console.error("Error in checkStockAvailability:", error);
+        return {
+          code: 500,
+          message: "서버 오류가 발생했습니다.",
+          data: null,
+        };
       });
   },
 };
