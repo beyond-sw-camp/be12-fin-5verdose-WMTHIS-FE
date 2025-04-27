@@ -376,6 +376,7 @@ export const api = {
         return { menuItems: [] };
       });
   },
+
   checkStockAvailability(data) {
     return instance
       .post("/inventory/validateOrder", data)
@@ -389,6 +390,9 @@ export const api = {
           message: "서버 오류가 발생했습니다.",
           data: null,
         };
+      });
+  },
+
   deleteStoreInventorys(storeInventoryIdList) {
     return instance
       .delete("/inventory/storeInventory", {
