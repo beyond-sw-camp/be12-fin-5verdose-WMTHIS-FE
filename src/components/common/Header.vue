@@ -43,7 +43,7 @@
           </v-btn>
         </template>
         <v-list class="dropdown-list">
-          <v-list-item v-for="(item, index) in ['재고 관리', '재고 등록']" :key="index"
+          <v-list-item v-for="(item, index) in ['재고 정보', '재고 입고']" :key="index"
             @click="setActiveDropdown('재고 관리', item)" :class="{ 'active-dropdown': activeDropdowns['재고 관리'] === item }">
             <v-list-item-title>{{ item }}</v-list-item-title>
           </v-list-item>
@@ -164,8 +164,8 @@ const menuRoutes = {
     '옵션 관리': 'MenuOption'
   },
   '재고 관리': {
-    '재고 관리': 'InventoryMain',
-    '재고 등록': 'InventoryRegister'
+    '재고 정보': 'InventoryMain',
+    '재고 입고': 'InventoryRegister'
   },
   '가게 분석': {
     '매출 분석': 'SalesAnalysis',

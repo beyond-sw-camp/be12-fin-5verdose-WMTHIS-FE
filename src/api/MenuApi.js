@@ -402,4 +402,17 @@ export const api = {
         return error.response.data;
       });
   },
+  getInventory(inventoryId) {
+    return instance
+      .get(`/inventory/DetailInventory/${inventoryId}`)
+      .then((res) => {
+        console.log("getInventory res", res);
+
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in getInventory:", error);
+        return error.response.data;
+      });
+  },
 };

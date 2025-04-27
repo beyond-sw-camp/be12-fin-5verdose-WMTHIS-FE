@@ -53,8 +53,6 @@ const disableCustomInput = () => {
 };
 
 const init = () => {
-  isModalOpen.value = false;
-  selectedItem.value = null;
   quantity.value = 0;
   price.value = 0;
   selectedDays.value = "1";
@@ -79,6 +77,12 @@ const totalInventory = async () => {
 
   const response = await api.registerInventory(data);
   console.log("등록 응답:", response);
+  if (response.code && response.code === 200) {
+    alert("재고 등록이 완료되었습니다.");
+    emit("refresh");
+  } else {
+    alert("재고 등록에 실패했습니다. 다시 시도해주세요.");
+  }
   init();
   emit("close");
 };

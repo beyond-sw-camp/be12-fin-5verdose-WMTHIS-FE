@@ -133,7 +133,7 @@ onMounted(() => {
 
 <template>
   <div class="inventory_container">
-    <h1 class="page_title">재고 항목 등록</h1>
+    <h1 class="page_title">재고 정보 등록</h1>
 
     <!-- 검색 바 및 등록/삭제 버튼 -->
     <div class="search_container">
@@ -171,7 +171,7 @@ onMounted(() => {
           </td>
           <td class="bold_text">{{ item.name }}</td>
           <td>{{ item.unit === 'unit' ? '개' : item.unit }}</td>
-          <td>{{ item.miniquantity }}</td>
+          <td>{{ item.minQuantity }}</td>
           <td>{{ item.expiryDate }}일</td>
           <td>
             <button class="detail_btn" @click="openDetailModal(item)">
