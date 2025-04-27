@@ -18,7 +18,7 @@ const correctionItem = ref(null);
 const isParticularModalOpen = ref(false);
 const selectedDays = ref("1");
 const customDays = ref("");
-const isCustomInput = ref(false);
+const unit = ref("");
 const modalType = ref("");
 const isModalOpen = ref(false);
 const isLoading = ref(false); // 로딩 상태 추가
@@ -32,7 +32,7 @@ const openCorrectionModal = (item) => {
 
   console.log("✅ 재고 보정 클릭됨:", item);
   correctionItem.value = item;
-  isCorrectionModalOpen.value = false;
+  unit.value = props.item.unit;
   console.log("✅ 재고 보정 모달 열림:", correctionItem.value);
   modalType.value = "correction";
   isModalOpen.value = true;
@@ -128,7 +128,8 @@ watch(
         <button class="confirm_btn" @click="emit('close')">확인</button>
       </div>
     </div>
-    <InventoryCorrectionModal v-if="modalType === 'correction'" :isOpen="isModalOpen" @close="closeModal" />
+    <InventoryCorrectionModal v-if="isModalOpen" :item="correctionItem" :unit="unit" :isOpen="isModalOpen"
+      @close="closeModal" />
   </div>
 </template>
 

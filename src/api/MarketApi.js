@@ -29,11 +29,11 @@ export const marketApi = {
         console.log("registerRes", res);
         console.log("code:", res.data.code);
 
-        return res.data.code === 200; // 성공 시 true 반환;
+        return res.data;
       })
       .catch((error) => {
         console.error("Error in registerInventorySale:", error);
-        return false;
+        return error.response.data;
       });
   },
   getInventorySaleList() {
