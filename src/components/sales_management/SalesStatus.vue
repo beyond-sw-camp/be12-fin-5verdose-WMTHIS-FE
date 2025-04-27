@@ -8,6 +8,8 @@ const series = ref([]);
 const bestMenuList = ref([]);
 const salesData = ref(null);
 const bestMarketMenu = ref(null);
+const totalStockChanges = ref(0);
+const stockChangeItems = ref([]);
 
 const inventoryStatus = ref({
   expiringCount: 0,
@@ -135,13 +137,23 @@ const getBestMarket = async () => {
     console.log(response);
 
     if (response) {
-      const { name, amount, unit } = response;
-      bestMarketMenu.value = {
-        name,
-        amount,
-        unit,
-      };
-      // 여기
+      // 응답 구조가 { code, message, data: { name, amount, unit } } 형태인 경우 처리
+      if (response.code === 200 && response.data) {
+        const { name, amount, unit } = response.data;
+        bestMarketMenu.value = {
+          name,
+          amount,
+          unit,
+        };
+      } else {
+        // 기존 응답 구조인 경우 (직접 name, amount, unit이 있는 경우)
+        const { name, amount, unit } = response;
+        bestMarketMenu.value = {
+          name,
+          amount,
+          unit,
+        };
+      }
     } else {
       console.error("API 호출 실패:", response.message);
     }
@@ -150,17 +162,91 @@ const getBestMarket = async () => {
   }
 };
 
+const getStockChange = async () => {
+  try {
+    const response = await api.getStockChange();
+    console.log(response);
+
+    if (response) {
+      totalStockChanges.value = response.total;
+      stockChangeItems.value = response.itemQuantityDtoList || [];
+    } else {
+      console.error("API 호출 실패 또는 응답 코드 문제:", response.message);
+    }
+  } catch (error) {
+    console.error("API 호출 중 오류 발생:", error);
+  }
+};
 getBestMenu();
 getTodaySales();
 getInventoryStatus();
 getBestMarket();
+getStockChange();
+
+// 재고 변경 정보를 위한 computed 속성
+const stockChangeInfo = computed(() => {
+  // total이 0인 경우
+  if (totalStockChanges.value === 0) {
+    return {
+      line1: "한달동안 재고 수정이 없었습니다.",
+      highlight1: "",
+      line2: "",
+      highlight2: "",
+      highlight3: "",
+      line3: "",
+      line4: "",
+    };
+  }
+
+  // itemQuantityDtoList가 비어있는 경우
+  if (!stockChangeItems.value || stockChangeItems.value.length === 0) {
+    return {
+      line1: "한달 동안 재고를 총",
+      highlight1: `${totalStockChanges.value}`,
+      line2: "회 수정했습니다",
+      highlight2: "",
+      highlight3: "",
+      line3: "",
+      line4: "",
+    };
+  }
+
+  // itemQuantityDtoList에 항목이 있는 경우
+  const mostChangedItem = stockChangeItems.value[0]; // 첫 번째 항목이 가장 많이 변경된 항목이라고 가정
+
+  return {
+    line1: "한달 동안 재고를 총",
+    highlight1: `${totalStockChanges.value}`,
+    line2: "회 수정했습니다",
+    highlight2: `${mostChangedItem.itemName}`,
+    highlight3: "",
+    line3: "의 재고 수정량이 많습니다.",
+    line4: "",
+  };
+});
 
 const summaries = computed(() => {
   if (!bestMarketMenu.value) return [];
 
+  // name이 null인 경우 처리
+  if (bestMarketMenu.value.name === null) {
+    return [
+      {
+        line1: "한달동안 장터에 판 품목이 없습니다",
+        highlight1: "",
+        line2: "",
+        highlight2: "",
+        highlight3: "",
+        line3: "",
+        line4: "",
+      },
+      stockChangeInfo.value, // 두 번째 캐러셀 항목을 재고 변경 정보로 교체
+    ];
+  }
+
   return [
     {
-      line1: "이번달에 가장 많이 장터에 판 물품은",
+      line1: "한달동안 가장 많이 장터에 판 물품은",
       highlight1: bestMarketMenu.value.name,
       line2: "입니다.",
       highlight2: bestMarketMenu.value.amount,
@@ -168,15 +254,7 @@ const summaries = computed(() => {
       line3: "가 장터에 판매 되었습니다.",
       line4: "발주양을 조금 적게하는건 어떨까요?",
     },
-    {
-      line1: "아직 구현중 입니다.",
-      highlight1: "조금만 기다려 주세요",
-      line2: "",
-      highlight2: "",
-      highlight3: "",
-      line3: "",
-      line4: "",
-    },
+    stockChangeInfo.value, // 두 번째 캐러셀 항목을 재고 변경 정보로 교체
   ];
 });
 
