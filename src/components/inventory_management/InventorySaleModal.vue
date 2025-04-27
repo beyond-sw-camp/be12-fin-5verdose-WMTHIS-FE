@@ -41,6 +41,7 @@ const maxFileRule = (value) => {
 const fetchIngredients = async () => {
   try {
     const response = await api.getStoreInventoryList();
+    console.log("Fetched ingredients:", response);
     ingredients.value = response.map(item => ({
       id: item.id,
       name: item.name,
@@ -52,6 +53,26 @@ const fetchIngredients = async () => {
   }
 };
 const register = async () => {
+  if (!ingredient.value || !ingredient.value.id) {
+    alert("재고명을 선택해주세요.");
+    return;
+  }
+  if (!price.value || isNaN(price.value)) {
+    alert("희망가격을 입력해주세요.");
+    return;
+  }
+  if (!quantity.value || isNaN(quantity.value)) {
+    alert("수량을 입력해주세요.");
+    return;
+  }
+  if (files.value.length === 0) {
+    alert("사진을 최소 1장 이상 등록해주세요.");
+    return;
+  }
+  if (!content.value.trim()) {
+    alert("물품 설명을 입력해주세요.");
+    return;
+  }
 
   const data = {
     storeInventoryId: ingredient.value.id,
@@ -61,8 +82,14 @@ const register = async () => {
     imageUrls: imagePaths.value,
   }
   console.log("Registering inventory sale with data:", data);
-  emit("close");
   const response = await marketApi.registerInventorySale(data);
+  if (response.code === 200) {
+    alert("판매 등록이 완료되었습니다.");
+  } else {
+    alert("판매 등록에 실패했습니다. 다시 시도해주세요.");
+  }
+  
+  emit("close");
 }
 
 watch(
@@ -579,8 +606,7 @@ onMounted(() => {
 
 .min-qty-input {
   width: 100px;
-  /* 필요에 따라 조정 가능 */
-  text-align: right;
+  /* 필요에 따라 조정 가능 */  text-align: right;
 }
 
 .unit-text {
