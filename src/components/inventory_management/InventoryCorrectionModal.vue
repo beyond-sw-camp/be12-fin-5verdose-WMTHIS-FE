@@ -48,12 +48,7 @@ const removeIngredient = (index) => {
 </script>
 
 <template>
-  <div
-    v-if="isOpen"
-    class="modal_overlay"
-    @click.self="emit('close')"
-    style="z-index: 2000"
-  >
+  <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')" style="z-index: 2000">
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
@@ -75,15 +70,10 @@ const removeIngredient = (index) => {
               <label>용량</label>
             </div>
             <div class="unit-container">
-              <input
-                type="text"
-                v-model="Minimumquantity"
-                placeholder="5"
-                class="min-qty-input"
-              />
+              <input type="text" v-model="Minimumquantity" placeholder="5" class="min-qty-input" />
               <div class="inventory_info">
                 <p>
-                  {{ ingredient.unit }}
+                  s
                 </p>
               </div>
             </div>
@@ -95,45 +85,25 @@ const removeIngredient = (index) => {
           <div class="modal_title2 flex-between">
             <label>유통기한</label>
             <div class="checkbox-group">
-              <input
-                type="checkbox"
-                class="checkbox"
-                v-model="isExpirationDifferent"
-              />
+              <input type="checkbox" class="checkbox" v-model="isExpirationDifferent" />
               <p class="sub_title">유통기한이 달라요</p>
             </div>
           </div>
 
           <div class="button-group">
-            <v-btn
-              v-for="day in days"
-              :key="day.value"
-              :class="{ 'selected-btn': selectedDays === day.value }"
-              @click="selectDay(day.value)"
-              variant="outlined"
-            >
+            <v-btn v-for="day in days" :key="day.value" :class="{ 'selected-btn': selectedDays === day.value }"
+              @click="selectDay(day.value)" variant="outlined">
               {{ day.label }}
             </v-btn>
 
             <!-- 직접입력 버튼 -->
-            <v-btn
-              v-if="!isCustomInput"
-              :class="{ 'selected-btn': selectedDays === 'custom' }"
-              @click="enableCustomInput"
-              variant="outlined"
-            >
+            <v-btn v-if="!isCustomInput" :class="{ 'selected-btn': selectedDays === 'custom' }"
+              @click="enableCustomInput" variant="outlined">
               직접입력
             </v-btn>
 
-            <v-text-field
-              v-else
-              v-model="customDays"
-              class="custom-input"
-              variant="outlined"
-              density="compact"
-              hide-details
-              @blur="disableCustomInput"
-            ></v-text-field>
+            <v-text-field v-else v-model="customDays" class="custom-input" variant="outlined" density="compact"
+              hide-details @blur="disableCustomInput"></v-text-field>
 
             <span class="fixed-text">일 까지</span>
           </div>
@@ -158,7 +128,8 @@ const removeIngredient = (index) => {
   justify-content: flex-end;
   opacity: 0;
   animation: fadeIn 0.3s forwards;
-  z-index: 9999 !important; /* ✅ 추가 또는 수정 */
+  z-index: 9999 !important;
+  /* ✅ 추가 또는 수정 */
 }
 
 .modal_header {
@@ -190,6 +161,7 @@ const removeIngredient = (index) => {
   overflow-y: auto;
   flex: 1;
 }
+
 .v-app-bar {
   z-index: 100 !important;
 }
@@ -469,9 +441,7 @@ const removeIngredient = (index) => {
   /* 드롭다운 크기 */
   appearance: none;
   /* 기본 스타일 제거 */
-  background: white
-    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
-    no-repeat right 10px center;
+  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
   background-size: 16px;
 }
 
