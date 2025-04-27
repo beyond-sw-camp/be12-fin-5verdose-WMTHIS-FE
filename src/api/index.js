@@ -510,4 +510,19 @@ export const api = {
       return 404; // 오류 처리
     }
   },
+
+  async getOneTotalInventory() {
+    try {
+      const res = await instance.get(`/inventory/totalInventory`);
+
+      if (res.data.code === 200) {
+        return res.data.data; // 데이터를 반환
+      } else {
+        return 404; // 오류 처리
+      }
+    } catch (error) {
+      console.error("Error in searchMonthSales:", error);
+      return 404; // 오류 처리
+    }
+  },
 };
