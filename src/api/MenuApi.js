@@ -156,8 +156,7 @@ export const api = {
         return res.data;
       })
       .catch((error) => {
-        console.error("Error in getMenuList: ", error);
-        return false;
+        return error.response.data;
       });
   },
   getPOSMenuList() {
@@ -194,33 +193,25 @@ export const api = {
         console.log("registerRes", res);
         console.log("code:", res.data.code);
 
-        return res.data.code === 200 ? res.data.data : false;
+        return res.data;
       })
       .catch((error) => {
         console.error("Error in registerInventory:", error);
-        return false;
+        return error.response.data;
       });
   },
-  updateInventory(storeInventoryData) {
-    console.log("updateInventory storeInventoryData", storeInventoryData);
+  updateStoreInventory(storeInventoryData) {
+    return instance
+      .put("/inventory/storeInventory", storeInventoryData)
+      .then((res) => {
+        console.log("updateRes", res);
+        console.log("code:", res.data.code);
 
-    try {
-      const res = instance.put(
-        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
-        storeInventoryData
-      );
-      console.log("updateRes", res);
-      console.log("code:", res.data.code);
-
-      if (res.data.code === 200) {
-        return res.data.data;
-      } else {
-        return 404;
-      }
-    } catch (error) {
-      console.error("Error in updateInventory:", error);
-      return 404;
-    }
+        return res.data;
+      })
+      .catch((error) => {
+        return error.response.data;
+      });
   },
   getInvenList() {
     return instance
@@ -234,6 +225,21 @@ export const api = {
         return false;
       });
   },
+  getPartiInvenList(storeInventoryId) {
+    return instance
+      .get(`/inventory/totalInventory/${storeInventoryId}`, {
+        withCredentials: true, // 꼭 넣어야 쿠키 전송됨
+      })
+      .then((res) => {
+        console.log("getPartiInvenList res", res);
+        return res;
+      })
+      .catch((error) => {
+        console.error("Error in getPartiInvenList: ", error);
+        return false;
+      });
+  },
+
   async SearchInventory(storeInventoryData) {
     try {
       const res = await instance.get(
@@ -282,7 +288,7 @@ export const api = {
 
   registerMenu(data) {
     return instance
-      .post("menu/register", data)
+      .post("/menu/register", data)
       .then((res) => {
         if (res.data.code !== 200) {
           return false;
@@ -308,18 +314,37 @@ export const api = {
         return false;
       });
   },
-  getStoreInventoryList() {
+  getStoreInventoryList(page = 0, size = 10, keyword = "") {
     return instance
-      .get("/inventory/storeInventory/getList")
+      .get("/inventory/storeInventory/getList", {
+        params: { page, size, keyword },
+      })
       .then((res) => {
+        console.log("getStoreInventoryList res", res);
         if (res.data.code !== 200) return false;
-        return res.data.data;
+        return res.data.data.content;
       })
       .catch((error) => {
         console.error("Error in getStoreInventoryList: ", error);
         return false;
       });
   },
+  getStoreInventoryPageList(page = 0, size = 10, keyword = "") {
+    return instance
+      .get("/inventory/storeInventory/getList", {
+        params: { page, size, keyword },
+      })
+      .then((res) => {
+        console.log("getStoreInventoryList res", res);
+        if (res.data.code !== 200) return false;
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in getStoreInventoryList: ", error);
+        return false;
+      });
+  },
+
   deleteMenus(menuIdList) {
     return instance
       .delete("/menu", {
@@ -349,6 +374,58 @@ export const api = {
       .catch((error) => {
         console.error("Error in getRecipes: ", error);
         return { menuItems: [] };
+      });
+  },
+  checkStockAvailability(data) {
+    return instance
+      .post("/inventory/validateOrder", data)
+      .then((res) => {
+        return res.data; // 그냥 res.data 통째로 반환 (code, message, data 모두)
+      })
+      .catch((error) => {
+        console.error("Error in checkStockAvailability:", error);
+        return {
+          code: 500,
+          message: "서버 오류가 발생했습니다.",
+          data: null,
+        };
+  deleteStoreInventorys(storeInventoryIdList) {
+    return instance
+      .delete("/inventory/storeInventory", {
+        data: storeInventoryIdList,
+      })
+      .then((res) => {
+        console.log("deleteStoreInventorys res", res);
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in deleteStoreInventorys:", error);
+        return error.response.data;
+      });
+  },
+  registerInventory(data) {
+    return instance
+      .post("/inventory/registerInventory", data)
+      .then((res) => {
+        console.log("registerInventory res", res);
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in registerInventory:", error);
+        return error.response.data;
+      });
+  },
+  getInventory(inventoryId) {
+    return instance
+      .get(`/inventory/DetailInventory/${inventoryId}`)
+      .then((res) => {
+        console.log("getInventory res", res);
+
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in getInventory:", error);
+        return error.response.data;
       });
   },
 };

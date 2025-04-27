@@ -8,6 +8,8 @@ pipeline {
     environment {
         IMAGE_NAME = 'jkweil125/wmthis-front'
         IMAGE_TAG = "${BUILD_NUMBER}"
+        DEPLOYMENT_NAME = 'wmthis-front-deployment'
+        KUBE_NAMESPACE = 'default' // 필요 시 변경
     }
 
     stages {
@@ -55,8 +57,43 @@ pipeline {
                 }
             }
         }
+
+                stage('Deploy to Kubernetes') {
+            when {
+                expression {
+                    return env.GIT_BRANCH == 'origin/main' || env.BRANCH_NAME == 'main'
+                }
+            }
+            steps {
+                script {
+                    sh """
+                    cat <<EOF | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${DEPLOYMENT_NAME}
+  labels:
+    app: wmthis-front
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: wmthis-front
+  template:
+    metadata:
+      labels:
+        app: wmthis-front
+    spec:
+      containers:
+        - name: wmthis-front-container
+          image: ${IMAGE_NAME}:${IMAGE_TAG}
+          ports:
+            - containerPort: 80
+EOF
+                    """
+                }
+            }
+        }
+
     }
 }
-// test
-// 2트
-// 3트

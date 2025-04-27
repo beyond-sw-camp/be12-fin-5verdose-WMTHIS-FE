@@ -23,46 +23,36 @@ const isLoading = ref(false); // 로딩 상태 추가
 // 재고 아이템 데이터
 const inventory_items = ref([]);
 
-const handleInventoryRegistered = (data) => {
-  console.log("입고 완료된 재고 데이터:", data);
-  // 입고 후 테이블 갱신
-  fetchInventoryData();
-};
 
 // API에서 데이터 가져오기
 const InventoryItems = async () => {
   isLoading.value = true;
-  try {
-    const res = await api.getInvenList();
-    console.log("InventoryItems 응답:", res);
+  const response = await api.getInvenList();
+  console.log("InventoryItems 응답:", response);
 
-    if (res && res.code === 200 && res.data) {
-      inventory_items.value = res.data.map((item) => ({
-        id: item.id,
-        inventoryId: item.id,
-        name: item.name,
-        miniquantity: item.miniquantity,
-        quantity: item.quantity,
-        totalquantity: `${item.quantity} ${item.unit}`,
-        unit: item.unit,
-        expiryDate: item.expiryDate,
-        purchaseDate: item.purchaseDate,
-        status: getStatusFromExpiryDate(item.expiryDate, item.purchaseDate),
-        orderNeed: item.quantity < item.miniquantity ? "필요" : "-",
-        selected: false,
-      }));
-    } else {
-      console.error("재고 목록 불러오기 실패", res);
-    }
-  } catch (error) {
-    console.error("재고 목록 API 호출 오류:", error);
-  } finally {
+  if (response.code && response.code === 200) {
+    inventory_items.value = response.data.map((item) => ({
+      storeInventoryId: item.id,
+      name: item.name,
+      minQuantity: item.minQuantity,
+      quantity: item.quantity,
+      unit: item.unit,
+      expiryDate: item.expiryDate,
+      orderNeed: item.quantity <= item.minQuantity ? "필요" : "충분",
+      status: getStatusFromExpiryDate(item.expiryDate),
+    }));
+    console.log("재고 목록:", inventory_items.value);
+
     isLoading.value = false;
+  } else {
+
   }
 };
 
 // 유통기한 기반으로 상태 결정
 const getStatusFromExpiryDate = (expiryDate, purchaseDate = null) => {
+
+  if (expiryDate == null) return "없음";
   const currentDate = new Date();
   const expiry = new Date(expiryDate);
 
@@ -82,7 +72,7 @@ const getStatusFromExpiryDate = (expiryDate, purchaseDate = null) => {
     const daysUntilExpiry = Math.ceil(
       (expiry - currentDate) / (1000 * 60 * 60 * 24)
     );
-    if (daysUntilExpiry <= 7) return "임박";
+    if (daysUntilExpiry <= 3) return "임박";
   }
 
   return "유효";
@@ -142,9 +132,9 @@ const filteredItems = computed(() => {
     }
   } else if (tab.value === "order") {
     if (selectedFilter.value === "필요") {
-      items = items.filter((item) => item.orderNeed !== "-");
+      items = items.filter((item) => item.orderNeed === "필요");
     } else if (selectedFilter.value === "충분") {
-      items = items.filter((item) => item.orderNeed === "-");
+      items = items.filter((item) => item.orderNeed === "충분");
     }
   }
 
@@ -199,7 +189,7 @@ const expiringItems = computed(() => {
 
 // 발주 필요 아이템 계산
 const orderNeededItems = computed(() => {
-  return inventory_items.value.filter((item) => item.orderNeed !== "-");
+  return inventory_items.value.filter((item) => item.orderNeed === "필요");
 });
 </script>
 
@@ -213,20 +203,14 @@ const orderNeededItems = computed(() => {
         <v-col cols="12" md="5" class="text-center">
           <div class="label">만료 임박</div>
           <div v-if="expiringItems.length > 0" class="warning_text">
-            {{ expiringItems[0].name }}
-          </div>
-          <div v-if="expiringItems.length > 0" class="warning_text">
-            D-{{ expiringItems[0].expiryDate }}
+            {{ expiringItems.length }}개
           </div>
           <div v-else class="normal_text">없음</div>
         </v-col>
 
         <!-- 세로 구분선 -->
         <v-col cols="12" md="1" class="d-flex justify-center">
-          <div
-            class="divider"
-            style="width: 2px; background-color: #ccc; height: 100%"
-          ></div>
+          <div class="divider" style="width: 2px; background-color: #ccc; height: 100%"></div>
         </v-col>
 
         <!-- 발주 필요 재고 -->
@@ -237,31 +221,18 @@ const orderNeededItems = computed(() => {
       </v-row>
 
       <!-- 탭 -->
-      <v-tabs
-        v-model="tab"
-        class="custom_tabs shift_tabs"
-        background-color="transparent"
-        show-arrows
-      >
-        <v-tab
-          variant="text"
-          value="exp"
-          :class="{
-            selected_tab: tab === 'exp',
-            default_tab: tab !== 'exp',
-          }"
-        >
+      <v-tabs v-model="tab" class="custom_tabs shift_tabs" background-color="transparent" show-arrows>
+        <v-tab variant="text" value="exp" :class="{
+          selected_tab: tab === 'exp',
+          default_tab: tab !== 'exp',
+        }">
           유통기한
         </v-tab>
-        <v-tab
-          variant="text"
-          value="order"
-          :class="{
-            selected_tab: tab === 'order',
-            default_tab: tab !== 'order',
-          }"
-        >
-          발주필요재고
+        <v-tab variant="text" value="order" :class="{
+          selected_tab: tab === 'order',
+          default_tab: tab !== 'order',
+        }">
+          발주필요
         </v-tab>
       </v-tabs>
 
@@ -271,46 +242,26 @@ const orderNeededItems = computed(() => {
         <v-window-item value="exp">
           <v-row class="mt-3">
             <v-col cols="5">
-              <v-btn
-                class="filter_btn"
-                :class="{ selected: selectedFilter === '전체' }"
-                block
-                depressed
-                @click="selectedFilter = '전체'"
-              >
+              <v-btn class="filter_btn" :class="{ selected: selectedFilter === '전체' }" block depressed
+                @click="selectedFilter = '전체'">
                 전체
               </v-btn>
             </v-col>
             <v-col cols="5">
-              <v-btn
-                class="filter_btn"
-                :class="{ selected: selectedFilter === '만료' }"
-                block
-                depressed
-                @click="selectedFilter = '만료'"
-              >
+              <v-btn class="filter_btn" :class="{ selected: selectedFilter === '만료' }" block depressed
+                @click="selectedFilter = '만료'">
                 만료
               </v-btn>
             </v-col>
             <v-col cols="5">
-              <v-btn
-                class="filter_btn"
-                :class="{ selected: selectedFilter === '임박' }"
-                block
-                depressed
-                @click="selectedFilter = '임박'"
-              >
+              <v-btn class="filter_btn" :class="{ selected: selectedFilter === '임박' }" block depressed
+                @click="selectedFilter = '임박'">
                 임박
               </v-btn>
             </v-col>
             <v-col cols="5">
-              <v-btn
-                class="filter_btn"
-                :class="{ selected: selectedFilter === '유효' }"
-                block
-                depressed
-                @click="selectedFilter = '유효'"
-              >
+              <v-btn class="filter_btn" :class="{ selected: selectedFilter === '유효' }" block depressed
+                @click="selectedFilter = '유효'">
                 유효
               </v-btn>
             </v-col>
@@ -321,24 +272,14 @@ const orderNeededItems = computed(() => {
         <v-window-item value="order">
           <v-row class="mt-3">
             <v-col cols="5">
-              <v-btn
-                class="filter_btn"
-                :class="{ selected: selectedFilter === '필요' }"
-                block
-                depressed
-                @click="selectedFilter = '필요'"
-              >
+              <v-btn class="filter_btn" :class="{ selected: selectedFilter === '필요' }" block depressed
+                @click="selectedFilter = '필요'">
                 필요
               </v-btn>
             </v-col>
             <v-col cols="5">
-              <v-btn
-                class="filter_btn"
-                :class="{ selected: selectedFilter === '충분' }"
-                block
-                depressed
-                @click="selectedFilter = '충분'"
-              >
+              <v-btn class="filter_btn" :class="{ selected: selectedFilter === '충분' }" block depressed
+                @click="selectedFilter = '충분'">
                 충분
               </v-btn>
             </v-col>
@@ -347,15 +288,12 @@ const orderNeededItems = computed(() => {
       </v-window>
     </v-col>
     <v-col cols="auto" class="d-flex justify-center">
-      <div
-        class="divider"
-        style="
+      <div class="divider" style="
           width: 2px;
           background-color: #ccc;
           height: 100%;
           margin-left: -75px;
-        "
-      ></div>
+        "></div>
     </v-col>
     <!-- 오른쪽: 재고 테이블 -->
     <v-col cols="3" md="8" style="max-width: 1200px">
@@ -364,12 +302,7 @@ const orderNeededItems = computed(() => {
 
         <div class="search_container">
           <div class="search_box">
-            <input
-              type="text"
-              class="search_input"
-              placeholder="재료명 검색"
-              v-model="searchKeyword"
-            />
+            <input type="text" class="search_input" placeholder="재료명 검색" v-model="searchKeyword" />
             <button class="search_btn">
               <img src="@/assets/image/search_button.png" class="search_icon" />
             </button>
@@ -391,73 +324,41 @@ const orderNeededItems = computed(() => {
             <tr>
               <th>재고명</th>
               <th>총수량</th>
-              <th>만료임박</th>
-              <th>발주필요재고</th>
+              <th>유통기한</th>
+              <th>발주필요</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="(item, index) in filteredItems"
-              :key="item.id"
-              :class="{ 'selected-row': item.selected }"
-            >
+            <tr v-for="(item, index) in filteredItems" :key="item.id" :class="{ 'selected-row': item.selected }">
               <td class="bold-text">{{ item.name }}</td>
-              <td>{{ item.totalquantity }}</td>
+              <td>{{ item.quantity }} {{ item.unit }}</td>
               <td>
                 <span :class="'status ' + item.status">{{ item.status }}</span>
               </td>
               <td>
-                <span v-if="item.orderNeed !== '-'">{{ item.orderNeed }}</span>
+                <span v-if="item.orderNeed !== '-'" :class="'status ' + item.orderNeed">{{ item.orderNeed }}</span>
                 <span v-else>-</span>
               </td>
 
               <td>
-                <button
-                  @click="openParticularModal(item)"
-                  class="particular_btn"
-                >
+                <button @click="openParticularModal(item)" class="particular_btn">
                   상세
                 </button>
               </td>
             </tr>
           </tbody>
         </table>
-        <InventoryParticularModal
-          v-if="modalType === 'particular' && isModalOpen && selectedItem"
-          :item="selectedItem"
-          :isOpen="isModalOpen"
-          :storeInventoryId="selectedItem.id"
-          @close="closeModal"
-        />
-        <InventoryStoreModal
-          v-if="isStoreOpen"
-          :isOpen="isStoreOpen"
-          @close="isStoreOpen = false"
-          @totalInventory="addInventoryItem"
-          :inventory_items="inventory_items"
-        />
+        <InventoryParticularModal v-if="modalType === 'particular' && isModalOpen && selectedItem" :item="selectedItem"
+          :isOpen="isModalOpen" @close="closeModal" />
+        <InventoryStoreModal v-if="isStoreOpen" :isOpen="isStoreOpen" @close="isStoreOpen = false"
+          @refresh="InventoryItems" :inventory_items="inventory_items" />
 
-        <InventoryCorrectionModal
-          v-if="modalType === 'correction'"
-          :isOpen="isModalOpen"
-          @close="closeModal"
-        />
-        <InventorySaleModal
-          v-if="modalType === 'sale'"
-          :isOpen="isModalOpen"
-          @close="closeModal"
-        />
+        <InventoryCorrectionModal v-if="modalType === 'correction'" :isOpen="isModalOpen" @close="closeModal" />
+        <InventorySaleModal v-if="modalType === 'sale'" :isOpen="isModalOpen" @close="closeModal" />
 
-        <DeleteConfirmModal
-          :isOpen="isDeleteConfirmOpen"
-          @confirm="deleteSelectedItems"
-          @cancel="closeDeleteConfirm"
-        />
-        <DeleteAlertModal
-          :isOpen="isDeleteAlertOpen"
-          @close="closeDeleteAlert"
-        />
+        <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
+        <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
       </div>
     </v-col>
   </v-row>
@@ -482,12 +383,7 @@ const orderNeededItems = computed(() => {
   margin-bottom: 4px;
 }
 
-.custom_tabs {
-  background-color: transparent !important;
 
-  box-shadow: none !important;
-  border: none !important;
-}
 
 .v-tab {
   color: #413d3d !important;
@@ -723,6 +619,30 @@ const orderNeededItems = computed(() => {
   font-weight: bold;
 }
 
+.status.없음 {
+  background-color: #f6f6f6;
+  color: #241d12;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.status.필요 {
+  background-color: #ffffff;
+  color: #dc3620;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.status.충분 {
+  background-color: #ffffff;
+  color: #0c72df;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
 .divider {
   width: 1px;
   background-color: #e5e7eb;
@@ -735,5 +655,12 @@ const orderNeededItems = computed(() => {
 .shift_tabs {
   margin-left: 50px;
   /* px 값으로 조절 가능 */
+}
+
+.custom_tabs {
+  width: 300px !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
 }
 </style>

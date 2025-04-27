@@ -13,6 +13,29 @@ const orderInfo = ref({
   tableId: null,
   deliveryService: "",
 });
+const checkStockAvailability = async (orderList) => {
+  try {
+    const formattedOrder = {
+      orderMenus: orderList.map(order => ({
+        menuId: order.id,
+        quantity: order.quantity,
+        optionIds: order.options ? order.options.map(option => option.id) : []
+      }))
+    };
+
+    const response = await api.checkStockAvailability(formattedOrder);
+
+    if (response.code !== 200) {
+      alert(response.message);
+      return null;
+    }
+
+    return response.data; // 정상일 때만 data 반환
+  } catch (error) {
+    console.error("재고 확인 오류:", error);
+    return null;
+  }
+};
 
 // 주문 완료 모달
 const showOrderCompleteModal = ref(false);
@@ -40,7 +63,7 @@ const fetchMenuItems = async () => {
       console.log("Menu items loaded:", menu_items.value);
 
       // 메뉴 아이템에서 고유한 카테고리 ID 추출
-      extractCategoriesFromMenuItems();
+      //extractCategoriesFromMenuItems();
     } else {
       console.error("메뉴 데이터를 가져오는 데 실패했습니다.");
       menu_items.value = []; // 실패 시 빈 배열로 설정
@@ -51,40 +74,69 @@ const fetchMenuItems = async () => {
   }
 };
 
-// 메뉴 아이템에서 카테고리 정보 추출
-const extractCategoriesFromMenuItems = () => {
+// Add a new function to fetch categories
+const fetchCategories = async () => {
+  try {
+    const response = await api.getPOSCategoryList();
+    if (response && response.data) {
+      return response.data;
+    } else {
+      console.error("카테고리 데이터를 가져오는 데 실패했습니다.");
+      return [];
+    }
+  } catch (error) {
+    console.error("Error in fetchCategories:", error);
+    return [];
+  }
+};
+
+// Modify the extractCategoriesFromMenuItems function to use actual category names
+const extractCategoriesFromMenuItems = async () => {
   if (!menu_items.value || !Array.isArray(menu_items.value)) {
     return;
   }
 
-  // 카테고리 ID 맵 생성 (중복 제거)
+  // Fetch categories from API
+  const categoryList = await fetchCategories();
+
+  // Create a map of category id to name for quick lookup
+  const categoryNameMap = {};
+  categoryList.forEach(category => {
+    categoryNameMap[category.id] = category.name;
+  });
+
+  // Category ID map creation (for deduplication)
   const categoryMap = new Map();
 
   menu_items.value.forEach((item) => {
     if (item.category !== null && item.category !== undefined) {
-      // 카테고리 ID를 문자열로 변환하여 저장 (타입 일관성 유지)
+      // Convert category ID to string for consistency
       const categoryId = String(item.category);
 
-      // 이미 맵에 없는 경우에만 추가
+      // Only add if not already in the map
       if (!categoryMap.has(categoryId)) {
+        // Use the actual category name if available, otherwise fallback to default
+        const categoryName = categoryNameMap[item.category] || `카테고리 ${categoryId}`;
+
         categoryMap.set(categoryId, {
           id: item.category,
-          name: `카테고리 ${categoryId}`, // 기본 이름 설정
+          name: categoryName,
         });
       }
     }
   });
 
-  // 맵에서 카테고리 배열로 변환
+  // Convert map to array of categories
   categories.value = Array.from(categoryMap.values());
-  console.log("Extracted categories:", categories.value);
+  console.log("Extracted categories with names:", categories.value);
 };
 
 // 컴포넌트 마운트 시 주문 정보 로드
 onMounted(async () => {
   loadOrderInfo();
   loadExistingOrders();
-  await fetchMenuItems(); // 메뉴 아이템을 먼저 가져온 후 카테고리 추출
+  await fetchMenuItems(); // First fetch menu items
+  await extractCategoriesFromMenuItems(); // Then extract categories with names
 });
 
 // 라우트 변경 감지
@@ -324,10 +376,27 @@ const goBack = () => {
 };
 
 // 주문 처리
-const processOrder = () => {
+const processOrder = async () => {
   if (orderList.value.length === 0) {
     alert("주문할 메뉴를 선택해주세요.");
     return;
+  }
+
+  // 재고 확인
+  const stockStatus = await checkStockAvailability(orderList.value);
+  if (stockStatus) {
+    // 재고가 부족한 아이템 확인
+    const outOfStockItems = orderList.value.filter((order) => {
+      const stock = stockStatus[order.id]; // 재고 상태 확인
+      return !stock || order.quantity > stock.quantity; // 재고 부족한 아이템 찾기
+    });
+
+    if (outOfStockItems.length > 0) {
+      // 재고 부족 아이템이 있을 경우 알림 띄우기
+      const itemNames = outOfStockItems.map(item => item.name).join(', ');
+      alert(`주문 불가능한 아이템: ${itemNames}. 재고가 부족합니다.`);
+      return;
+    }
   }
 
   // 주문 목록 저장
@@ -336,7 +405,6 @@ const processOrder = () => {
   // 주문 완료 모달 표시
   showOrderCompleteModal.value = true;
 };
-
 // 주문 완료 후 테이블 선택 화면으로 이동
 const completeOrder = () => {
   showOrderCompleteModal.value = false;
@@ -344,10 +412,27 @@ const completeOrder = () => {
 };
 
 // 결제 처리 - 결제 페이지로 이동
-const processPayment = () => {
+const processPayment = async () => {
   if (orderList.value.length === 0) {
     alert("결제할 메뉴가 없습니다.");
     return;
+  }
+
+  // 재고 확인
+  const stockStatus = await checkStockAvailability(orderList.value);
+  if (stockStatus) {
+    // 재고가 부족한 아이템 확인
+    const outOfStockItems = orderList.value.filter((order) => {
+      const stock = stockStatus[order.id]; // 재고 상태 확인
+      return !stock || order.quantity > stock.quantity; // 재고 부족한 아이템 찾기
+    });
+
+    if (outOfStockItems.length > 0) {
+      // 재고 부족 아이템이 있을 경우 알림 띄우기
+      const itemNames = outOfStockItems.map(item => item.name).join(', ');
+      alert(`결제 불가능한 아이템: ${itemNames}. 재고가 부족합니다.`);
+      return;
+    }
   }
 
   // 주문 목록 저장
@@ -372,29 +457,28 @@ const processPayment = () => {
 
       <!-- 카테고리 탭 추가 -->
       <div class="category_tabs">
-        <button class="category_tab" :class="{ active: selectedCategoryId === null }" @click="changeCategory(null)">전체</button>
-        <button
-          v-for="category in categories"
-          :key="category.id"
-          class="category_tab"
-          :class="{ active: selectedCategoryId === category.id }"
-          @click="changeCategory(category.id)"
-        >
+        <button class="category_tab" :class="{ active: selectedCategoryId === null }"
+          @click="changeCategory(null)">전체</button>
+        <button v-for="category in categories" :key="category.id" class="category_tab"
+          :class="{ active: selectedCategoryId === category.id }" @click="changeCategory(category.id)">
           {{ category.name }}
         </button>
-        <button class="category_tab" :class="{ active: selectedCategoryId === -1 }" @click="changeCategory(-1)">카테고리 없음</button>
+        <button class="category_tab" :class="{ active: selectedCategoryId === -1 }" @click="changeCategory(-1)">카테고리
+          없음</button>
       </div>
 
       <!-- 디버깅 정보 (개발 중에만 표시) -->
       <div v-if="false" class="debug-info">
-        <p>선택된 카테고리: {{ selectedCategoryId === null ? "전체" : selectedCategoryId === -1 ? "카테고리 없음" : selectedCategoryId }}</p>
+        <p>선택된 카테고리: {{ selectedCategoryId === null ? "전체" : selectedCategoryId === -1 ? "카테고리 없음" : selectedCategoryId
+        }}</p>
         <p>필터링된 메뉴 수: {{ filteredMenuItems.length }}</p>
         <p>총 페이지: {{ totalPages }}</p>
         <p>현재 페이지: {{ currentPage }}</p>
       </div>
 
       <div class="menu_grid">
-        <div v-for="(item, index) in paginatedMenuItems" :key="index" class="menu_item" @click="openModal(item)" :class="{ 'empty-item': !item }">
+        <div v-for="(item, index) in paginatedMenuItems" :key="index" class="menu_item" @click="openModal(item)"
+          :class="{ 'empty-item': !item }">
           <div v-if="item">
             <div class="menu_name">{{ item.name }}</div>
             <div class="menu_price">{{ item?.price?.toLocaleString() || "가격 없음" }}원</div>
@@ -442,7 +526,7 @@ const processPayment = () => {
       <div class="order_actions">
         <button class="order_btn" @click="processOrder">주문</button>
         <router-link :to="{ path: '/pay', query: { orders: JSON.stringify(orderList) } }">
-          <button class="cart_btn" :disabled="orderList.length === 0">
+          <button class="cart_btn" :disabled="orderList.length === 0" @click="processOrder">
             <span class="cart_icon">{{ total_quantity }}</span>
             {{ total_price.toLocaleString() }}원 결제
           </button>
@@ -462,7 +546,6 @@ const processPayment = () => {
     </div>
   </div>
 </template>
-
 <style scoped>
 button:disabled {
   opacity: 0.5;

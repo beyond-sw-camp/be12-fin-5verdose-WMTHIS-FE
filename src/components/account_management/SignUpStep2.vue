@@ -55,11 +55,13 @@ const sendVerificationCode = async () => {
     errorMessage.value = '';
 
     // ✅ 휴대폰 인증 API 호출
-    await api.phoneSend(phoneNumber.value.replace(/-/g, ''));
+    const response = await api.phoneSend(phoneNumber.value.replace(/-/g, ''));
 
     // 성공 시 처리
     isVerificationSent.value = true;
     alert('인증번호가 전송되었습니다.');
+
+    verificationCode.value = response.data;
 
     // 타이머 시작
     verificationTimer.value = 180;

@@ -11,8 +11,7 @@ const emit = defineEmits(["close", "registerInventory"]);
 // 입력 필드 상태
 const name = ref("");
 const unit = ref("");
-const miniquantity = ref(0);
-const quantity = ref(0);
+const minQuantity = ref("");
 
 // 유통기한 관련 상태
 const selectedDays = ref("1");
@@ -25,6 +24,15 @@ const expiryDate = [
   { label: "3일", value: "3" },
   { label: "5일", value: "5" },
 ];
+
+const init = () => {
+  name.value = props.item ? props.item.name : "";
+  unit.value = props.item ? props.item.unit : "Kg";
+  minQuantity.value = props.item ? props.item.minQuantity : "";
+  selectedDays.value = "1";
+  isCustomInput.value = false;
+  customDays.value = "";
+};
 
 // 유통기한 선택 핸들러
 const selectDay = (value) => {
@@ -49,51 +57,74 @@ const disableCustomInput = () => {
 
 // 재고 등록 처리 함수
 const registerInventory = async () => {
+  const parsedDays = parseInt(customDays.value, 10);
+  if (!name.value.trim()) {
+    alert("재고명을 입력해 주세요.");
+    return;
+  }
+  if (!unit.value) {
+    alert("단위를 선택해 주세요.");
+    return;
+  }
+  if (minQuantity.value === null || minQuantity.value === "" || isNaN(minQuantity.value)) {
+    alert("최소수량을 숫자로 입력해 주세요.");
+    return;
+  }
+  if (isCustomInput.value && (!customDays.value || isNaN(customDays.value)) && customDays.value > 0) {
+    alert("직접 입력한 유통기한을 숫자로 입력해 주세요.");
+    return;
+  }
+  if (isCustomInput.value && !Number.isInteger(parsedDays)) {
+    alert("직접 입력한 유통기한은 정수로 입력해야 합니다.");
+    return false;
+  }
+
+  if (isCustomInput.value && parsedDays < 1 || parsedDays > 30) {
+    alert("직접 입력한 유통기한은 1일에서 30일 사이의 값이어야 합니다.");
+    return false;
+  }
   console.log("api:", api);
   // 등록할 데이터 세팅
   const storeInventoryData = {
     name: name.value,
     expiryDate: isCustomInput.value ? customDays.value : selectedDays.value,
 
-    miniquantity: miniquantity.value,
+    minQuantity: minQuantity.value,
     unit: unit.value,
   };
 
-  // Pinia store의 registerStoreInventory 함수 호출
-  const result = await api.registerStoreInventory(storeInventoryData);
-  console.log("등록 결과:", result);
-  if (result) {
-    emit("registerInventory", storeInventoryData);
-  }
-  if (result) {
-    emit("registerInventory"); // 성공 시 모달 닫기
+  const response = await api.registerStoreInventory(storeInventoryData);
+  console.log("등록 결과:", response);
+  // 등록 성공
+
+  const message = response.message || "재고 등록이 실패했습니다. 다시 시도해주세요.";
+
+  if (response.code === 200) {
+    alert("등록이 완료되었습니다.");
+    emit("refresh");
   } else {
-    console.error("등록 실패");
-    // 실패 시 알림을 추가하는 로직 추가 가능
+    alert(message);
   }
+  init(); // 초기화 함수 호출
+  emit("close");
 };
 </script>
 
 <template>
-  <div
-    v-if="isOpen"
-    class="register_modal_container"
-    @click.self="emit('close')"
-    style="z-index: 2000"
-  >
+  <div v-if="isOpen" class="register_modal_container" @click.self="emit('close')" style="z-index: 2000">
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
           <button class="close_btn" @click="emit('close')">✕</button>
 
-          <h2 class="modal_title">재고 등록</h2>
+          <h2 class="modal_title">재고 항목 등록</h2>
         </div>
         <div class="input_group">
           <div class="modal_title2">
             <label>재고명</label>
             <p class="title_warn">(필수)</p>
           </div>
-          <p class="sub_title">상품의 정확한 이름을 입력해 주세요.</p>
+          <p class="sub_title">재고의 정확한 이름을 입력해 주세요.</p>
           <input type="text" v-model="name" placeholder="마늘" />
         </div>
 
@@ -109,62 +140,45 @@ const registerInventory = async () => {
                 <option value="g">g</option>
                 <option value="L">L</option>
                 <option value="ml">ml</option>
+                <option value="unit">개</option>
               </select>
             </div>
           </div>
-          <p class="sub_title">현재 재고의 보유량을 입력해주세요.</p>
+          <p class="sub_title">재고를 관리하는 단위를 입력해주세요.</p>
         </div>
 
         <div class="input_group">
           <div class="modal_title2 between">
             <label>최소수량</label>
-            <input
-              type="text"
-              v-model="miniquantity"
-              placeholder="5"
-              class="min_qty_input"
-            />
+            <input type="text" v-model="minQuantity" placeholder="5" class="min_qty_input" />
           </div>
           <p class="sub_title">
-            최소 보유하고 있어야하는 재고의 수를 입력해 주세요.
+            최소 보유하고 있어야하는 재고의 수량을 입력해 주세요. <br> 소수점 2자리까지 저장됩니다.
           </p>
         </div>
         <div class="input_group">
           <div class="modal_title2">
-            <label>유통기한</label>
+            <label>입고 후 유통기한</label>
+
           </div>
+          <p class="sub_title">재고의 입고 후 평균 유통기한를 입력해주세요.</p>
           <div class="button_group">
-            <v-btn
-              v-for="day in expiryDate"
-              :key="day.value"
-              :class="{ selected_btn: selectedDays === day.value }"
-              @click="selectDay(day.value)"
-              variant="outlined"
-            >
+            <v-btn v-for="day in expiryDate" :key="day.value" :class="{ selected_btn: selectedDays === day.value }"
+              @click="selectDay(day.value)" variant="outlined">
               {{ day.label }}
             </v-btn>
 
             <!-- 직접입력 버튼 -->
-            <v-btn
-              v-if="!isCustomInput"
-              :class="{ 'selected-btn': selectedDays === 'custom' }"
-              @click="enableCustomInput"
-              variant="outlined"
-            >
+            <v-btn v-if="!isCustomInput" :class="{ 'selected-btn': selectedDays === 'custom' }"
+              @click="enableCustomInput" variant="outlined">
               직접입력
             </v-btn>
 
-            <v-text-field
-              v-else
-              v-model="customDays"
-              class="custom_input"
-              variant="outlined"
-              density="compact"
-              hide-details
-              @blur="disableCustomInput"
-            ></v-text-field>
-
-            <span class="fixed_text">일 까지</span>
+            <template v-if="isCustomInput">
+              <v-text-field v-model.number="customDays" class="custom_input" variant="outlined" density="compact"
+                hide-details @blur="disableCustomInput" type="number" min="1" max="30"></v-text-field>
+              <span class="fixed_text">일 까지</span>
+            </template>
           </div>
         </div>
       </div>
@@ -494,9 +508,7 @@ const registerInventory = async () => {
   /* 드롭다운 크기 */
   appearance: none;
   /* 기본 스타일 제거 */
-  background: white
-    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
-    no-repeat right 10px center;
+  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
   background-size: 16px;
 }
 

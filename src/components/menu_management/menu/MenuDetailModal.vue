@@ -63,6 +63,18 @@ const loadMenuDetails = async () => {
 
 const addIngredient = (id) => {
     console.log('id', id);
+    if (!ingredientName.value || !ingredientAmount.value) {
+        alert('재료와 수량을 모두 입력해주세요.');
+        return;
+    }
+    const alreadyExists = ingredients.value.some(
+        (ingredient) => ingredient.id === ingredientName.value.id
+    );
+
+    if (alreadyExists) {
+        alert('이미 추가된 재료입니다.');
+        return;
+    }
     if (ingredientName.value && ingredientAmount.value) {
         ingredients.value.push({
             id: ingredientName.value.id,
@@ -187,7 +199,7 @@ onMounted(async () => {
 
                 <div class="input_group">
                     <label>가격</label>
-                    <p class="sub_title">메뉴에 가격을 입력해주세요.</p>
+                    <p class="sub_title">메뉴의 가격을 입력해주세요.</p>
                     <input type="number" v-model="price" min="1" placeholder="(ex) 50000" />
                 </div>
             </div>
