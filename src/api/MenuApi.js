@@ -432,4 +432,16 @@ export const api = {
         return error.response.data;
       });
   },
+  updateInventory(data) {
+    return instance
+      .put("/inventory/inventory", data)
+      .then((res) => {
+        console.log("updateInventory res", res);
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in updateInventory:", error);
+        return error.response.data;
+      });
+  },
 };

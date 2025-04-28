@@ -88,8 +88,14 @@ const saveCorrection = async () => {
     quantity: quantity.value
   }
   console.log("Saving correction:", data);
+  const response = await api.updateInventory(data);
+  if (response.code === 200) {
+    alert("보정 내용이 저장되었습니다.");
 
-
+  } else {
+    alert("보정 내용 저장에 실패했습니다.");
+  }
+  emit("close");
 };
 
 // 폼이 유효한지 확인
