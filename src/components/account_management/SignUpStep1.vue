@@ -21,6 +21,9 @@ const timerInterval = ref(null);
 const errorMessage = ref('');
 const isVerified = ref(false);
 const isLoading = ref(false);
+const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*()\-_=+{};:,<.>]).{8,}$/;
+const passwordValid = computed(() => passwordRegex.test(password.value));
+const passwordConfirmValid = computed(() => passwordRegex.test(passwordConfirm.value));
 const resetForm = () => {
   username.value = '';
   email.value = '';
@@ -49,6 +52,8 @@ const isNextButtonEnabled = computed(() => {
     email.value.trim() !== "" &&
     password.value.trim() !== "" &&
     passwordConfirm.value.trim() !== "" &&
+    passwordValid.value &&
+    passwordConfirmValid.value &&
     passwordsMatch.value &&
     isVerified.value
   );
@@ -256,6 +261,10 @@ onUnmounted(() => {
         <label for="password">비밀번호</label>
         <input type="password" id="password" v-model="password" class="form-input" placeholder="비밀번호를 입력하세요"
           autocomplete="new-password" />
+
+        <div v-if="!passwordValid && password" class="password-invalid">
+          비밀번호는 8자리 이상이며, 대문자와 특수문자를 포함해야 합니다.
+        </div>
       </div>
 
       <div class="form-group">
@@ -482,5 +491,9 @@ onUnmounted(() => {
 .button_layout {
   justify-content: space-between;
   margin-top: 20px;
+}
+
+.password-invalid {
+  color: red
 }
 </style>
