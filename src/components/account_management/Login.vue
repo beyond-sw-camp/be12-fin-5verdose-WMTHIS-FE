@@ -14,40 +14,29 @@ const handleLogin = async () => {
     errorMessage.value = "이메일과 비밀번호를 모두 입력해주세요.";
     return;
   }
+  isLoading.value = true;
+  errorMessage.value = "";
 
-  try {
-    isLoading.value = true;
-    errorMessage.value = "";
+  const data = {
+    email: email.value,
+    password: password.value,
+  };
 
-    const data = {
-      email: email.value,
-      password: password.value,
-    };
+  // ✅ 로그인 API 호출
+  const response = await api.login(data);
 
-    // ✅ 로그인 API 호출
-    const response = await api.login(data);
-    if (!response) {
-      errorMessage.value = "로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
-      return;
+  if (response.code === 200) {
+    if (rememberMe.value) {
+      localStorage.setItem("savedEmail", email.value);
     } else {
-      if (response.code === 200) {
-        if (rememberMe.value) {
-          localStorage.setItem("savedEmail", email.value);
-        } else {
-          localStorage.removeItem("savedEmail");
-        }
-
-        router.push({ name: "dashboard" });
-      } else {
-        errorMessage.value = response.data || "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.";
-      }
+      localStorage.removeItem("savedEmail");
     }
-  } catch (error) {
-    console.error("로그인 중 오류 발생:", error);
-    errorMessage.value = "로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
-  } finally {
-    isLoading.value = false;
+    router.push({ name: "dashboard" });
+  } else {
+    errorMessage.value = response.data || "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.";
   }
+  isLoading.value = false;
+
 };
 
 const goToSignUp = () => {
@@ -66,23 +55,12 @@ const loadSavedEmail = () => {
     rememberMe.value = true;
   }
 };
-
-async function checkIsLogin() {
-  const response = await api.isLogin();
-  console.log(response);
-  console.log("router 확인:", router);
-  if (response.data == true) {
-    router.replace({ name: "dashboard" });
-  }
-}
-
 const submitForm = () => {
   const jsonData = {
     email: email.value,
     password: password.value,
   };
   const result = api.login(jsonData);
-  console.log(result);
 };
 
 // 컴포넌트 마운트 시 저장된 이메일 불러오기
@@ -129,9 +107,15 @@ onMounted(() => {
       </div>
 
       <button type="submit" class="login-button" :disabled="isLoading" @click="submitForm">
-        <span v-if="isLoading">로그인 중...</span>
-        <span v-else>로그인</span>
+        <span v-if="isLoading" class="loading-container">
+          <span class="spinner"></span> <!-- 스피너 -->
+          로그인 중...
+        </span>
+        <span v-else>
+          로그인
+        </span>
       </button>
+
     </form>
 
     <div class="signup-link">계정이 없으신가요? <a @click="goToSignUp" class="signup-text">회원가입</a></div>
@@ -139,6 +123,38 @@ onMounted(() => {
 </template>
 
 <style scoped>
+/* 로딩 스피너 */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ccc;
+  border-top: 2px solid #ffcc00;
+  /* 강조 색상 */
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+/* 스피너 애니메이션 */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 로딩 텍스트와 스피너를 정렬 */
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .login-card {
   background-color: white;
   border-radius: 15px;
