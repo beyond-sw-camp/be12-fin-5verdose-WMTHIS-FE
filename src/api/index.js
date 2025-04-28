@@ -29,11 +29,17 @@ export const api = {
       .post("/user/signup", data)
       .then((res) => {
         console.log("signUpRes", res);
-        return res.data.code === 200; // 성공 여부 반환
+        return res.data.code === 200
+          ? { success: true } // 성공 시 성공 정보를 반환
+          : { success: false, message: res.data.message }; // 실패 시 실패 메시지 반환
       })
       .catch((error) => {
         console.error("Error in signUp:", error);
-        return false;
+        return {
+          success: false,
+          message:
+            error.response?.data?.message || "회원가입에 실패하였습니다.",
+        }; // 기본 메시지 반환
       });
   },
 
@@ -48,6 +54,26 @@ export const api = {
       .catch((error) => {
         console.error("Error in emailSend:", error);
         return false;
+      });
+  },
+
+  emailSendifpwfind(data) {
+    console.log("EmailSend data", data);
+    return instance
+      .post("/email/sendcodeifpwfind", { emailUrl: data })
+      .then((res) => {
+        console.log("emailSendRes", res);
+        if (res.data.code === 200) {
+          return true; // 성공
+        } else if (res.data.code === 1016) {
+          throw new Error("해당 이메일로 가입된 계정이 없습니다.");
+        } else {
+          throw new Error("알 수 없는 오류가 발생했습니다. 다시 시도해주세요.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error in emailSend:", error);
+        throw error; // 에러를 throw 해서 상위에서 처리할 수 있게 함
       });
   },
 
@@ -167,7 +193,10 @@ export const api = {
     console.log("updateInventory storeInventoryData", storeInventoryData);
 
     try {
-      const res = instance.put(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
+      const res = instance.put(
+        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
+        storeInventoryData
+      );
       console.log("updateRes", res);
       console.log("code:", res.data.code);
 
@@ -184,7 +213,10 @@ export const api = {
 
   async SearchInventory(storeInventoryData) {
     try {
-      const res = await instance.get(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
+      const res = await instance.get(
+        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
+        storeInventoryData
+      );
       console.log("searchRes", res);
       console.log("code:", res.data.code);
 
@@ -290,7 +322,9 @@ export const api = {
       .then((res) => {
         if (res.data.code !== 200) {
           // 실패한 응답인 경우 에러로 던짐
-          throw new Error(res.data.message || "결제 처리 중 오류가 발생했습니다.");
+          throw new Error(
+            res.data.message || "결제 처리 중 오류가 발생했습니다."
+          );
         }
         return res.data; // 성공한 응답만 반환
       })

@@ -38,7 +38,7 @@ const sendVerificationCode = async () => {
         errorMessage.value = '';
 
         // ✅ 이메일 인증 API 호출
-        await api.emailSend(email.value);
+        await api.emailSendifpwfind(email.value);
 
         // 성공 시 처리
         isVerificationSent.value = true;
