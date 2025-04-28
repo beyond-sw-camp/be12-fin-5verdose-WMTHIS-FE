@@ -1,4 +1,3 @@
-changeReason
 <script setup>
 import { ref, computed, onMounted, nextTick, watch } from "vue";
 import upIcon from "@/assets/image/up.png";
@@ -129,41 +128,6 @@ async function fetchAndSetStockData() {
   }
 }
 
-// const changeStock = [
-//   { date: "2025-04-06", time: "09:12:34", stockName: "우유", changeReason: "", quantity: 0.75, unit: "L" },
-//   { date: "2025-04-07", time: "11:43:21", stockName: "김치", changeReason: "", quantity: -1.2, unit: "kg" },
-//   { date: "2025-04-05", time: "13:05:56", stockName: "양파", changeReason: "", quantity: 2.5, unit: "kg" },
-//   { date: "2025-04-06", time: "08:22:19", stockName: "마늘", changeReason: "", quantity: -0.15, unit: "kg" },
-//   { date: "2025-04-07", time: "14:14:14", stockName: "간장", changeReason: "", quantity: 0.4, unit: "L" },
-//   { date: "2025-04-05", time: "12:00:01", stockName: "고등어", changeReason: "", quantity: -1.0, unit: "kg" },
-//   { date: "2025-04-07", time: "15:10:45", stockName: "양파", changeReason: "", quantity: -0.8, unit: "kg" },
-//   { date: "2025-04-06", time: "16:55:55", stockName: "우유", changeReason: "", quantity: 1.2, unit: "L" },
-//   { date: "2025-04-05", time: "17:17:17", stockName: "김치", changeReason: "", quantity: -0.6, unit: "kg" },
-//   { date: "2025-04-07", time: "18:18:18", stockName: "마늘", changeReason: "", quantity: 0.2, unit: "kg" },
-//   { date: "2025-04-06", time: "07:07:07", stockName: "간장", changeReason: "", quantity: -0.3, unit: "L" },
-//   { date: "2025-04-05", time: "19:30:30", stockName: "고등어", changeReason: "", quantity: 0.5, unit: "kg" },
-//   { date: "2025-04-07", time: "20:20:20", stockName: "양파", changeReason: "", quantity: 1.7, unit: "kg" },
-//   { date: "2025-04-06", time: "21:21:21", stockName: "우유", changeReason: "", quantity: -0.4, unit: "L" },
-//   { date: "2025-04-05", time: "22:22:22", stockName: "김치", changeReason: "", quantity: 2.0, unit: "kg" },
-//   { date: "2025-04-06", time: "23:23:23", stockName: "마늘", changeReason: "", quantity: -0.25, unit: "kg" },
-//   { date: "2025-04-07", time: "06:06:06", stockName: "간장", changeReason: "", quantity: 0.7, unit: "L" },
-//   { date: "2025-04-05", time: "05:05:05", stockName: "고등어", changeReason: "", quantity: -0.9, unit: "kg" },
-//   { date: "2025-04-07", time: "04:04:04", stockName: "우유", changeReason: "", quantity: 1.0, unit: "L" },
-//   { date: "2025-04-06", time: "03:03:03", stockName: "양파", changeReason: "", quantity: -0.65, unit: "kg" },
-//   { date: "2025-04-05", time: "02:02:02", stockName: "김치", changeReason: "", quantity: 1.1, unit: "kg" },
-//   { date: "2025-04-06", time: "01:01:01", stockName: "마늘", changeReason: "", quantity: -0.1, unit: "kg" },
-//   { date: "2025-04-07", time: "00:00:00", stockName: "간장", changeReason: "", quantity: 0.5, unit: "L" },
-//   { date: "2025-04-05", time: "10:10:10", stockName: "고등어", changeReason: "", quantity: 0.3, unit: "kg" },
-//   { date: "2025-04-06", time: "11:11:11", stockName: "우유", changeReason: "", quantity: -0.6, unit: "L" },
-//   { date: "2025-04-07", time: "09:09:09", stockName: "양파", changeReason: "", quantity: 1.0, unit: "kg" },
-//   { date: "2025-04-05", time: "08:08:08", stockName: "김치", changeReason: "", quantity: -0.4, unit: "kg" },
-//   { date: "2025-04-06", time: "13:13:13", stockName: "마늘", changeReason: "", quantity: 0.1, unit: "kg" },
-//   { date: "2025-04-07", time: "12:12:12", stockName: "간장", changeReason: "", quantity: -0.2, unit: "L" },
-//   { date: "2025-04-05", time: "14:14:14", stockName: "고등어", changeReason: "", quantity: 1.5, unit: "kg" },
-// ];
-// 재고 수동 수정
-
-//const total = [...salesMenu, ...changeStock, ...salesMarket];
 const total = computed(() => [...salesMenu.value, ...changeStock.value, ...salesMarket.value]);
 
 const flatList = ref([]);
@@ -248,6 +212,15 @@ const peroidData = computed(() => {
   return filteredByStock;
 });
 
+// 선택된 재고의 단위 가져오기
+const selectedStockUnit = computed(() => {
+  if (peroidData.value.length > 0) {
+    return peroidData.value[0].unit;
+  }
+  // 기본값 반환
+  return "";
+});
+
 const selectedDates = ref(null);
 const detailStatus = ref({}); // 날짜별 열림/닫힘 상태 저장
 
@@ -305,7 +278,8 @@ function getDateRange(start, end, byMonth = false) {
 
   return result;
 }
-//차트 데이터 - 메뉴
+
+//차트 데이터 - 메뉴 (수정된 부분)
 const chartSeries = computed(() => {
   if (!startDate.value || !endDate.value) return [];
 
@@ -313,7 +287,9 @@ const chartSeries = computed(() => {
   const end = new Date(endDate.value);
   const labels = getDateRange(start, end, showByMonth.value); // 포맷된 라벨
 
-  const counts = {};
+  // 양수와 음수 값을 분리하여 저장할 객체
+  const positiveCounts = {};
+  const negativeCounts = {};
 
   peroidData.value.forEach((item) => {
     const itemDate = new Date(item.date);
@@ -327,18 +303,46 @@ const chartSeries = computed(() => {
       key = `${String(itemDate.getMonth() + 1).padStart(2, "0")}.${String(itemDate.getDate()).padStart(2, "0")}`;
     }
 
-    counts[key] = parseFloat(((counts[key] || 0) + item.quantity).toFixed(2));
+    const quantity = parseFloat(item.quantity);
+
+    // 양수와 음수 값을 분리하여 저장
+    if (quantity >= 0) {
+      positiveCounts[key] = parseFloat(((positiveCounts[key] || 0) + quantity).toFixed(2));
+    } else {
+      // 음수 값은 절대값으로 저장 (차트에서는 양수로 표시하고 색상으로 구분)
+      negativeCounts[key] = parseFloat(((negativeCounts[key] || 0) + Math.abs(quantity)).toFixed(2));
+    }
   });
-  console.log(counts);
 
   return [
     {
-      name: "판매 량",
-      data: labels.map((label) => counts[label] || 0), // 라벨 기준으로 맞춤
+      name: "증가",
+      data: labels.map((label) => positiveCounts[label] || 0),
+    },
+    {
+      name: "감소",
+      data: labels.map((label) => negativeCounts[label] || 0),
     },
   ];
 });
 
+// 차트 제목 가져오기
+const getChartTitle = computed(() => {
+  const prefix = showByMonth.value ? "" : "";
+
+  switch (selectedTab.value) {
+    case "menu":
+      return prefix + "메뉴 판매로 인한 재고 변동량";
+    case "change":
+      return prefix + "재고 수정으로 인한 재고 변동량";
+    case "market":
+      return prefix + "장터 거래로 인한 재고 변동량";
+    default:
+      return prefix + "재고 변동량";
+  }
+});
+
+// 차트 옵션 (수정된 부분)
 const chartOptions = computed(() => {
   if (!startDate.value || !endDate.value) return {};
 
@@ -350,9 +354,10 @@ const chartOptions = computed(() => {
     chart: {
       type: "bar",
       height: 350,
+      stacked: false,
     },
     title: {
-      text: showByMonth.value ? "월별 판매 건수" : "일별 판매 건수",
+      text: getChartTitle.value,
       align: "center",
     },
     xaxis: {
@@ -360,8 +365,21 @@ const chartOptions = computed(() => {
     },
     yaxis: {
       title: {
-        text: "판매 량",
+        text: selectedStockUnit.value || "수량",
       },
+    },
+    colors: ["#4CAF50", "#F44336"], // 증가는 녹색, 감소는 빨간색
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: "60%",
+      },
+    },
+    dataLabels: {
+      enabled: false,
+    },
+    legend: {
+      position: "top",
     },
   };
 });
@@ -408,7 +426,7 @@ const chartOptions = computed(() => {
         </div>
       </div>
       <div class="chart">
-        <StockDiagram :startDate="startDate" :endDate="endDate" :showByMonth="showByMonth" :peroidData="peroidData" />
+        <apexchart type="bar" height="350" :options="chartOptions" :series="chartSeries"></apexchart>
       </div>
 
       <!-- 선택된 날짜의 판매 데이터 테이블 -->
