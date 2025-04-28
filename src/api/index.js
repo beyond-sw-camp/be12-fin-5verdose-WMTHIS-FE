@@ -29,11 +29,17 @@ export const api = {
       .post("/user/signup", data)
       .then((res) => {
         console.log("signUpRes", res);
-        return res.data.code === 200; // 성공 여부 반환
+        return res.data.code === 200
+          ? { success: true } // 성공 시 성공 정보를 반환
+          : { success: false, message: res.data.message }; // 실패 시 실패 메시지 반환
       })
       .catch((error) => {
         console.error("Error in signUp:", error);
-        return false;
+        return {
+          success: false,
+          message:
+            error.response?.data?.message || "회원가입에 실패하였습니다.",
+        }; // 기본 메시지 반환
       });
   },
 

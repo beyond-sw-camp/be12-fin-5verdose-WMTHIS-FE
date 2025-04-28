@@ -206,11 +206,11 @@ const submit = async () => {
 
   const response = await api.signUp(formData);
 
-  if (response) {
+  if (response.success) {
     router.push({ name: 'signupDone' });
   } else {
     router.push({ name: 'signup1' });
-    alert(response.error || "회원가입에 실패하였습니다.");
+    alert(response.message || "회원가입에 실패하였습니다.");
   }
 };
 
