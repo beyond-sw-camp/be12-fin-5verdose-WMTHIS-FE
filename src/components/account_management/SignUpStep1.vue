@@ -80,32 +80,36 @@ const sendVerificationCode = async () => {
     errorMessage.value = '';
 
     // ✅ 이메일 인증 API 호출
-    await api.emailSend(email.value);
+    const response = await api.emailSend(email.value);
 
-    // 성공 시 처리
-    isVerificationSent.value = true;
-    errorMessage.value = '';
-    alert('인증번호가 전송되었습니다.');
+    if (response) {
+      // 성공 시 처리
+      isVerificationSent.value = true;
+      errorMessage.value = '';
+      alert('인증번호가 전송되었습니다.');
 
-    // ⏱️ 타이머 3분 설정
-    verificationTimer.value = 300;
+      // ⏱️ 타이머 3분 설정
+      verificationTimer.value = 300;
 
-    if (timerInterval.value) {
-      clearInterval(timerInterval.value);
-    }
-
-    timerInterval.value = setInterval(() => {
-      if (verificationTimer.value > 0) {
-        verificationTimer.value--;
-      } else {
+      if (timerInterval.value) {
         clearInterval(timerInterval.value);
-        isVerificationSent.value = false;
       }
-    }, 1000);
+
+      timerInterval.value = setInterval(() => {
+        if (verificationTimer.value > 0) {
+          verificationTimer.value--;
+        } else {
+          clearInterval(timerInterval.value);
+          isVerificationSent.value = false;
+        }
+      }, 1000);
+
+    } else {
+      errorMessage.value = '인증번호 발송에 실패했습니다. 다시 시도해주세요.';
+    }
   } catch (err) {
     // 실패 시 에러 메시지 출력
     errorMessage.value = '인증번호 발송에 실패했습니다. 다시 시도해주세요.';
-    console.error(err);
   } finally {
     isLoading.value = false; // 로딩 종료
   }

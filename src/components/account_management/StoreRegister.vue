@@ -1,5 +1,5 @@
 <script setup>
-import { ref,onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Logo from '@/assets/image/icon.png'; // 로고 이미지 import
 import { api } from "@/api/index";
@@ -58,45 +58,40 @@ const handlePhoneInput = (e) => {
 };
 
 const waitForKakao = () => {
-  return new Promise((resolve) => {
-    const check = () => {
-      if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
-        resolve();
-      } else {
-        setTimeout(check, 100);
-      }
-    };
-    check();
-  });
+    return new Promise((resolve) => {
+        const check = () => {
+            if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
+                resolve();
+            } else {
+                setTimeout(check, 100);
+            }
+        };
+        check();
+    });
 };
 
 // 주소 검색
 const searchAddress = async () => {
-  new window.daum.Postcode({
-    oncomplete: async function (data) {
-      const address = data.address;
-      storeAddress.value = address;
-      console.log(address);
-      await waitForKakao(); // kakao.maps 로드 대기
-      console.log("arrare");
-      // Kakao Maps 좌표 변환 API 사용
-      const geocoder = new window.kakao.maps.services.Geocoder();
-      geocoder.addressSearch(address, function (result, status) {
-        if (status === window.kakao.maps.services.Status.OK) {
-          const lat = result[0].y;
-          const lng = result[0].x;
-          console.log('위도:', lat, '경도:', lng);
+    new window.daum.Postcode({
+        oncomplete: async function (data) {
+            const address = data.address;
+            storeAddress.value = address;
+            await waitForKakao(); // kakao.maps 로드 대기
+            // Kakao Maps 좌표 변환 API 사용
+            const geocoder = new window.kakao.maps.services.Geocoder();
+            geocoder.addressSearch(address, function (result, status) {
+                if (status === window.kakao.maps.services.Status.OK) {
+                    const lat = result[0].y;
+                    const lng = result[0].x;
 
-          storeLatitude.value = lat;
-          storeLongitude.value = lng;
-        } else {
-          alert('주소의 좌표를 찾을 수 없습니다.');
-        }
-      });
-    },
-    width: '100%',
-    height: '100%',
-  }).open();
+                    storeLatitude.value = lat;
+                    storeLongitude.value = lng;
+                }
+            });
+        },
+        width: '100%',
+        height: '100%',
+    }).open();
 };
 
 // 다음 단계로 이동
@@ -126,9 +121,6 @@ const submit = async () => {
             latitude: storeLatitude.value,
             longitude: storeLongitude.value
         };
-
-        console.log('Submitting store registration data:', requestData);
-
         const response = await api.registerStore(requestData);
 
         if (response) {
