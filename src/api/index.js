@@ -29,11 +29,11 @@ export const api = {
       .post("/user/signup", data)
       .then((res) => {
         console.log("signUpRes", res);
-        return res.data.code === 200; // 성공 여부 반환
+        return res.data; // 성공 여부 반환
       })
       .catch((error) => {
         console.error("Error in signUp:", error);
-        return false;
+        return error.response.data;
       });
   },
 
