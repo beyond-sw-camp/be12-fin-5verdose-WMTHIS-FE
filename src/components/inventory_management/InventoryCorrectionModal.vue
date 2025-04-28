@@ -83,7 +83,7 @@ const saveCorrection = async () => {
     return;
   }
   const data = {
-    id: props.item.id,
+    inventoryId: props.item.id,
     expiryDate: expiryDate.value,
     quantity: quantity.value
   }
