@@ -51,6 +51,26 @@ export const api = {
       });
   },
 
+  emailSendifpwfind(data) {
+    console.log("EmailSend data", data);
+    return instance
+      .post("/email/sendcodeifpwfind", { emailUrl: data })
+      .then((res) => {
+        console.log("emailSendRes", res);
+        if (res.data.code === 200) {
+          return true; // 성공
+        } else if (res.data.code === 1016) {
+          throw new Error("해당 이메일로 가입된 계정이 없습니다.");
+        } else {
+          throw new Error("알 수 없는 오류가 발생했습니다. 다시 시도해주세요.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error in emailSend:", error);
+        throw error; // 에러를 throw 해서 상위에서 처리할 수 있게 함
+      });
+  },
+
   emailAuth(code, emailUrl) {
     console.log("EmailAuth data", code, emailUrl);
     return instance
@@ -167,7 +187,10 @@ export const api = {
     console.log("updateInventory storeInventoryData", storeInventoryData);
 
     try {
-      const res = instance.put(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
+      const res = instance.put(
+        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
+        storeInventoryData
+      );
       console.log("updateRes", res);
       console.log("code:", res.data.code);
 
@@ -184,7 +207,10 @@ export const api = {
 
   async SearchInventory(storeInventoryData) {
     try {
-      const res = await instance.get(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
+      const res = await instance.get(
+        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
+        storeInventoryData
+      );
       console.log("searchRes", res);
       console.log("code:", res.data.code);
 
@@ -290,7 +316,9 @@ export const api = {
       .then((res) => {
         if (res.data.code !== 200) {
           // 실패한 응답인 경우 에러로 던짐
-          throw new Error(res.data.message || "결제 처리 중 오류가 발생했습니다.");
+          throw new Error(
+            res.data.message || "결제 처리 중 오류가 발생했습니다."
+          );
         }
         return res.data; // 성공한 응답만 반환
       })
