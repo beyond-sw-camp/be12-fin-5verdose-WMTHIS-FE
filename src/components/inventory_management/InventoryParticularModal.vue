@@ -12,7 +12,7 @@ const props = defineProps({
 });
 
 const recipeList = ref([]);
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close", "updated"]);
 const isCorrectionModalOpen = ref(false);
 const correctionItem = ref(null);
 const isParticularModalOpen = ref(false);
@@ -52,6 +52,7 @@ const fetchInventory = async () => {
   });
   console.log("✅ 갱신된 inventory_items:", inventory_items.value);
   isLoading.value = false; // 로딩 종료
+  emit("updated");
 };
 
 watch(
