@@ -13,10 +13,23 @@ const newPassword = ref('');
 const confirmPassword = ref('');
 const errorMessage = ref('');
 
+// 비밀번호 유효성 검사: 8자리 이상, 대문자 포함, 특수문자 포함
+const passwordPattern = /^(?=.*[A-Z])(?=.*[!@#$%^&*()\-_=+{};:,<.>]).{8,}$/;
+
 // 비밀번호 일치 여부 확인
 const passwordsMatch = computed(() => {
     if (!newPassword.value || !confirmPassword.value) return true;
     return newPassword.value === confirmPassword.value;
+});
+
+// 비밀번호 유효성 여부
+const passwordValid = computed(() => {
+    return passwordPattern.test(newPassword.value);
+});
+
+// 완료 버튼 활성화 여부
+const isSubmitDisabled = computed(() => {
+    return !passwordsMatch.value || !passwordValid.value || !newPassword.value || !confirmPassword.value;
 });
 
 // 완료 버튼 클릭
@@ -34,6 +47,11 @@ const submit = async () => {
 
     if (newPassword.value !== confirmPassword.value) {
         errorMessage.value = '새 비밀번호가 일치하지 않습니다.';
+        return;
+    }
+
+    if (!passwordValid.value) {
+        errorMessage.value = '비밀번호는 8자리 이상, 대문자와 특수문자를 포함해야 합니다.';
         return;
     }
 
@@ -78,6 +96,9 @@ const submit = async () => {
                 <label for="new-password">새 비밀번호</label>
                 <input type="password" id="new-password" v-model="newPassword" class="form-input"
                     placeholder="새 비밀번호를 입력하세요" />
+                <div v-if="newPassword && !passwordValid" class="password_error">
+                    비밀번호는 8자리 이상, 대문자와 특수문자를 포함해야 합니다.
+                </div>
             </div>
 
             <div class="form-group">
@@ -89,7 +110,7 @@ const submit = async () => {
                 </div>
             </div>
 
-            <button type="submit" class="complete-button">
+            <button type="submit" class="complete-button" :disabled="isSubmitDisabled">
                 완료
             </button>
         </form>
@@ -221,5 +242,31 @@ const submit = async () => {
         max-width: 400px;
         margin: 0 auto;
     }
+}
+
+.complete-button {
+    background-color: #B8C0C8;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.complete-button:disabled {
+    background-color: #d3d3d3;
+    color: #a1a1a1;
+    cursor: not-allowed;
+    border: 1px solid #ccc;
+}
+
+.complete-button:hover:not(:disabled) {
+    background-color: #98A8B8;
+}
+
+.password_error {
+    color: red;
 }
 </style>

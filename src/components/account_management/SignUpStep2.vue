@@ -206,9 +206,10 @@ const submit = async () => {
 
   const response = await api.signUp(formData);
 
-  if (response.code === 200) {
+
+  if (response.success) {
     alert('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
-    router.push({ name: 'login' });
+    router.push({ name: 'login' })
   } else {
     alert(response.data || "회원가입에 실패하였습니다.");
     router.push({ name: 'signup1' });
