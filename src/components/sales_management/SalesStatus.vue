@@ -212,13 +212,14 @@ const stockChangeInfo = computed(() => {
   }
 
   // itemQuantityDtoList에 항목이 있는 경우
-  const mostChangedItem = stockChangeItems.value[0]; // 첫 번째 항목이 가장 많이 변경된 항목이라고 가정
+  const mostChangedItems = stockChangeItems.value; // 첫 번째 항목이 가장 많이 변경된 항목이라고 가정
+  const itemNames = mostChangedItems.map((item) => item.itemName).join(", ");
 
   return {
     line1: "한달 동안 재고를 총",
     highlight1: `${totalStockChanges.value}`,
     line2: "회 수정했습니다",
-    highlight2: `${mostChangedItem.itemName}`,
+    highlight2: itemNames,
     highlight3: "",
     line3: "의 재고 수정량이 많습니다.",
     line4: "",
