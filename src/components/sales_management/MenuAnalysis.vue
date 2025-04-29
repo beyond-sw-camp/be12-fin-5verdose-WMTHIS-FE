@@ -6,7 +6,6 @@ import Calendar from "@/components/Calendar.vue";
 import { api } from "@/api/index.js";
 
 const keyword = ref("");
-
 const startDate = ref("");
 const endDate = ref("");
 
@@ -16,7 +15,7 @@ watch([startDate, endDate], ([newStart, newEnd]) => {
     const end = new Date(newEnd);
 
     if (start > end) {
-      console.warn("⚠️ 시작일이 종료일보다 늦습니다. API 호출하지 않음");
+      console.warn("시작일이 종료일보다 늦습니다. API 호출하지 않음");
       return;
     }
 
@@ -31,9 +30,7 @@ async function fetchAndSetSalesData() {
       startDate: startDate.value,
       endDate: endDate.value,
     };
-    console.log(payload);
     const data = await api.SearchMenuSale(payload);
-    console.log("📦 받은 데이터:", data);
 
     if (data !== 404) {
       salesData.value = data.map((item) => {
@@ -50,10 +47,10 @@ async function fetchAndSetSalesData() {
         };
       });
     } else {
-      console.error("❌ 판매 데이터를 불러오지 못했습니다.");
+      console.error("판매 데이터를 불러오지 못했습니다.");
     }
   } catch (error) {
-    console.error("🔥 에러 발생:", error);
+    console.error("에러 발생:", error);
   }
 }
 
