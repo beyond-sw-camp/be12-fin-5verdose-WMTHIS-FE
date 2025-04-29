@@ -154,6 +154,12 @@ const routes = createRouter({
           component: () => import("@/components/pos_management/POSPay.vue"),
           name: "POSPay",
         },
+        {
+          path: "deliverypositem",
+          component: () =>
+            import("@/components/pos_management/POSDeliveryOrderList.vue"),
+          name: "POSDelivery",
+        },
       ],
     },
   ],

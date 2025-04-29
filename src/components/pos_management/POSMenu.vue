@@ -183,11 +183,12 @@ const loadExistingOrders = () => {
       orderList.value = [];
     }
   } else if (orderInfo.value.type === "delivery") {
-    const deliveryOrders = JSON.parse(localStorage.getItem("delivery_orders") || "{}");
+    // 현재 작업 중인 배달 주문 불러오기
+    const currentDeliveryOrder = JSON.parse(localStorage.getItem("current_delivery_order") || "{}");
     const service = orderInfo.value.deliveryService;
 
-    if (deliveryOrders[service] && deliveryOrders[service].length > 0) {
-      orderList.value = JSON.parse(JSON.stringify(deliveryOrders[service])); // 깊은 복사
+    if (currentDeliveryOrder[service] && currentDeliveryOrder[service].length > 0) {
+      orderList.value = JSON.parse(JSON.stringify(currentDeliveryOrder[service])); // 깊은 복사
     } else {
       orderList.value = [];
     }
@@ -296,12 +297,12 @@ const showModal = ref(false);
 const selectedItem = ref(null);
 
 const openModal = (item) => {
-  if (item) {
-    selectedItem.value = { ...item };
-    showModal.value = true;
-  } else {
+  if (!item) {
     console.error("Invalid item passed to openModal:", item);
+    return;
   }
+  selectedItem.value = { ...item };
+  showModal.value = true;
 };
 
 const closeModal = () => {
@@ -337,9 +338,10 @@ const saveOrdersToLocalStorage = () => {
       localStorage.setItem("restaurant_tables", JSON.stringify(tables));
     }
   } else if (orderInfo.value.type === "delivery") {
-    const deliveryOrders = JSON.parse(localStorage.getItem("delivery_orders") || "{}");
-    deliveryOrders[orderInfo.value.deliveryService] = [...orderList.value];
-    localStorage.setItem("delivery_orders", JSON.stringify(deliveryOrders));
+    // 현재 작업 중인 배달 주문 저장
+    const currentDeliveryOrder = JSON.parse(localStorage.getItem("current_delivery_order") || "{}");
+    currentDeliveryOrder[orderInfo.value.deliveryService] = [...orderList.value];
+    localStorage.setItem("current_delivery_order", JSON.stringify(currentDeliveryOrder));
   }
 };
 
@@ -370,17 +372,38 @@ const decreaseQuantity = (index) => {
 
 // 테이블 선택 화면으로 돌아가기
 const goBack = () => {
-  // 주문 목록 저장 후 이동
-  saveOrdersToLocalStorage();
-  router.push("/pos");
-};
+  // 배달 주문인 경우
+  if (orderInfo.value.type === "delivery") {
+    // 수정 중인 주문인지 확인
+    const editingOrderInfo = localStorage.getItem("editing_delivery_order");
 
+    if (editingOrderInfo) {
+      console.log("수정 중인 주문 - 상태 유지");
+      localStorage.removeItem("editing_delivery_order");
+      router.push("/deliverypositem");
+    } else {
+      // 새 주문인 경우, 현재 작업 중인 배달 주문 삭제
+      const currentDeliveryOrder = JSON.parse(localStorage.getItem("current_delivery_order") || "{}");
+      if (currentDeliveryOrder[orderInfo.value.deliveryService]) {
+        delete currentDeliveryOrder[orderInfo.value.deliveryService];
+        localStorage.setItem("current_delivery_order", JSON.stringify(currentDeliveryOrder));
+        router.push("/pos");
+      }
+    }
+  } else {
+    // 테이블 주문인 경우 기존처럼 주문 목록 저장
+    saveOrdersToLocalStorage();
+    router.push("/pos");
+  }
+
+};
 
 // 주문 완료 후 테이블 선택 화면으로 이동
 const completeOrder = () => {
   showOrderCompleteModal.value = false;
   router.push("/pos");
 };
+
 // 주문 처리
 const processOrder = async () => {
   if (orderList.value.length === 0) {
@@ -388,25 +411,74 @@ const processOrder = async () => {
     return;
   }
 
-  // 재고 확인 (프론트에서는 알림을 띄우지 않음)
-  const stockStatus = await checkStockAvailability(orderList.value);
-  if (stockStatus) {
-    const outOfStockItems = orderList.value.filter((order) => {
-      const stock = stockStatus[order.id]; // 재고 상태 확인
-      return !stock || order.quantity > stock.quantity; // 재고 부족한 아이템 찾기
-    });
+  await checkStockAvailability(orderList.value);
 
-    if (outOfStockItems.length > 0) {
-      // 재고 부족 아이템이 있을 경우 알림 없이 처리만 진행
-      console.log(`재고 부족 아이템: ${outOfStockItems.map(item => item.name).join(', ')}`);
-      return; // 재고 부족 아이템이 있을 경우 더 이상 진행하지 않음
+  // 배달 주문인 경우
+  if (orderInfo.value.type === "delivery") {
+    const service = orderInfo.value.deliveryService;
+
+    // 수정 중인 주문인지 확인
+    const editingOrderInfo = localStorage.getItem("editing_delivery_order");
+
+    if (editingOrderInfo) {
+      // 수정 중인 주문인 경우
+      const editingOrder = JSON.parse(editingOrderInfo);
+
+      if (editingOrder.service === service) {
+        // 수정된 주문을 원래 주문 목록에 업데이트
+        const deliveryOrders = JSON.parse(localStorage.getItem("delivery_orders") || "{}");
+
+        if (deliveryOrders[service] && Array.isArray(deliveryOrders[service])) {
+          // 원본 주문 찾기
+          const orderIndex = editingOrder.orderIndex;
+
+          if (orderIndex >= 0 && orderIndex < deliveryOrders[service].length) {
+            // 수정된 주문 항목으로 업데이트
+            deliveryOrders[service][orderIndex].items = [...orderList.value];
+            localStorage.setItem("delivery_orders", JSON.stringify(deliveryOrders));
+          }
+        }
+      }
+
+      // 수정 중인 주문 정보 삭제
+      localStorage.removeItem("editing_delivery_order");
+    } else {
+      // 새 주문인 경우 - 기존 코드와 동일하게 처리
+      const deliveryOrders = JSON.parse(localStorage.getItem("delivery_orders") || "{}");
+
+      // 서비스별 주문 배열이 없으면 초기화
+      if (!deliveryOrders[service]) {
+        deliveryOrders[service] = [];
+      }
+
+      // 타임스탬프와 주문 ID 추가하여 각 주문을 고유하게 만듦
+      const timestamp = new Date().getTime();
+      const orderWithMeta = {
+        id: `order_${timestamp}`,
+        timestamp: timestamp,
+        service: service,
+        items: [...orderList.value]
+      };
+
+      // 새 주문을 배열에 추가
+      deliveryOrders[service].push(orderWithMeta);
+      localStorage.setItem("delivery_orders", JSON.stringify(deliveryOrders));
     }
+
+    // 현재 작업 중인 배달 주문 삭제
+    const currentDeliveryOrder = JSON.parse(localStorage.getItem("current_delivery_order") || "{}");
+    if (currentDeliveryOrder[service]) {
+      delete currentDeliveryOrder[service];
+      localStorage.setItem("current_delivery_order", JSON.stringify(currentDeliveryOrder));
+    }
+
+    // 배달 주문 목록 페이지로 이동
+    router.push("/pos");
+    return;
   }
 
-  // 주문 목록 저장
+  // 테이블 주문인 경우 주문 목록 저장 후 주문 완료 모달 표시
   saveOrdersToLocalStorage();
-
-  // 주문 완료 모달 표시
   showOrderCompleteModal.value = true;
 };
 
@@ -418,26 +490,14 @@ const processPayment = async () => {
   }
 
   // 재고 확인 (프론트에서는 알림을 띄우지 않음)
-  const stockStatus = await checkStockAvailability(orderList.value);
-  if (stockStatus) {
-    const outOfStockItems = orderList.value.filter((order) => {
-      const stock = stockStatus[order.id]; // 재고 상태 확인
-      return !stock || order.quantity > stock.quantity; // 재고 부족한 아이템 찾기
-    });
-
-    if (outOfStockItems.length > 0) {
-      // 재고 부족 아이템이 있을 경우 알림 없이 처리만 진행
-      console.log(`재고 부족 아이템: ${outOfStockItems.map(item => item.name).join(', ')}`);
-      return; // 재고 부족 아이템이 있을 경우 더 이상 진행하지 않음
-    }
-  }
+  await checkStockAvailability(orderList.value);
 
   // 주문 목록 저장
   saveOrdersToLocalStorage();
 
   // 결제 페이지로 이동 (주문 목록 전달)
   router.push({
-    path: "/payment",
+    path: "/pay",
     query: { orders: JSON.stringify(orderList.value) },
   });
 };
@@ -522,17 +582,16 @@ const processPayment = async () => {
       <!-- 주문 버튼 & 결제 버튼 -->
       <div class="order_actions">
         <button class="order_btn" @click="processOrder">주문</button>
-        <router-link :to="{ path: '/pay', query: { orders: JSON.stringify(orderList) } }">
-          <button class="cart_btn" :disabled="orderList.length === 0" @click="processOrder">
-            <span class="cart_icon">{{ total_quantity }}</span>
-            {{ total_price.toLocaleString() }}원 결제
-          </button>
-        </router-link>
+        <button class="cart_btn" :disabled="orderList.length === 0" @click="processPayment">
+          <span class="cart_icon">{{ total_quantity }}</span>
+          {{ total_price.toLocaleString() }}원 결제
+        </button>
       </div>
     </div>
 
     <!-- 메뉴 옵션 모달 -->
     <POSOption v-if="showModal" :selectedItem="selectedItem" @close="closeModal" @addOrder="addOrder" />
+
     <!-- 주문 완료 모달 -->
     <div v-if="showOrderCompleteModal" class="modal_overlay">
       <div class="modal_content order_complete_modal">
@@ -543,6 +602,7 @@ const processPayment = async () => {
     </div>
   </div>
 </template>
+
 <style scoped>
 button:disabled {
   opacity: 0.5;
@@ -556,7 +616,7 @@ button:disabled {
   margin: 0 auto;
   padding: 20px;
   background-color: #f5f5f5;
-  min-height: 100vh;
+  min-height: 80vh;
   gap: 20px;
 }
 
