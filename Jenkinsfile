@@ -8,7 +8,7 @@ pipeline {
     environment {
         IMAGE_NAME = 'jkweil125/wmthis-front'
         IMAGE_TAG = "${BUILD_NUMBER}"
-        DEPLOYMENT_NAME = 'wmthis-front-deployment'
+        DEPLOYMENT_NAME = 'wmthis-frontend'
         KUBE_NAMESPACE = 'default' // 필요 시 변경
     }
 
@@ -72,20 +72,18 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ${DEPLOYMENT_NAME}
-  labels:
-    app: wmthis-front
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
-      app: wmthis-front
+      app: wmthis-frontend
   template:
     metadata:
       labels:
-        app: wmthis-front
+        app: wmthis-frontend
     spec:
       containers:
-        - name: wmthis-front-container
+        - name: frontend
           image: ${IMAGE_NAME}:${IMAGE_TAG}
           ports:
             - containerPort: 80
