@@ -240,6 +240,10 @@ const chartOptions = computed(() => {
         text: "판매 건수",
       },
     },
+    colors: ["#4CAF50"],
+    dataLabels: {
+      enabled: false,
+    },
   };
 });
 </script>
