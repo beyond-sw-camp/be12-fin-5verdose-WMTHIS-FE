@@ -1,6 +1,8 @@
 <script setup>
-import { defineProps, defineEmits, ref, onMounted, watch } from "vue";
+import { defineProps, defineEmits, ref, computed, watch } from "vue";
 import InventoryCorrectionModal from "@/components/inventory_management/InventoryCorrectionModal.vue";
+import DeleteConfirmModal from "@/components/alerts/DeleteConfirmModal.vue";
+import DeleteAlertModal from "@/components/alerts/DeleteAlertModal.vue";
 import { api } from "@/api/MenuApi.js";
 
 const props = defineProps({
@@ -16,6 +18,8 @@ const emit = defineEmits(["close", "updated"]);
 const isCorrectionModalOpen = ref(false);
 const correctionItem = ref(null);
 const isParticularModalOpen = ref(false);
+const isDeleteConfirmOpen = ref(false);
+const isDeleteAlertOpen = ref(false);
 const selectedDays = ref("1");
 const customDays = ref("");
 const unit = ref("");
@@ -37,6 +41,25 @@ const openCorrectionModal = (item) => {
   isModalOpen.value = true;
 };
 
+// 전체 선택 기능
+const select_all = ref(false);
+const isBlocked = computed(
+  () => isDeleteConfirmOpen.value || isDeleteAlertOpen.value
+);
+
+const toggle_select_all = () => {
+  if (!isBlocked.value) {
+    inventory_items.value.forEach((item) => (item.selected = select_all.value));
+  }
+};
+const openDeleteConfirm = () => {
+  const selectedItems = inventory_items.value.some((item) => item.selected);
+  if (selectedItems) {
+    isDeleteConfirmOpen.value = true; // 삭제 확인 모달 열기
+  } else {
+    alert("삭제할 항목을 선택해주세요.");
+  }
+};
 const inventory_items = ref([]);
 
 const fetchInventory = async () => {
@@ -54,6 +77,34 @@ const fetchInventory = async () => {
   isLoading.value = false; // 로딩 종료
   emit("updated");
 };
+const closeDeleteConfirm = () => {
+  isDeleteConfirmOpen.value = false; // 삭제 확인 모달 닫기
+};
+const deleteSelectedItems = async () => {
+  const selectedIds = inventory_items.value
+    .filter((item) => item.selected)
+    .map((item) => item.id);
+
+  if (selectedIds.length > 0) {
+    try {
+      const response = await api.deleteListInventory(selectedIds);
+      console.log("✅ 삭제 API 호출:", response);
+      if (response.code === 200) {
+        alert("삭제되었습니다.");
+        fetchInventory(); // 삭제 후 재고 목록 갱신
+      } else {
+        alert("삭제 실패: " + (response.message || "다시 시도해주세요."));
+      }
+    } catch (error) {
+      alert("삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
+      console.error("삭제 오류:", error);
+    }
+  } else {
+    alert("삭제할 항목을 선택해주세요.");
+  }
+
+  closeDeleteConfirm(); // 삭제 확인 모달 닫기
+};
 
 watch(
   () => props.item,
@@ -64,6 +115,14 @@ watch(
     }
   },
   { immediate: true }
+);
+
+watch(
+  inventory_items,
+  (new_items) => {
+    select_all.value = new_items.every((item) => item.selected);
+  },
+  { deep: true }
 );
 </script>
 <template>
@@ -107,6 +166,14 @@ watch(
           <table class="inventory_table">
             <thead>
               <tr>
+                <th>
+                  <input
+                    type="checkbox"
+                    v-model="select_all"
+                    @change="toggle_select_all"
+                    class="circle_checkbox"
+                  />
+                </th>
                 <th>입고날짜</th>
                 <th>유통기한</th>
                 <th>수량</th>
@@ -115,6 +182,13 @@ watch(
             </thead>
             <tbody>
               <tr v-for="(item, index) in inventory_items" :key="index">
+                <td>
+                  <input
+                    type="checkbox"
+                    v-model="item.selected"
+                    class="circle_checkbox"
+                  />
+                </td>
                 <td>{{ item.purchaseDate }}</td>
                 <td>{{ item.expiryDate }}</td>
                 <td>{{ item.quantity }} {{ props.item.unit }}</td>
@@ -126,6 +200,9 @@ watch(
               </tr>
             </tbody>
           </table>
+          <button type="button" @click="openDeleteConfirm" class="btn">
+            삭제
+          </button>
         </div>
       </div>
       <div class="modal_footer">
@@ -139,6 +216,11 @@ watch(
       :isOpen="isModalOpen"
       @close="closeModal"
       @updated="fetchInventory"
+    />
+    <DeleteConfirmModal
+      :isOpen="isDeleteConfirmOpen"
+      @confirm="deleteSelectedItems"
+      @cancel="closeDeleteConfirm"
     />
   </div>
 </template>
@@ -613,5 +695,53 @@ watch(
   border-radius: 18px;
   font-size: 14px;
   text-align: right;
+}
+.circle_checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  border: 2px solid #666;
+  border-radius: 50%;
+  /* 둥글게 */
+  background-color: white;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease-in-out;
+}
+
+.circle_checkbox:checked {
+  background-color: #708090;
+  border-color: #708090;
+}
+
+.circle_checkbox:checked::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 8px;
+  height: 8px;
+  background: #708090;
+  border-radius: 50%;
+}
+.text-button {
+  background: none;
+  border: none;
+  color: #1976d2; /* Vuetify 기본 primary 색상 */
+  padding: 6px 8px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.text-button:hover {
+  background-color: rgba(25, 118, 210, 0.1); /* hover 시 약간의 배경색 */
+}
+
+.text-button:focus {
+  outline: none;
+  background-color: rgba(25, 118, 210, 0.2); /* focus 시 더 진한 배경 */
 }
 </style>
