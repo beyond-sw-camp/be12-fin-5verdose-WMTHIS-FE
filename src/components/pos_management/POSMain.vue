@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -17,6 +17,26 @@ const tables = ref([
     { id: 9, name: '테이블 09', status: 'empty', orders: [] },
 ]);
 
+const deliveryOrdersCount = ref(0);
+
+// 배달 주문 건수 계산 함수
+const calculateDeliveryOrdersCount = () => {
+    const deliveryOrders = JSON.parse(localStorage.getItem('delivery_orders') || '{}');
+    let count = 0;
+
+    // 각 배달 서비스의 주문 건수 합산
+    Object.keys(deliveryOrders).forEach(service => {
+        if (deliveryOrders[service] && Array.isArray(deliveryOrders[service])) {
+            count += deliveryOrders[service].length;
+        }
+    });
+
+    deliveryOrdersCount.value = count;
+};
+
+// 주문 건수를 주기적으로 업데이트
+let intervalId;
+
 onMounted(() => {
     const savedTables = localStorage.getItem('restaurant_tables');
     if (savedTables) {
@@ -24,7 +44,25 @@ onMounted(() => {
     } else {
         localStorage.setItem('restaurant_tables', JSON.stringify(tables.value)); // 💡 없을 때는 기본 테이블을 저장
     }
+
+    // 배달 주문 건수 계산
+    calculateDeliveryOrdersCount();
+
+    // 5초마다 배달 주문 건수 업데이트
+    intervalId = setInterval(calculateDeliveryOrdersCount, 5000);
 });
+
+onBeforeUnmount(() => {
+    // 컴포넌트가 언마운트될 때 인터벌 정리
+    if (intervalId) {
+        clearInterval(intervalId);
+    }
+});
+
+// 배달 주문 목록 페이지로 이동
+const goToDeliveryOrders = () => {
+    router.push('/deliverypositem');
+};
 
 // 배달 주문 모달 상태
 const showDeliveryModal = ref(false);
@@ -147,7 +185,14 @@ const cancelTableOrders = () => {
     <div class="table_selection_container">
         <div class="header">
             <h1>테이블 선택</h1>
-            <button class="delivery_btn" @click="openDeliveryModal">배달 주문</button>
+            <div class="header_buttons">
+                <!-- 배달 주문 목록 버튼 - 항상 표시 -->
+                <button class="delivery_orders_btn" @click="goToDeliveryOrders">
+                    배달 주문 목록
+                    <span class="order_badge" v-if="deliveryOrdersCount > 0">{{ deliveryOrdersCount }}</span>
+                </button>
+                <button class="delivery_btn" @click="openDeliveryModal">배달 주문</button>
+            </div>
         </div>
 
         <div class="tables_grid">
@@ -238,6 +283,11 @@ const cancelTableOrders = () => {
     color: #333;
 }
 
+.header_buttons {
+    display: flex;
+    gap: 10px;
+}
+
 .delivery_btn {
     background-color: #6c3ce9;
     color: white;
@@ -252,6 +302,42 @@ const cancelTableOrders = () => {
 
 .delivery_btn:hover {
     background-color: #5c2cd9;
+}
+
+/* 배달 주문 목록 버튼 스타일 */
+.delivery_orders_btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    position: relative;
+}
+
+.delivery_orders_btn:hover {
+    background-color: #c82333;
+}
+
+/* 주문 건수 배지 스타일 */
+.order_badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #ffc107;
+    color: #212529;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    border: 2px solid white;
 }
 
 .tables_grid {
@@ -545,6 +631,10 @@ const cancelTableOrders = () => {
     .delivery_options {
         flex-direction: column;
     }
+
+    .header_buttons {
+        flex-direction: column;
+    }
 }
 
 @media (max-width: 480px) {
@@ -559,7 +649,12 @@ const cancelTableOrders = () => {
         gap: 10px;
     }
 
-    .delivery_btn {
+    .header_buttons {
+        width: 100%;
+    }
+
+    .delivery_btn,
+    .delivery_orders_btn {
         width: 100%;
     }
 }

@@ -3,7 +3,6 @@ import { ref, computed, onMounted, nextTick, watch } from "vue";
 import upIcon from "@/assets/image/up.png";
 import downIcon from "@/assets/image/down.png";
 import Calendar from "@/components/Calendar.vue";
-import StockDiagram from "@/components/sales_management/StockDiagram.vue";
 import { api } from "@/api/index.js";
 
 const keyword = ref("");
@@ -16,10 +15,9 @@ watch([startDate, endDate], ([newStart, newEnd]) => {
     const end = new Date(newEnd);
 
     if (start > end) {
-      console.warn("⚠️ 시작일이 종료일보다 늦습니다. API 호출하지 않음");
+      console.warn("시작일이 종료일보다 늦습니다. API 호출하지 않음");
       return;
     }
-
     fetchAndSetSalesData();
     fetchAndSetMarketData();
     fetchAndSetStockData();
@@ -33,9 +31,7 @@ async function fetchAndSetSalesData() {
       startDate: startDate.value,
       endDate: endDate.value,
     };
-    console.log(payload);
     const data = await api.SearchInventorySale(payload);
-    console.log("📦 받은 데이터:", data);
 
     if (data !== 404) {
       salesMenu.value = data.map((item) => {
@@ -53,10 +49,10 @@ async function fetchAndSetSalesData() {
         };
       });
     } else {
-      console.error("❌ 판매 데이터를 불러오지 못했습니다.");
+      console.error("판매 데이터를 불러오지 못했습니다.");
     }
   } catch (error) {
-    console.error("🔥 에러 발생:", error);
+    console.error("에러 발생:", error);
   }
 }
 
@@ -67,9 +63,7 @@ async function fetchAndSetMarketData() {
       startDate: startDate.value,
       endDate: endDate.value,
     };
-    console.log(payload);
     const data = await api.SearchInventoryMarket(payload);
-    console.log("📦 받은 데이터:", data);
 
     if (data !== 404) {
       salesMarket.value = data.map((item) => {
@@ -87,10 +81,10 @@ async function fetchAndSetMarketData() {
         };
       });
     } else {
-      console.error("❌ 판매 데이터를 불러오지 못했습니다.");
+      console.error("판매 데이터를 불러오지 못했습니다.");
     }
   } catch (error) {
-    console.error("🔥 에러 발생:", error);
+    console.error("에러 발생:", error);
   }
 }
 
@@ -101,9 +95,7 @@ async function fetchAndSetStockData() {
       startDate: startDate.value,
       endDate: endDate.value,
     };
-    console.log(payload);
     const data = await api.SearchInventoryUpdate(payload);
-    console.log("📦 받은 데이터:", data);
 
     if (data !== 404) {
       changeStock.value = data.map((item) => {
@@ -121,10 +113,10 @@ async function fetchAndSetStockData() {
         };
       });
     } else {
-      console.error("❌ 판매 데이터를 불러오지 못했습니다.");
+      console.error("판매 데이터를 불러오지 못했습니다.");
     }
   } catch (error) {
-    console.error("🔥 에러 발생:", error);
+    console.error("에러 발생:", error);
   }
 }
 
@@ -141,12 +133,12 @@ async function fetchAndSetFlatList() {
       unit: item.unit,
     }));
   } else {
-    console.error("❌ 메뉴 데이터를 불러오지 못했습니다.");
+    console.error("메뉴 데이터를 불러오지 못했습니다.");
   }
 }
 
 onMounted(() => {
-  fetchAndSetFlatList(); // ✅ 마운트 시 실행
+  fetchAndSetFlatList();
 });
 
 const selectedIndex = ref(0);

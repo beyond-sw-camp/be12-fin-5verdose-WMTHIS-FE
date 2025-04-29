@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from "vue";
 import { api } from "@/api/index";
+import { onMounted } from "vue";
 
 const currentCarousel = ref(0);
 const xaxisCategories = ref([]);
@@ -34,7 +35,6 @@ const getInventoryStatus = async () => {
 
     if (response) {
       inventoryStatus.value = response.data;
-      console.log("재고 상태:", inventoryStatus.value);
     } else {
       console.error("재고 API 호출 실패:", response.message);
     }
@@ -45,6 +45,7 @@ const getInventoryStatus = async () => {
 
 const chartOptions = ref({
   chart: {
+    stacked: true, // 스택 형태가 아닌 그룹화된 막대 그래프로 변경
     id: "sales-chart",
     type: "bar",
     toolbar: { show: false },
@@ -52,7 +53,7 @@ const chartOptions = ref({
   xaxis: {
     categories: xaxisCategories.value,
     min: 0,
-    tickAmount: 24, // 0~23시간 기준이면 24칸
+    tickAmount: 23, // 0~23시간 기준이면 24칸
     labels: {
       show: true,
       step: 1, // 1단위로 레이블 표시
@@ -61,12 +62,16 @@ const chartOptions = ref({
   },
   plotOptions: {
     bar: {
-      borderRadius: 4,
       horizontal: false,
-      columnWidth: "60%", // 막대 간격 조절
+      columnWidth: "40%", // 막대 간격 조절
     },
   },
-  colors: ["#191970", "#7DC8B1"], // 각각 배달, 홀 색상
+  colors: ["#FFD666", "#7DC8B1"], // 각각 배달, 홀 색상
+  stroke: {
+    show: true,
+    width: 2,
+    colors: ["transparent"],
+  },
   dataLabels: {
     enabled: false,
   },
@@ -101,9 +106,6 @@ const getTodaySales = async () => {
           })),
         },
       ];
-
-      console.log("xaxisCategories:", xaxisCategories.value);
-      console.log("series:", series.value);
     } else {
       console.error("API 호출 실패:", response.message);
     }
@@ -134,7 +136,6 @@ const getBestMarket = async () => {
   try {
     // API 호출
     const response = await api.getBestMarket(); // 실제 API 엔드포인트로 변경
-    console.log(response);
 
     if (response) {
       // 응답 구조가 { code, message, data: { name, amount, unit } } 형태인 경우 처리
@@ -165,7 +166,6 @@ const getBestMarket = async () => {
 const getStockChange = async () => {
   try {
     const response = await api.getStockChange();
-    console.log(response);
 
     if (response) {
       totalStockChanges.value = response.total;
@@ -177,11 +177,14 @@ const getStockChange = async () => {
     console.error("API 호출 중 오류 발생:", error);
   }
 };
-getBestMenu();
-getTodaySales();
-getInventoryStatus();
-getBestMarket();
-getStockChange();
+
+onMounted(() => {
+  getBestMenu(); // BEST Menu TOP3
+  getTodaySales(); // 오늘의 판매량
+  getInventoryStatus(); // 대시보드 안 재고 관련
+  getBestMarket(); // 장터에 판 물품
+  getStockChange(); // 재고 수정
+});
 
 // 재고 변경 정보를 위한 computed 속성
 const stockChangeInfo = computed(() => {
@@ -212,13 +215,14 @@ const stockChangeInfo = computed(() => {
   }
 
   // itemQuantityDtoList에 항목이 있는 경우
-  const mostChangedItem = stockChangeItems.value[0]; // 첫 번째 항목이 가장 많이 변경된 항목이라고 가정
+  const mostChangedItems = stockChangeItems.value; // 첫 번째 항목이 가장 많이 변경된 항목이라고 가정
+  const itemNames = mostChangedItems.map((item) => item.itemName).join(", ");
 
   return {
     line1: "한달 동안 재고를 총",
     highlight1: `${totalStockChanges.value}`,
     line2: "회 수정했습니다",
-    highlight2: `${mostChangedItem.itemName}`,
+    highlight2: itemNames,
     highlight3: "",
     line3: "의 재고 수정량이 많습니다.",
     line4: "",

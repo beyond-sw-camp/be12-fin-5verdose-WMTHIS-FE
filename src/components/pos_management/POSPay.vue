@@ -12,6 +12,9 @@ const orderInfo = ref({
     deliveryService: ''
 });
 
+// 주문 ID 저장 (배달 주문 결제 시 사용)
+const orderId = ref(null);
+const isProcessing = ref(false);
 
 onMounted(() => {
     try {
@@ -23,6 +26,11 @@ onMounted(() => {
                 optionIds: item.optionIds || [], // optionIds 초기화
                 options: item.options || [], // options 초기화
             }));
+        }
+
+        // 배달 주문 ID 가져오기 (있는 경우)
+        if (route.query.orderId) {
+            orderId.value = route.query.orderId;
         }
 
         // 로컬스토리지에서 옵션 데이터 가져오기
@@ -45,7 +53,7 @@ onMounted(() => {
             orderInfo.value = {
                 type: 'delivery',
                 tableId: null,
-                deliveryService: localStorage.getItem('delivery_service'), // baemin, yogiyo, coupang 중 하나
+                deliveryService: route.query.service || localStorage.getItem('delivery_service'), // baemin, yogiyo, coupang 중 하나
             };
         }
     } catch (error) {
@@ -76,45 +84,43 @@ const selectPayment = (method) => {
 
 // 결제 처리
 const processPayment = async () => {
-    console.log('Order List:', orderList.value);
-
-    if (!selectedPayment.value) {
-        alert('결제 방법을 선택해주세요.');
-        return;
-    }
-
-    const requestData = {
-        tableNumber: orderInfo.value.type === 'table' ? orderInfo.value.tableId : null,
-        orderType: orderInfo.value.type === 'table' ? 'hall' : orderInfo.value.deliveryService,
-        orderMenus: orderList.value.map((item) => ({
-            menuId: item.id,
-            quantity: item.quantity,
-            price: item.basePrice,
-            optionIds: item.optionIds || [],
-        })),
-    };
-
-    console.log('Request Data:', requestData);
+    if (isProcessing.value) return; // 중복 클릭 방지
+    isProcessing.value = true;
 
     try {
+        if (!selectedPayment.value) {
+            alert('결제 방법을 선택해주세요.');
+            return;
+        }
+
+        const requestData = {
+            tableNumber: orderInfo.value.type === 'table' ? orderInfo.value.tableId : null,
+            orderType: orderInfo.value.type === 'table' ? 'hall' : orderInfo.value.deliveryService,
+            orderMenus: orderList.value.map((item) => ({
+                menuId: item.id,
+                quantity: item.quantity,
+                price: item.basePrice,
+                optionIds: item.optionIds || [],
+            })),
+        };
+
         const response = await api.posOrder(requestData);
 
         alert(`${selectedPayment.value} 방식으로 ${total_price.value.toLocaleString()}원 결제가 완료되었습니다.`);
 
-        // 결제 완료 후 주문 초기화
         if (orderInfo.value.type === 'table') {
             clearTableOrders(orderInfo.value.tableId);
         } else if (orderInfo.value.type === 'delivery') {
             clearDeliveryOrders(orderInfo.value.deliveryService);
         }
 
-        // 로컬스토리지 초기화 및 이동
         localStorage.removeItem('selected_options');
         router.push('/pos');
-
     } catch (error) {
         console.error('결제 처리 중 오류:', error);
-        alert(error.message); // 서버가 보낸 메시지 그대로 사용자에게 표시
+        alert(error.message);
+    } finally {
+        isProcessing.value = false;
     }
 };
 
@@ -131,13 +137,34 @@ const clearTableOrders = (tableId) => {
     }
 };
 
-// 배달 주문 초기화
+// 배달 주문 초기화 - 특정 주문만 삭제하도록 수정
 const clearDeliveryOrders = (service) => {
     const deliveryOrders = JSON.parse(localStorage.getItem('delivery_orders') || '{}');
 
-    if (deliveryOrders[service]) {
-        deliveryOrders[service] = [];
+    // 특정 주문 ID가 있는 경우 해당 주문만 삭제
+    if (orderId.value && deliveryOrders[service]) {
+        const orderIndex = deliveryOrders[service].findIndex(order => order.id === orderId.value);
+        if (orderIndex !== -1) {
+            deliveryOrders[service].splice(orderIndex, 1);
+
+            // 해당 서비스의 주문이 모두 삭제된 경우 서비스 키 자체를 삭제
+            if (deliveryOrders[service].length === 0) {
+                delete deliveryOrders[service];
+            }
+
+            localStorage.setItem('delivery_orders', JSON.stringify(deliveryOrders));
+        }
+    } else if (deliveryOrders[service]) {
+        // 주문 ID가 없는 경우 해당 서비스의 모든 주문 삭제 (기존 동작)
+        delete deliveryOrders[service];
         localStorage.setItem('delivery_orders', JSON.stringify(deliveryOrders));
+    }
+
+    // 현재 작업 중인 배달 주문도 삭제
+    const currentDeliveryOrder = JSON.parse(localStorage.getItem('current_delivery_order') || '{}');
+    if (currentDeliveryOrder[service]) {
+        delete currentDeliveryOrder[service];
+        localStorage.setItem('current_delivery_order', JSON.stringify(currentDeliveryOrder));
     }
 };
 
@@ -189,8 +216,10 @@ const goBack = () => {
                     <p>QR 결제</p>
                 </div>
             </div>
-
-            <button class="pay_button" @click="processPayment">결제하기</button>
+            <button class="pay_button" @click="processPayment" :disabled="isProcessing">
+                <span v-if="isProcessing">처리 중...</span>
+                <span v-else>결제하기</span>
+            </button>
         </div>
 
         <!-- 주문 목록 -->
@@ -222,7 +251,7 @@ const goBack = () => {
 .payment_container {
     display: flex;
     width: 100%;
-    min-height: 100vh;
+    min-height: 80vh;
     background-color: #f5f5f5;
     padding: 20px;
     gap: 20px;

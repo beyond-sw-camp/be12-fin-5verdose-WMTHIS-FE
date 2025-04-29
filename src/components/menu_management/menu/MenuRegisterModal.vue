@@ -88,6 +88,7 @@ const registerMenu = async () => {
         const response = await api.registerMenu(data); // API 호출
         console.log('API 응답:', response);
         if (response) {
+            alert('메뉴가 등록되었습니다.');
             init();
             emit('refresh');
         } else {
@@ -114,6 +115,10 @@ const getStoreInventoryList = async () => {
     }
 };
 
+const closeModal = () => {
+    init();
+    emit('close');
+};
 
 onMounted(() => {
     loadCategories();
@@ -122,11 +127,11 @@ onMounted(() => {
 </script>
 
 <template>
-    <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')" style="z-index: 2000;">
+    <div v-if="isOpen" class="modal_overlay" style="z-index: 2000;">
         <div class="modal">
             <div class="modal_content">
                 <div class="modal_header">
-                    <button class="close_btn" @click="emit('close')">✕</button>
+                    <button class="close_btn" @click="closeModal">✕</button>
 
                     <h2 class="modal_title">메뉴 등록</h2>
 
