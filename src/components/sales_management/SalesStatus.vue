@@ -35,7 +35,6 @@ const getInventoryStatus = async () => {
 
     if (response) {
       inventoryStatus.value = response.data;
-      console.log("재고 상태:", inventoryStatus.value);
     } else {
       console.error("재고 API 호출 실패:", response.message);
     }
@@ -107,9 +106,6 @@ const getTodaySales = async () => {
           })),
         },
       ];
-
-      console.log("xaxisCategories:", xaxisCategories.value);
-      console.log("series:", series.value);
     } else {
       console.error("API 호출 실패:", response.message);
     }
@@ -140,7 +136,6 @@ const getBestMarket = async () => {
   try {
     // API 호출
     const response = await api.getBestMarket(); // 실제 API 엔드포인트로 변경
-    console.log(response);
 
     if (response) {
       // 응답 구조가 { code, message, data: { name, amount, unit } } 형태인 경우 처리
@@ -171,7 +166,6 @@ const getBestMarket = async () => {
 const getStockChange = async () => {
   try {
     const response = await api.getStockChange();
-    console.log(response);
 
     if (response) {
       totalStockChanges.value = response.total;
