@@ -375,6 +375,12 @@ const goBack = () => {
   router.push("/pos");
 };
 
+
+// 주문 완료 후 테이블 선택 화면으로 이동
+const completeOrder = () => {
+  showOrderCompleteModal.value = false;
+  router.push("/pos");
+};
 // 주문 처리
 const processOrder = async () => {
   if (orderList.value.length === 0) {
@@ -382,20 +388,18 @@ const processOrder = async () => {
     return;
   }
 
-  // 재고 확인
+  // 재고 확인 (프론트에서는 알림을 띄우지 않음)
   const stockStatus = await checkStockAvailability(orderList.value);
   if (stockStatus) {
-    // 재고가 부족한 아이템 확인
     const outOfStockItems = orderList.value.filter((order) => {
       const stock = stockStatus[order.id]; // 재고 상태 확인
       return !stock || order.quantity > stock.quantity; // 재고 부족한 아이템 찾기
     });
 
     if (outOfStockItems.length > 0) {
-      // 재고 부족 아이템이 있을 경우 알림 띄우기
-      const itemNames = outOfStockItems.map(item => item.name).join(', ');
-      alert(`주문 불가능한 아이템: ${itemNames}. 재고가 부족합니다.`);
-      return;
+      // 재고 부족 아이템이 있을 경우 알림 없이 처리만 진행
+      console.log(`재고 부족 아이템: ${outOfStockItems.map(item => item.name).join(', ')}`);
+      return; // 재고 부족 아이템이 있을 경우 더 이상 진행하지 않음
     }
   }
 
@@ -405,11 +409,6 @@ const processOrder = async () => {
   // 주문 완료 모달 표시
   showOrderCompleteModal.value = true;
 };
-// 주문 완료 후 테이블 선택 화면으로 이동
-const completeOrder = () => {
-  showOrderCompleteModal.value = false;
-  router.push("/pos");
-};
 
 // 결제 처리 - 결제 페이지로 이동
 const processPayment = async () => {
@@ -418,20 +417,18 @@ const processPayment = async () => {
     return;
   }
 
-  // 재고 확인
+  // 재고 확인 (프론트에서는 알림을 띄우지 않음)
   const stockStatus = await checkStockAvailability(orderList.value);
   if (stockStatus) {
-    // 재고가 부족한 아이템 확인
     const outOfStockItems = orderList.value.filter((order) => {
       const stock = stockStatus[order.id]; // 재고 상태 확인
       return !stock || order.quantity > stock.quantity; // 재고 부족한 아이템 찾기
     });
 
     if (outOfStockItems.length > 0) {
-      // 재고 부족 아이템이 있을 경우 알림 띄우기
-      const itemNames = outOfStockItems.map(item => item.name).join(', ');
-      alert(`결제 불가능한 아이템: ${itemNames}. 재고가 부족합니다.`);
-      return;
+      // 재고 부족 아이템이 있을 경우 알림 없이 처리만 진행
+      console.log(`재고 부족 아이템: ${outOfStockItems.map(item => item.name).join(', ')}`);
+      return; // 재고 부족 아이템이 있을 경우 더 이상 진행하지 않음
     }
   }
 
