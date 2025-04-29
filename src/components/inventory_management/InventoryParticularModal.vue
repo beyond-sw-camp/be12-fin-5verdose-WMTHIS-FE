@@ -12,7 +12,7 @@ const props = defineProps({
 });
 
 const recipeList = ref([]);
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close", "updated"]);
 const isCorrectionModalOpen = ref(false);
 const correctionItem = ref(null);
 const isParticularModalOpen = ref(false);
@@ -29,7 +29,6 @@ const closeModal = () => {
 const selectedItem = ref(null);
 
 const openCorrectionModal = (item) => {
-
   console.log("✅ 재고 보정 클릭됨:", item);
   correctionItem.value = item;
   unit.value = props.item.unit;
@@ -51,8 +50,10 @@ const fetchInventory = async () => {
       expiryDate: item.expiryDate.split("T")[0],
     };
   });
+  console.log("✅ 갱신된 inventory_items:", inventory_items.value);
   isLoading.value = false; // 로딩 종료
-}
+  emit("updated");
+};
 
 watch(
   () => props.item,
@@ -64,10 +65,13 @@ watch(
   },
   { immediate: true }
 );
-
 </script>
 <template>
-  <div class="particular_modal_container" @click.self="emit('close')" style="z-index: 9999">
+  <div
+    class="particular_modal_container"
+    @click.self="emit('close')"
+    style="z-index: 9999"
+  >
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
@@ -89,15 +93,15 @@ watch(
                 <strong>재고명 :</strong> {{ props.item.name }}
               </p>
               <p v-if="props.item">
-                <strong>총 수량 :</strong> {{ props.item.quantity }} {{ props.item.unit }}
+                <strong>총 수량 :</strong> {{ props.item.quantity }}
+                {{ props.item.unit }}
               </p>
               <!--
               <p v-if="recipeList.length">
                 <strong>사용메뉴 :</strong> {{ recipeList.join(", ") }}
               </p>
               <p v-else><strong>사용메뉴 :</strong> 메뉴 정보가 없습니다.</p>
-            -->
-            </div>
+            --></div>
           </div>
 
           <table class="inventory_table">
@@ -128,8 +132,14 @@ watch(
         <button class="confirm_btn" @click="emit('close')">확인</button>
       </div>
     </div>
-    <InventoryCorrectionModal v-if="isModalOpen" :item="correctionItem" :unit="unit" :isOpen="isModalOpen"
-      @close="closeModal" />
+    <InventoryCorrectionModal
+      v-if="isModalOpen"
+      :item="correctionItem"
+      :unit="unit"
+      :isOpen="isModalOpen"
+      @close="closeModal"
+      @updated="fetchInventory"
+    />
   </div>
 </template>
 
@@ -518,7 +528,9 @@ watch(
   /* 드롭다운 크기 */
   appearance: none;
   /* 기본 스타일 제거 */
-  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
+  background: white
+    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
   background-size: 16px;
 }
 

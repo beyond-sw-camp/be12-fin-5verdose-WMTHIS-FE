@@ -6,9 +6,9 @@ const props = defineProps({
   isOpen: Boolean,
   item: {
     type: Object,
-    default: null
+    default: null,
   },
-  unit: String
+  unit: String,
 });
 
 const emit = defineEmits(["close", "updated"]);
@@ -20,30 +20,34 @@ const price = ref(0);
 const isLoading = ref(false);
 const errors = ref({
   expiryDate: "",
-  quantity: ""
+  quantity: "",
 });
 
 // props.item이 변경될 때 초기값 설정
-watch(() => props.item, (newItem) => {
-  if (newItem) {
-    expiryDate.value = newItem.expiryDate;
-    quantity.value = newItem.quantity;
-    // 오류 초기화
-    errors.value = {
-      expiryDate: "",
-      quantity: ""
-    };
-    console.log("Item updated:", newItem);
-  }
-}, { immediate: true });
+watch(
+  () => props.item,
+  (newItem) => {
+    if (newItem) {
+      expiryDate.value = newItem.expiryDate;
+      quantity.value = newItem.quantity;
+      // 오류 초기화
+      errors.value = {
+        expiryDate: "",
+        quantity: "",
+      };
+      console.log("Item updated:", newItem);
+    }
+  },
+  { immediate: true }
+);
 
 // 수량 입력 시 숫자만 입력되도록 처리
 const handleQuantityInput = (e) => {
   // 숫자가 아닌 문자 제거
-  const value = e.target.value.replace(/[^0-9]/g, '');
+  const value = e.target.value.replace(/[^0-9]/g, "");
 
   // 음수 방지 (이미 숫자만 입력되므로 추가 검증은 필요 없음)
-  quantity.value = value === '' ? 0 : parseInt(value, 10);
+  quantity.value = value === "" ? 0 : parseInt(value, 10);
 };
 
 // 유효성 검사 함수
@@ -51,7 +55,7 @@ const validateForm = () => {
   let isValid = true;
   errors.value = {
     expiryDate: "",
-    quantity: ""
+    quantity: "",
   };
 
   // 유통기한 검증: 입고날짜보다 이후여야 함
@@ -85,13 +89,13 @@ const saveCorrection = async () => {
   const data = {
     inventoryId: props.item.id,
     expiryDate: expiryDate.value,
-    quantity: quantity.value
-  }
+    quantity: quantity.value,
+  };
   console.log("Saving correction:", data);
   const response = await api.updateInventory(data);
   if (response.code === 200) {
     alert("보정 내용이 저장되었습니다.");
-
+    emit("updated", data);
   } else {
     alert("보정 내용 저장에 실패했습니다.");
   }
@@ -105,7 +109,11 @@ const isFormValid = computed(() => {
 </script>
 
 <template>
-  <div class="particular_modal_container" @click.self="emit('close')" style="z-index: 10000">
+  <div
+    class="particular_modal_container"
+    @click.self="emit('close')"
+    style="z-index: 10000"
+  >
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
@@ -120,28 +128,43 @@ const isFormValid = computed(() => {
 
         <div v-else-if="props.item" class="input_group">
           <div class="inventory_info">
-            <p>
-              <strong>입고날짜:</strong> {{ props.item.purchaseDate }}
-            </p>
+            <p><strong>입고날짜:</strong> {{ props.item.purchaseDate }}</p>
           </div>
 
           <!-- 유통기한 수정 -->
           <div class="input_group">
             <label for="expiryDate" class="mb-2">유통기한</label>
-            <input id="expiryDate" v-model="expiryDate" type="date" class="custom_solid_autocomplete"
-              :class="{ 'error-input': errors.expiryDate }" :min="props.item.purchaseDate" />
-            <p v-if="errors.expiryDate" class="error-message">{{ errors.expiryDate }}</p>
+            <input
+              id="expiryDate"
+              v-model="expiryDate"
+              type="date"
+              class="custom_solid_autocomplete"
+              :class="{ 'error-input': errors.expiryDate }"
+              :min="props.item.purchaseDate"
+            />
+            <p v-if="errors.expiryDate" class="error-message">
+              {{ errors.expiryDate }}
+            </p>
           </div>
 
           <!-- 수량 수정 -->
           <div class="input_group">
             <label for="quantity" class="mb-2">수량</label>
             <div class="unit_container">
-              <input id="quantity" :value="quantity" @input="handleQuantityInput" type="number" min="0"
-                class="unit_input" :class="{ 'error-input': errors.quantity }" />
+              <input
+                id="quantity"
+                :value="quantity"
+                @input="handleQuantityInput"
+                type="number"
+                min="0"
+                class="unit_input"
+                :class="{ 'error-input': errors.quantity }"
+              />
               <span>{{ props.unit }}</span>
             </div>
-            <p v-if="errors.quantity" class="error-message">{{ errors.quantity }}</p>
+            <p v-if="errors.quantity" class="error-message">
+              {{ errors.quantity }}
+            </p>
           </div>
           <!--
           <div class="input_group">
@@ -153,8 +176,7 @@ const isFormValid = computed(() => {
             </div>
             <p v-if="errors.price" class="error-message">{{ errors.price }}</p>
           </div>
-        -->
-        </div>
+        --></div>
 
         <div v-else class="empty-state">
           <p>데이터를 불러올 수 없습니다.</p>
@@ -163,7 +185,11 @@ const isFormValid = computed(() => {
       <div class="modal_footer">
         <div class="flex gap-4">
           <button class="cancel_btn" @click="emit('close')">취소</button>
-          <button class="confirm_btn" @click="saveCorrection" :disabled="isLoading || !isFormValid">
+          <button
+            class="confirm_btn"
+            @click="saveCorrection"
+            :disabled="isLoading || !isFormValid"
+          >
             저장
           </button>
         </div>
