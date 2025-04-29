@@ -303,6 +303,7 @@ const isFormValid = computed(() => {
   padding: 10px 20px;
   background: #b1d5c2;
   color: black;
+  margin: 0 9px;
   border: none;
   border-radius: 5px;
   font-size: 16px;
