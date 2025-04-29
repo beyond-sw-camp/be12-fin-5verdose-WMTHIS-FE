@@ -444,4 +444,16 @@ export const api = {
         return error.response.data;
       });
   },
+  deleteListInventory(data) {
+    return instance
+      .delete("/inventory/inventory", { data })
+      .then((res) => {
+        console.log("deleteListInventory res", res);
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in deleteListInventory:", error);
+        return error.response.data;
+      });
+  },
 };
