@@ -67,13 +67,19 @@ async function fetchAndSetFlatList() {
       category: item.category,
     }));
   } else {
-    console.error("❌ 메뉴 데이터를 불러오지 못했습니다.");
+    console.error("메뉴 데이터를 불러오지 못했습니다.");
   }
 }
 
 onMounted(() => {
-  fetchAndSetFlatList(); // ✅ 마운트 시 실행
+  fetchAndSetFlatList();
 });
+
+const selectedIndex = ref(0);
+const selectedMenuName = computed(() => filteredList.value[selectedIndex.value]?.menuName || "");
+const selectItem = (index) => {
+  selectedIndex.value = index;
+};
 
 const filteredList = computed(() => {
   const query = keyword.value.trim();
@@ -98,31 +104,26 @@ const showByMonth = computed(() => {
 // 선택된 날짜의 판매 데이터
 const sortOrder = ref("asc");
 const periodSales = computed(() => {
-  const query = keyword.value.trim();
   const start = new Date(startDate.value);
   const end = new Date(endDate.value);
+  const selectedName = selectedMenuName.value;
 
   // 날짜 범위에 해당하는 데이터 필터링
   const filteredSales = salesData.value.filter((item) => {
     const itemDate = new Date(item.date);
     return itemDate >= start && itemDate <= end;
   });
+
+  const filteredByMenu = filteredSales.filter((item) => item.menuName === selectedName);
   // 키워드 필터링
-  const filteredMenu = filteredSales.filter((item) => {
-    return !query || item.menuName.includes(query);
-  });
 
-  filteredMenu.sort((a, b) => {
+  filteredByMenu.sort((a, b) => {
     const dateCompare = sortOrder.value === "asc" ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
-
-    // 날짜가 다르면 date 기준으로 정렬
     if (dateCompare !== 0) return dateCompare;
-
-    // 날짜가 같으면 time 기준으로 정렬
     return sortOrder.value === "asc" ? a.time.localeCompare(b.time) : b.time.localeCompare(a.time);
   });
 
-  return Object.values(filteredMenu);
+  return Object.values(filteredByMenu);
 });
 
 const selectedDates = ref(null);
@@ -239,6 +240,10 @@ const chartOptions = computed(() => {
         text: "판매 건수",
       },
     },
+    colors: ["#4CAF50"],
+    dataLabels: {
+      enabled: false,
+    },
   };
 });
 </script>
@@ -261,7 +266,7 @@ const chartOptions = computed(() => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, idx) in filteredList" :key="idx">
+          <tr v-for="(item, idx) in filteredList" :key="idx" @click="selectItem(idx)" :class="{ selected: selectedIndex === idx }">
             <td>{{ item.menuName }}</td>
             <td>{{ item.category }}</td>
           </tr>
@@ -417,8 +422,13 @@ const chartOptions = computed(() => {
   border-bottom-right-radius: 20px;
 }
 
+.menu_table tr.selected {
+  background-color: #f9f9f9;
+}
+
 .menu_table tr:hover {
   background-color: #f9f9f9;
+  cursor: pointer;
 }
 
 .chart_container {
@@ -443,13 +453,11 @@ const chartOptions = computed(() => {
   margin-bottom: 20px;
 }
 
-/* 달력 스타일 */
 .date_selector {
   position: relative;
   margin-left: auto;
 }
 
-/* 판매 데이터 테이블 스타일 */
 .sales_detail {
   background-color: white;
   border-radius: 8px;
@@ -481,7 +489,6 @@ const chartOptions = computed(() => {
   font-size: 14px;
 }
 
-/* 헤더 테이블과 본문 테이블 스타일 분리 */
 .header_table {
   margin-bottom: 0;
 }
@@ -490,7 +497,6 @@ const chartOptions = computed(() => {
   margin-top: 0;
 }
 
-/* 셀 스타일 */
 .sales_table th,
 .sales_table td {
   padding: 10px;
@@ -498,7 +504,6 @@ const chartOptions = computed(() => {
   box-sizing: border-box;
 }
 
-/* 헤더 스타일 */
 .sales_table th {
   font-weight: bold;
 }
@@ -511,7 +516,6 @@ const chartOptions = computed(() => {
   background-color: #f9f9f9;
 }
 
-/* 데이터 없을 때 표시 */
 .no_data {
   text-align: center;
   color: #999;

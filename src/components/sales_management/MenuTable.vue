@@ -3,7 +3,6 @@ import { ref, computed, onMounted, nextTick, watch } from "vue";
 import upIcon from "@/assets/image/up.png";
 import downIcon from "@/assets/image/down.png";
 import Calendar from "@/components/Calendar.vue";
-import StockDiagram from "@/components/sales_management/StockDiagram.vue";
 import { api } from "@/api/index.js";
 
 const keyword = ref("");
