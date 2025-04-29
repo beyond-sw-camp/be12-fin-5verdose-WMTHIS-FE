@@ -14,6 +14,7 @@ const handleLogin = async () => {
     errorMessage.value = "이메일과 비밀번호를 모두 입력해주세요.";
     return;
   }
+
   isLoading.value = true;
   errorMessage.value = "";
 
@@ -22,21 +23,26 @@ const handleLogin = async () => {
     password: password.value,
   };
 
-  // ✅ 로그인 API 호출
-  const response = await api.login(data);
+  try {
+    const response = await api.login(data);
 
-  if (response.code === 200) {
-    if (rememberMe.value) {
-      localStorage.setItem("savedEmail", email.value);
+    if (response.code === 200) {
+      // 로그인 성공
+      if (rememberMe.value) {
+        localStorage.setItem("savedEmail", email.value);
+      } else {
+        localStorage.removeItem("savedEmail");
+      }
+      router.push({ name: "dashboard" });
     } else {
-      localStorage.removeItem("savedEmail");
+      // 서버 응답이 실패 코드일 때
+      errorMessage.value = "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.";
     }
-    router.push({ name: "dashboard" });
-  } else {
-    errorMessage.value = response.data || "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.";
+  } catch (error) {
+    errorMessage.value = "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.";
+  } finally {
+    isLoading.value = false; // 성공/실패 관계없이 항상 스피너 끄기
   }
-  isLoading.value = false;
-
 };
 
 const goToSignUp = () => {
@@ -106,10 +112,9 @@ onMounted(() => {
         <a @click="goToForgotPassword" class="forgot-password">비밀번호 찾기</a>
       </div>
 
-      <button type="submit" class="login-button" :disabled="isLoading" @click="submitForm">
+      <button type="submit" class="login-button" :disabled="isLoading">
         <span v-if="isLoading" class="loading-container">
-          <span class="spinner"></span> <!-- 스피너 -->
-          로그인 중...
+          <span class="spinner"></span> 로그인 중...
         </span>
         <span v-else>
           로그인

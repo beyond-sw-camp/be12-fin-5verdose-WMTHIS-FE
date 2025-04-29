@@ -222,7 +222,7 @@ const goBack = () => {
 .payment_container {
     display: flex;
     width: 100%;
-    min-height: 100vh;
+    min-height: 80vh;
     background-color: #f5f5f5;
     padding: 20px;
     gap: 20px;
