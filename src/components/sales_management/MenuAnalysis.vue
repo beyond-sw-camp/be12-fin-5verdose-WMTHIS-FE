@@ -15,7 +15,7 @@ watch([startDate, endDate], ([newStart, newEnd]) => {
     const end = new Date(newEnd);
 
     if (start > end) {
-      console.warn("시작일이 종료일보다 늦습니다. API 호출하지 않음");
+      alert("시작일이 종료일보다 빨라야 합니다");
       return;
     }
 
