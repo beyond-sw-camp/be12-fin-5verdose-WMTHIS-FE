@@ -66,17 +66,31 @@ const fetchInventory = async () => {
   isLoading.value = true; // 로딩 시작
   const response = await api.getInventory(props.item.storeInventoryId);
   console.log("✅ API 호출:", response);
-  inventory_items.value = response.data.map((item) => {
-    return {
-      ...item,
-      purchaseDate: item.purchaseDate.split("T")[0],
-      expiryDate: item.expiryDate.split("T")[0],
-    };
-  });
-  console.log("✅ 갱신된 inventory_items:", inventory_items.value);
+
+  inventory_items.value = response.data
+    .map((item) => {
+      return {
+        ...item,
+        purchaseDate: item.purchaseDate.split("T")[0],
+        expiryDate: item.expiryDate.split("T")[0],
+      };
+    })
+    .sort((a, b) => {
+      // 수량 0인 항목은 아래로
+      if (a.quantity === 0 && b.quantity !== 0) return 1;
+      if (a.quantity !== 0 && b.quantity === 0) return -1;
+
+      // 유통기한 오름차순
+      const aExpiry = new Date(a.expiryDate);
+      const bExpiry = new Date(b.expiryDate);
+      return aExpiry - bExpiry;
+    });
+
+  console.log("✅ 정렬된 inventory_items:", inventory_items.value);
   isLoading.value = false; // 로딩 종료
   emit("updated");
 };
+
 const closeDeleteConfirm = () => {
   isDeleteConfirmOpen.value = false; // 삭제 확인 모달 닫기
 };
