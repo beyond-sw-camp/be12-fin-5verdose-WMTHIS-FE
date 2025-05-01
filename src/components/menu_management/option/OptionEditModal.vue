@@ -14,8 +14,13 @@ const ingredientAmount = ref('');
 const ingredients = ref([]);
 const selectedUnit = computed(() => {
     const selected = ingredientOptions.value.find(item => item.name === ingredientName.value.name);
-    return selected ? selected.unit : '';
+    if (!selected) return '';
+    return selected.unit === 'unit' ? '개' : selected.unit;
 });
+
+const displayUnit = (unit) => {
+    return unit === 'unit' ? '개' : unit;
+};
 
 const fetchOptionData = async (optionId) => {
     try {
@@ -163,7 +168,7 @@ onMounted(() => {
 
                 <div class="tag_container">
                     <span v-for="(ingredient, index) in ingredients" :key="index" class="tag">
-                        {{ ingredient.name }} {{ ingredient.amount }}{{ ingredient.unit }}
+                        {{ ingredient.name }} {{ ingredient.amount }}{{ displayUnit(ingredient.unit) }}
                         <button class="remove_btn" @click="removeIngredient(index)">✕</button>
                     </span>
                 </div>
