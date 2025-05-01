@@ -22,6 +22,7 @@ const selectedUnit = computed(() => {
 });
 const ingredientOptions = ref([]);
 const price = ref(0); // 가격을 위한 ref 추가
+const isSubmitting = ref(false);
 
 watch(() => props.menu, (newVal) => {
     if (newVal) loadMenuDetails();
@@ -91,6 +92,9 @@ const removeIngredient = (index) => {
     ingredients.value.splice(index, 1);
 };
 const registerMenu = async () => {
+    if (isSubmitting.value) return; // 이미 요청 중이라면 더 이상 진행하지 않음
+    isSubmitting.value = true;
+
     if (menuName.value && category.value && price.value) {
         // 카테고리 값이 '카테고리 없음'인 경우, null을 전송
         const categoryId = category.value.name === '카테고리 없음' ? null : category.value.id;
@@ -120,6 +124,7 @@ const registerMenu = async () => {
     } else {
         alert('모든 필드를 입력해주세요.');
     }
+    isSubmitting.value = false;
 };
 const getStoreInventoryList = async () => {
     const result = await api.getStoreInventoryList();
@@ -204,7 +209,9 @@ onMounted(async () => {
                 </div>
             </div>
             <div class="modal_footer">
-                <button class="confirm_btn" @click=registerMenu>수정</button>
+                <button class="confirm_btn" :disabled="isSubmitting" @click="registerMenu">
+                    {{ isSubmitting ? '수정 중...' : '수정' }}
+                </button>
             </div>
         </div>
     </div>
