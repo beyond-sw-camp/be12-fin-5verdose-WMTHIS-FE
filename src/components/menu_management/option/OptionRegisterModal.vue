@@ -19,7 +19,8 @@ const category = ref('');
 
 const selectedUnit = computed(() => {
     const selected = ingredientOptions.value.find(item => item.name === ingredientName.value.name);
-    return selected ? selected.unit : '';
+    if (!selected) return '';
+    return selected.unit === 'unit' ? '개' : selected.unit;
 });
 // 카테고리 목록 로딩
 const loadCategories = async () => {

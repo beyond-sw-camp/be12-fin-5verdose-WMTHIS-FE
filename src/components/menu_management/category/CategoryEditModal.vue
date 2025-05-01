@@ -16,13 +16,22 @@ const optionName = ref('');
 const selectedOptions = ref([]);
 
 const addOption = () => {
-    if (
-        optionName.value &&
-        !selectedOptions.value.some((opt) => opt.name === optionName.value.name)
-    ) {
-        selectedOptions.value.push(optionName.value);
-        optionName.value = '';
+    if (!optionName.value) {
+        alert('옵션명을 입력해주세요.');
+        return;
     }
+
+    const alreadyExists = selectedOptions.value.some(
+        (opt) => opt.name === optionName.value.name
+    );
+
+    if (alreadyExists) {
+        alert('이미 추가된 옵션입니다.');
+        return;
+    }
+
+    selectedOptions.value.push(optionName.value);
+    optionName.value = '';
 };
 
 

@@ -6,6 +6,7 @@ const props = defineProps({
     optionId: Number
 });
 
+const isSubmitting = ref(false);
 const emit = defineEmits(['close']);
 const price = ref('');
 const optionName = ref('');
@@ -14,8 +15,13 @@ const ingredientAmount = ref('');
 const ingredients = ref([]);
 const selectedUnit = computed(() => {
     const selected = ingredientOptions.value.find(item => item.name === ingredientName.value.name);
-    return selected ? selected.unit : '';
+    if (!selected) return '';
+    return selected.unit === 'unit' ? '개' : selected.unit;
 });
+
+const displayUnit = (unit) => {
+    return unit === 'unit' ? '개' : unit;
+};
 
 const fetchOptionData = async (optionId) => {
     try {
@@ -96,6 +102,8 @@ const removeIngredient = (index) => {
     ingredients.value.splice(index, 1);
 };
 const updateOption = async () => {
+    if (isSubmitting.value) return; // 이미 요청 중이라면 더 이상 진행하지 않음
+    isSubmitting.value = true;
     if (!optionName.value || !price.value) {
         alert('옵션명, 가격을 모두 입력해주세요.');
         return;
@@ -119,6 +127,7 @@ const updateOption = async () => {
     } else {
         alert('옵션 수정 실패');
     }
+    isSubmitting.value = false;
 };
 
 onMounted(() => {
@@ -163,7 +172,7 @@ onMounted(() => {
 
                 <div class="tag_container">
                     <span v-for="(ingredient, index) in ingredients" :key="index" class="tag">
-                        {{ ingredient.name }} {{ ingredient.amount }}{{ ingredient.unit }}
+                        {{ ingredient.name }} {{ ingredient.amount }}{{ displayUnit(ingredient.unit) }}
                         <button class="remove_btn" @click="removeIngredient(index)">✕</button>
                     </span>
                 </div>
@@ -176,7 +185,9 @@ onMounted(() => {
                 </div>
             </div>
             <div class="modal_footer">
-                <button class="confirm_btn" @click=updateOption>수정</button>
+                <button class="confirm_btn" :disabled="isSubmitting" @click="updateOption">
+                    {{ isSubmitting ? '수정 중...' : '수정' }}
+                </button>
             </div>
         </div>
     </div>

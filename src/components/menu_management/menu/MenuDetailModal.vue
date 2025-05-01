@@ -17,8 +17,8 @@ const category = ref('');
 const categoryList = ref([]);
 const selectedUnit = computed(() => {
     const selected = ingredientOptions.value.find(item => item.name === ingredientName.value.name);
-    console.log('selected', ingredientName.value);
-    return selected ? selected.unit : '';
+    if (!selected) return '';
+    return selected.unit === 'unit' ? '개' : selected.unit;
 });
 const ingredientOptions = ref([]);
 const price = ref(0); // 가격을 위한 ref 추가
@@ -27,7 +27,9 @@ const isSubmitting = ref(false);
 watch(() => props.menu, (newVal) => {
     if (newVal) loadMenuDetails();
 });
-
+const displayUnit = (unit) => {
+    return unit === 'unit' ? '개' : unit;
+};
 
 // 카테고리 목록 로딩
 const loadCategories = async () => {
@@ -189,7 +191,7 @@ onMounted(async () => {
 
                 <div class="tag_container">
                     <span v-for="(ingredient, index) in ingredients" :key="index" class="tag">
-                        {{ ingredient.name }} {{ ingredient.amount }}{{ ingredient.unit }}
+                        {{ ingredient.name }} {{ ingredient.amount }}{{ displayUnit(ingredient.unit) }}
                         <button class="remove_btn" @click="removeIngredient(index)">✕</button>
                     </span>
                 </div>

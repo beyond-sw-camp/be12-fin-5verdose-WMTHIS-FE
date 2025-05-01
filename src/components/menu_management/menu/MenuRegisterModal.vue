@@ -19,8 +19,8 @@ const category = ref(null);
 const categoryList = ref([]);
 const selectedUnit = computed(() => {
     const selected = ingredientOptions.value.find(item => item.name === ingredientName.value.name);
-    console.log('selected', ingredientName.value);
-    return selected ? selected.unit : '';
+    if (!selected) return '';
+    return selected.unit === 'unit' ? '개' : selected.unit;
 });
 const ingredientOptions = ref([]);
 const price = ref(0); // 가격을 위한 ref 추가
