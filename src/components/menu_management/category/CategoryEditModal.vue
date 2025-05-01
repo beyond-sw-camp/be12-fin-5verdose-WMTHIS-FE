@@ -8,7 +8,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close']);
-
+const isSubmitting = ref(false); // 요청 중인지 여부를 추적하는 상태
 const categoryName = ref('');
 const category = ref('');
 const optionList = ref(['면 추가', '밥 추가', '치즈 추가', '고기 추가']);
@@ -58,6 +58,8 @@ const loadOptionList = async () => {
     }
 };
 const updateCategory = async () => {
+    if (isSubmitting.value) return;
+    isSubmitting.value = true;
     if (!categoryName.value) {
         alert('카테고리명을 입력해주세요.');
         return;
@@ -78,6 +80,8 @@ const updateCategory = async () => {
     } catch (err) {
         console.error('카테고리 수정 실패:', err);
         alert('카테고리 수정 중 오류가 발생했습니다.');
+    } finally {
+        isSubmitting.value = false; // 요청 완료 후 상태 리셋
     }
 };
 
@@ -128,7 +132,9 @@ onMounted(() => {
                 </div>
             </div>
             <div class="modal_footer">
-                <button class="confirm_btn" @click=updateCategory>수정</button>
+                <button class="confirm_btn" :disabled="isSubmitting" @click="updateCategory">
+                    {{ isSubmitting ? '수정 중...' : '수정' }}
+                </button>
             </div>
         </div>
     </div>
