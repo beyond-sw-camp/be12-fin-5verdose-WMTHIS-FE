@@ -6,6 +6,7 @@ import MenuDetailModal from '@/components/menu_management/menu/MenuDetailModal.v
 import DeleteConfirmModal from '@/components/alerts/DeleteConfirmModal.vue';
 import DeleteAlertModal from '@/components/alerts/DeleteAlertModal.vue';
 
+const isLoading = ref(true);
 const searchKeyword = ref('');
 const isModalOpen = ref(false);
 const isDetailModalOpen = ref(false);
@@ -17,7 +18,6 @@ const closeModal = () => {
     fetchMenus(0);
     isModalOpen.value = false;
 };
-
 const openDetailModal = (item) => {
     selectedMenu.value = item; // 선택된 메뉴 항목을 저장합니다.
     console.log("상세보기 항목:", item);
@@ -27,15 +27,13 @@ const closeDetailModal = () => {
     fetchMenus(0);
     isDetailModalOpen.value = false;
 };
-
 const menu_items = ref([]);
 const currentPage = ref(0); // 현재 페이지
-const totalPages = ref(1); // 총 페이지 수
+const totalPages = ref(0); // 총 페이지 수
 const pageSize = 10; // 페이지당 항목 수
 const errorMessage = ref('');
 const select_all = ref(false);
 const isBlocked = computed(() => isDeleteConfirmOpen.value || isDeleteAlertOpen.value);
-
 // 전체 선택 토글
 const toggle_select_all = () => {
     if (!isBlocked.value) {
@@ -47,6 +45,8 @@ const toggle_select_all = () => {
 watch(menu_items, (new_items) => {
     select_all.value = new_items.every(item => item.selected);
 }, { deep: true });
+
+
 
 // 삭제 확인 모달 열기
 const openDeleteConfirm = () => {
@@ -83,30 +83,32 @@ const deleteSelectedItems = async () => {
     menu_items.value = menu_items.value.filter(item => !item.selected);
 };
 const fetchMenus = async (page = 0) => {
-    console.log("메뉴 목록 요청:", page, pageSize);
-    const response = await api.getMenuList(page, pageSize, searchKeyword.value);
-    console.log("메뉴 목록 응답:", response);
+    isLoading.value = true;
 
-    if (!response) {
-        menu_items.value = [];
-        errorMessage.value = "서버 오류입니다. 잠시만 기다려주세요..";
-    } else {
-        if (response.code === 200) {
-            menu_items.value = response.data.content.map(item => ({
-                ...item,
-                selected: false
-            }));
-            currentPage.value = response.data.page.number;
-            totalPages.value = response.data.page.totalPages;
-            console.log("메뉴 목록:", menu_items.value);
-            if (menu_items.value.length === 0) {
-                errorMessage.value = "메뉴가 없습니다.";
-            }
-        } else {
+    const MIN_LOADING_TIME = 500; // 최소 0.5초
+
+    const response = await api.getMenuList(page, pageSize, searchKeyword.value);
+
+    setTimeout(() => {
+        if (!response) {
             menu_items.value = [];
-            errorMessage.value = response.data.message;
+            errorMessage.value = "서버 오류입니다. 잠시만 기다려주세요..";
+        } else {
+            if (response.code === 200) {
+                menu_items.value = response.data.content.map(item => ({
+                    ...item,
+                    selected: false
+                }));
+                currentPage.value = response.data.page.number;
+                totalPages.value = response.data.page.totalPages;
+                errorMessage.value = menu_items.value.length === 0 ? "메뉴가 없습니다." : '';
+            } else {
+                menu_items.value = [];
+                errorMessage.value = response.data.message;
+            }
         }
-    }
+        isLoading.value = false;
+    }, MIN_LOADING_TIME);
 };
 
 const goToPage = (page) => {
@@ -142,54 +144,95 @@ onMounted(() => {
             </div>
         </div>
 
-        <!-- 상품 목록 -->
-        <table class="menu_table" v-if="menu_items.length > 0">
-            <thead>
-                <tr>
-                    <th>
-                        <input type="checkbox" v-model="select_all" @change="toggle_select_all"
-                            class="circle_checkbox" />
-                    </th>
-                    <th>상품</th>
-                    <th>카테고리</th>
-                    <th>재고</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="(item, index) in menu_items" :key="index" :class="{ 'selected-row': item.selected }">
-                    <td>
-                        <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
-                    </td>
-                    <td class="bold-text">{{ item.name }}</td>
-                    <td>{{ item.category }}</td>
-                    <td>{{ item.ingredients }}</td>
-                    <td>
-                        <button class="detail_btn" @click="openDetailModal(item)">상세</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
 
-        <!-- ✨ 항목이 없을 경우 메시지 출력 -->
-        <div v-else class="empty_message">
-            {{ errorMessage || "메뉴가 없습니다." }}
-        </div>
-        <div class="pagination_container">
-            <button :disabled="currentPage === 0" @click="goToPage(currentPage - 1)">
-                ◀ 이전
-            </button>
+        <transition name="fade" mode="out-in">
+            <!-- 로딩 중 스켈레톤 테이블 -->
+            <table class="menu_table" key="loading" v-if="isLoading">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>상품</th>
+                        <th>카테고리</th>
+                        <th>재고</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="n in 5" :key="n">
+                        <td>
+                            <div class="skeleton-cell checkbox"></div>
+                        </td>
+                        <td>
+                            <div class="skeleton-cell name"></div>
+                        </td>
+                        <td>
+                            <div class="skeleton-cell category"></div>
+                        </td>
+                        <td>
+                            <div class="skeleton-cell stock"></div>
+                        </td>
+                        <td>
+                            <div class="skeleton-cell btn"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
 
-            <span v-for="page in totalPages" :key="page" @click="goToPage(page - 1)"
-                :class="{ 'page-number': true, 'active': currentPage === page - 1 }">
-                {{ page }}
-            </span>
+            <!-- 등록된 메뉴가 없을 때 -->
+            <div v-else-if="!isLoading && menu_items.length === 0" key="empty" class="empty-state">
+                <img src="@/assets/image/empty.png" alt="빈 메뉴" class="empty-icon" />
+                <p class="empty-text">등록된 메뉴가 없습니다.<br>오른쪽 상단의 [등록] 버튼을 눌러 추가해보세요.</p>
+            </div>
 
-            <button :disabled="currentPage === totalPages - 1" @click="goToPage(currentPage + 1)">
-                다음 ▶
-            </button>
-        </div>
+            <!-- 목록이 있을 때 -->
+            <div v-else key="list">
+                <table class="menu_table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" v-model="select_all" @change="toggle_select_all"
+                                    class="circle_checkbox" />
+                            </th>
+                            <th>상품</th>
+                            <th>카테고리</th>
+                            <th>재고</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item, index) in menu_items" :key="index" :class="{ 'selected-row': item.selected }">
+                            <td>
+                                <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
+                            </td>
+                            <td class="bold-text">{{ item.name }}</td>
+                            <td>{{ item.category }}</td>
+                            <td>{{ item.ingredients }}</td>
+                            <td>
+                                <button class="detail_btn" @click="openDetailModal(item)">상세</button>
+                            </td>
+                        </tr>
+                    </tbody>
 
+                </table>
+
+                <div class="pagination_container">
+                    <button :disabled="currentPage === 0 || totalPages <= 1 || menu_items.length === 0"
+                        @click="goToPage(currentPage - 1)">
+                        ◀ 이전
+                    </button>
+
+                    <span v-for="page in totalPages" :key="page" @click="goToPage(page - 1)" v-if="totalPages >= 1"
+                        :class="{ 'page-number': true, 'active': currentPage === page - 1 }">
+                        {{ page }}
+                    </span>
+
+                    <button :disabled="currentPage === totalPages - 1 || totalPages <= 1 || menu_items.length === 0"
+                        @click="goToPage(currentPage + 1)">
+                        다음 ▶
+                    </button>
+                </div>
+            </div>
+        </transition>
         <!-- 모달 컴포넌트들 -->
         <MenuRegisterModal :isOpen="isModalOpen" @close="closeModal" @refresh="fetchMenus" />
         <MenuDetailModal :isOpen="isDetailModalOpen" :menu="selectedMenu" @close="closeDetailModal"
@@ -200,6 +243,101 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.fade-enter-active,
+.fade-leave-active {
+    transition: all 0.3s ease;
+}
+
+.fade-enter-from {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.fade-enter-to {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.fade-leave-from {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.fade-leave-to {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.empty-state {
+    text-align: center;
+    margin-top: 80px;
+    color: #888;
+}
+
+.empty-icon {
+    width: 100px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-text {
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+/* 기본 skeleton cell 애니메이션 */
+.skeleton-cell {
+    background: #e0e0e0;
+    border-radius: 6px;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* 애니메이션 효과 */
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+/* 각 셀 사이즈 맞춤 */
+.skeleton-cell.checkbox {
+    width: 20px;
+    height: 20px;
+    margin: 0 auto;
+}
+
+.skeleton-cell.name {
+    width: 100px;
+    height: 20px;
+    margin: 0 auto;
+}
+
+.skeleton-cell.category {
+    width: 80px;
+    height: 20px;
+    margin: 0 auto;
+}
+
+.skeleton-cell.stock {
+    width: 60px;
+    height: 20px;
+    margin: 0 auto;
+}
+
+.skeleton-cell.btn {
+    width: 50px;
+    height: 25px;
+    margin: 0 auto;
+}
+
 .body {
     padding: 20px;
 }

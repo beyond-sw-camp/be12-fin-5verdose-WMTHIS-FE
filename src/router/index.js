@@ -161,7 +161,7 @@ const routes = createRouter({
     return false;
   },
 });
-
+/*
 routes.beforeEach(async (to, from, next) => {
   const publicPages = [
     "login",
@@ -201,5 +201,5 @@ routes.beforeEach(async (to, from, next) => {
     return next("/account/login");
   }
 });
-
+*/
 export default routes;

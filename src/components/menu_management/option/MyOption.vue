@@ -6,6 +6,9 @@ import OptionRegisterModal from '@/components/menu_management/option/OptionRegis
 import OptionEditModal from '@/components/menu_management/option/OptionEditModal.vue';
 import DeleteConfirmModal from '@/components/alerts/DeleteConfirmModal.vue';
 import DeleteAlertModal from '@/components/alerts/DeleteAlertModal.vue';
+
+
+const isLoading = ref(true);
 const searchKeyword = ref('');
 const isRegisterModalOpen = ref(false);
 const isEditModalOpen = ref(false);
@@ -88,23 +91,25 @@ const goToPage = (page) => {
     }
 };
 
-const fetchOptionList = debounce(async (page = 0) => {
-    console.log("erer", searchKeyword.value);
-    await api.getOptionList(page, pageSize, searchKeyword.value)
-        .then(res => {
-            option_items.value = res.content.map(item => ({
+const fetchOptionList = async (page = 0) => {
+    isLoading.value = true;
+    const MIN_LOADING_TIME = 500; // 최소 로딩 시간 (ms)
+
+    const response = await api.getOptionList(page, pageSize, searchKeyword.value);
+    setTimeout(() => {
+        if (response) {
+            option_items.value = response.content.map(item => ({
                 ...item,
                 selected: false
             }));
-            console.log('옵션 목록:', res.page);
-
-            currentPage.value = res.page.number;
-            totalPages.value = res.page.totalPages;
-        })
-        .catch(error => {
-            console.error('옵션 목록 불러오기 실패:', error);
-        });
-}, 300);
+            currentPage.value = response.page.number;
+            totalPages.value = response.page.totalPages;
+        } else {
+            console.error('옵션 목록 불러오기 실패:', response);
+        }
+        isLoading.value = false;
+    }, MIN_LOADING_TIME);
+};
 
 
 onMounted(() => {
@@ -129,45 +134,84 @@ onMounted(() => {
                 <button @click="openDeleteConfirm" class="delete_btn">삭제</button>
             </div>
         </div>
-        <table class="menu_table">
-            <thead>
-                <tr>
-                    <th>
-                        <input type="checkbox" v-model="select_all" @change="toggle_select_all"
-                            class="circle_checkbox" />
-                    </th>
-                    <th>옵션명</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="(item, index) in option_items" :key="index" :class="{ 'selected-row': item.selected }">
-                    <td>
-                        <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
-                    </td>
-                    <td>{{ item.name }}</td>
-                    <td>
-                        <button class="detail_btn" @click="openEditModal(item.optionId)">상세</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
 
-        <div class="pagination_container">
-            <button :disabled="currentPage === 0" @click="goToPage(currentPage - 1)">
-                ◀ 이전
-            </button>
 
-            <span v-for="page in totalPages" :key="page" @click="goToPage(page - 1)"
-                :class="{ 'page-number': true, 'active': currentPage === page - 1 }">
-                {{ page }}
-            </span>
 
-            <button :disabled="currentPage === totalPages - 1" @click="goToPage(currentPage + 1)">
-                다음 ▶
-            </button>
-        </div>
+        <transition name="fade" mode="out-in">
+            <!-- 로딩 중 스켈레톤 테이블 -->
+            <table class="menu_table" key="loading" v-if="isLoading">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>옵션명</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="n in 5" :key="n">
+                        <td>
+                            <div class="skeleton-cell checkbox"></div>
+                        </td>
+                        <td>
+                            <div class="skeleton-cell name"></div>
+                        </td>
+                        <td>
+                            <div class="skeleton-cell btn"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
 
+            <!-- 등록된 메뉴가 없을 때 -->
+            <div v-else-if="!isLoading && option_items.length === 0" key="empty" class="empty-state">
+                <img src="@/assets/image/empty.png" alt="빈 메뉴" class="empty-icon" />
+                <p class="empty-text">등록된 옵션이 없습니다.<br>오른쪽 상단의 [등록] 버튼을 눌러 추가해보세요.</p>
+            </div>
+
+            <!-- 목록이 있을 때 -->
+            <div v-else key="list">
+                <table class="menu_table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" v-model="select_all" @change="toggle_select_all"
+                                    class="circle_checkbox" />
+                            </th>
+                            <th>옵션명</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item, index) in option_items" :key="index"
+                            :class="{ 'selected-row': item.selected }">
+                            <td>
+                                <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
+                            </td>
+                            <td>{{ item.name }}</td>
+                            <td>
+                                <button class="detail_btn" @click="openEditModal(item.optionId)">상세</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="pagination_container">
+                    <button :disabled="currentPage === 0" @click="goToPage(currentPage - 1)">
+                        ◀ 이전
+                    </button>
+
+                    <span v-for="page in totalPages" :key="page" @click="goToPage(page - 1)"
+                        :class="{ 'page-number': true, 'active': currentPage === page - 1 }">
+                        {{ page }}
+                    </span>
+
+                    <button :disabled="currentPage === totalPages - 1" @click="goToPage(currentPage + 1)">
+                        다음 ▶
+                    </button>
+                </div>
+            </div>
+
+        </transition>
         <OptionRegisterModal :isOpen="isRegisterModalOpen" @close="closeRegisterModal" @refresh="fetchOptionList" />
         <OptionEditModal :isOpen="isEditModalOpen" :optionId="selectedOptionId" @close="isEditModalOpen = false"
             @refresh="fetchOptionList" />
@@ -178,6 +222,101 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.fade-enter-active,
+.fade-leave-active {
+    transition: all 0.3s ease;
+}
+
+.fade-enter-from {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.fade-enter-to {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.fade-leave-from {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.fade-leave-to {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.empty-state {
+    text-align: center;
+    margin-top: 80px;
+    color: #888;
+}
+
+.empty-icon {
+    width: 100px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-text {
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+/* 기본 skeleton cell 애니메이션 */
+.skeleton-cell {
+    background: #e0e0e0;
+    border-radius: 6px;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* 애니메이션 효과 */
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+/* 각 셀 사이즈 맞춤 */
+.skeleton-cell.checkbox {
+    width: 20px;
+    height: 20px;
+    margin: 0 auto;
+}
+
+.skeleton-cell.name {
+    width: 100px;
+    height: 20px;
+    margin: 0 auto;
+}
+
+.skeleton-cell.category {
+    width: 80px;
+    height: 20px;
+    margin: 0 auto;
+}
+
+.skeleton-cell.stock {
+    width: 60px;
+    height: 20px;
+    margin: 0 auto;
+}
+
+.skeleton-cell.btn {
+    width: 50px;
+    height: 25px;
+    margin: 0 auto;
+}
+
 .body {
     padding: 20px;
 }

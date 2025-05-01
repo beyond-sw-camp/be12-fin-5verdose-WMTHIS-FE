@@ -97,7 +97,7 @@ const getStoreInventoryList = async () => {
         }));
         console.log('재고 목록:', ingredientOptions.value);
     } else {
-        alert("재고 목록을 불러오는 데 실패했습니다.");
+        console.log("재고 목록을 불러오는 데 실패했습니다.");
     }
 };
 
