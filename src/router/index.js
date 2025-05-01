@@ -149,7 +149,7 @@ const routes = createRouter({
     return false;
   },
 });
-
+/*
 routes.beforeEach(async (to, from, next) => {
   const publicPages = ["login", "signup1", "signup2", "signupDone", "storeRegister", "storedone", "findpwd1", "findpwd2"];
   if (publicPages.includes(to.name)) {
@@ -180,5 +180,5 @@ routes.beforeEach(async (to, from, next) => {
     return next("/account/login");
   }
 });
-
+*/
 export default routes;
