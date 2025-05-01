@@ -6,6 +6,9 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
+const isSubmitting = ref(false);
+const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*()\-_=+{};:,<.>]).{8,}$/;
+
 const isLoading = ref(false);
 // 사용자 정보 상태
 const userProfile = reactive({
@@ -28,17 +31,26 @@ const isFormEditable = computed(() => {
 const isPasswordEditable = computed(() => {
     return isVerified.value; // 인증 완료 시 비밀번호 필드만 활성화
 });
+
 const passwordsMatch = computed(() => {
-    if (!newPassword.value || !confirmPassword.value) return true; // 둘 중 하나가 비어 있으면 true
-    return newPassword.value === confirmPassword.value; // 일치 여부 반환
+    if (!confirmPassword.value) return null;
+    return newPassword.value === confirmPassword.value;
+});
+
+const passwordValid = computed(() => {
+    if (!newPassword.value) return null; // 아직 입력 안 했으면 메시지 출력 안 함
+    return passwordRegex.test(newPassword.value);
 });
 
 const isSaveButtonEnabled = computed(() => {
-    // 인증이 완료되었고, 비밀번호 필드 또는 다른 필드가 수정된 경우 저장 버튼 활성화
-    return isVerified.value && (
-        currentPassword.value ||
-        newPassword.value ||
-        confirmPassword.value ||
+    const isPasswordChanging = currentPassword.value || newPassword.value || confirmPassword.value;
+
+    const passwordConditionsMet = !isPasswordChanging || (
+        passwordValid.value && passwordsMatch.value
+    );
+
+    return isVerified.value && passwordConditionsMet && (
+        isPasswordChanging ||
         userProfile.name !== originalProfile.name ||
         userProfile.email !== originalProfile.email ||
         userProfile.phone !== originalProfile.phone
@@ -145,6 +157,8 @@ const formattedTimer = computed(() => {
 
 // 폼 제출 처리
 const handleSubmit = async () => {
+    if (isSubmitting.value) return;
+
     if (!isVerified.value) {
         alert('비밀번호 수정을 위해 핸드폰 인증이 필요합니다.');
         return;
@@ -156,39 +170,45 @@ const handleSubmit = async () => {
         return;
     }
 
-    // 서버로 전달할 데이터
+    if (newPassword.value && !passwordRegex.test(newPassword.value)) {
+        alert('비밀번호는 8자리 이상이며, 대문자와 특수문자를 포함해야 합니다.');
+        return;
+    }
+
     const data = {
-        email: userProfile.email, // 이메일
-        currentPassword: currentPassword.value, // 현재 비밀번호
-        newPassword: newPassword.value, // 새 비밀번호
+        email: userProfile.email,
+        currentPassword: currentPassword.value,
+        newPassword: newPassword.value,
     };
 
+    isSubmitting.value = true;
     try {
         const response = await api.updateUserInfo(data);
 
-        if (response) {
+        if (response.code === 200) {
             alert('비밀번호가 성공적으로 변경되었습니다.');
 
-            // 비밀번호 필드 초기화
             currentPassword.value = '';
             newPassword.value = '';
             confirmPassword.value = '';
-
             await loadUserInfo();
 
-            // 초기 화면으로 돌아가기
             isVerified.value = false;
             isVerificationSent.value = false;
             verificationCode.value = '';
             clearInterval(timerInterval.value);
         } else {
-            alert('비밀번호 변경에 실패했습니다. 다시 시도해주세요.');
+            alert(response.message || '비밀번호 변경에 실패했습니다. 다시 시도해주세요.');
         }
     } catch (error) {
-        console.error('비밀번호 변경 중 오류:', error);
-        alert('비밀번호 변경 중 오류가 발생했습니다.');
+        const message =
+            error?.response?.data?.message || '비밀번호 변경 중 오류가 발생했습니다.';
+        alert(message);
+    } finally {
+        isSubmitting.value = false;
     }
 };
+
 // 변경사항 취소
 const handleCancel = () => {
     // 원본 데이터로 복원
@@ -311,29 +331,31 @@ onMounted(() => {
                         <label>새 비밀번호</label>
                         <input type="password" v-model="newPassword" class="form-input"
                             :disabled="!isPasswordEditable" />
+                        <div v-if="passwordValid === false" class="password-invalid">
+                            비밀번호는 8자리 이상이며, 대문자와 특수문자를 포함해야 합니다.
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label>새 비밀번호 확인</label>
                         <input type="password" v-model="confirmPassword" class="form-input"
                             :disabled="!isPasswordEditable" />
-                        <div v-if="!passwordsMatch && confirmPassword" class="password-mismatch">
+                        <div v-if="passwordsMatch === false" class="password-mismatch">
                             비밀번호가 일치하지 않습니다.
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- 버튼 그룹 -->
-                <div class="action_buttons">
-                    <button type="submit" class="save_btn" :disabled="!isSaveButtonEnabled"
-                        :class="{ 'disabled-btn': !isSaveButtonEnabled }">
-                        저장
-                    </button>
-                    <button type="button" @click="handleCancel" class="cancel_btn">취소</button>
-                </div>
+            <!-- 버튼 그룹 -->
+            <div class="action_buttons">
+                <button type="submit" class="save_btn" :disabled="!isSaveButtonEnabled || isSubmitting"
+                    :class="{ 'disabled-btn': !isSaveButtonEnabled || isSubmitting }" @click="handleSave">
+                    저장
+                </button>
+                <button type="button" @click="handleCancel" class="cancel_btn">취소</button>
             </div>
         </form>
-
         <!-- 성공 모달 -->
         <SuccessModal :isOpen="isSuccessModalOpen" @close="closeSuccessModal" message="회원정보가 성공적으로 수정되었습니다." />
     </div>
@@ -582,6 +604,12 @@ onMounted(() => {
 }
 
 .password-mismatch {
+    color: #e74c3c;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.password-invalid {
     color: #e74c3c;
     font-size: 14px;
     margin-top: 5px;

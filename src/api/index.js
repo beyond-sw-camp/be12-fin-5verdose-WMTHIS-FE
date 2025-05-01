@@ -304,15 +304,13 @@ export const api = {
       .put("/user/updateinfo", data)
       .then((res) => {
         console.log("Update user info response", res);
-        if (res.data.code === 200) {
-          return res.data;
-        } else {
-          return false;
-        }
+        return res.data; // 서버의 실제 데이터 반환
       })
       .catch((error) => {
-        console.error("Error in updateUserInfo:", error);
-        return false;
+        // 서버가 반환한 오류 메시지를 그대로 반환
+        if (error.response && error.response.data) {
+          return error.response.data; // 서버의 오류 메시지 반환
+        }
       });
   },
 
