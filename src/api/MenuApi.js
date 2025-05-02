@@ -291,29 +291,43 @@ export const api = {
       .post("/menu/register", data)
       .then((res) => {
         if (res.data.code !== 200) {
-          return false;
+          return {
+            success: false,
+            message: res.data.message || "메뉴 등록 실패",
+          };
         }
-        return res.data.data;
+        return { success: true, data: res.data.data };
       })
       .catch((error) => {
         console.error("Error in registerMenu:", error);
-        return false;
+
+        const message =
+          error.response?.data?.message || "서버 오류가 발생했습니다.";
+
+        return { success: false, message };
       });
   },
+
   updateMenu(data) {
     return instance
       .put("/menu/update", data)
       .then((res) => {
         if (res.data.code !== 200) {
-          return false;
+          return {
+            success: false,
+            message: res.data.message || "메뉴 수정 실패",
+          };
         }
-        return res.data.data;
+        return { success: true, data: res.data.data };
       })
       .catch((error) => {
         console.error("Error in updateMenu:", error);
-        return false;
+        const message =
+          error.response?.data?.message || "서버 오류가 발생했습니다.";
+        return { success: false, message };
       });
   },
+
   getStoreInventoryList(page = 0, size = 10, keyword = "") {
     return instance
       .get("/inventory/storeInventory/getList", {
