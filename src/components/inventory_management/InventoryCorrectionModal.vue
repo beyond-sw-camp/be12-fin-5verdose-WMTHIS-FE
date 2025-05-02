@@ -10,7 +10,7 @@ const props = defineProps({
   },
   unit: String,
 });
-
+const isSubmitting = ref(false);
 const emit = defineEmits(["close", "updated"]);
 
 // 수정할 데이터를 저장할 변수
@@ -80,12 +80,14 @@ const validateForm = () => {
 
 // 보정 내용 저장
 const saveCorrection = async () => {
+  if (isSubmitting.value) return;
   if (!props.item) return;
 
   // 유효성 검사
   if (!validateForm()) {
     return;
   }
+  isSubmitting.value = true;
   const data = {
     inventoryId: props.item.id,
     expiryDate: expiryDate.value,
@@ -100,6 +102,7 @@ const saveCorrection = async () => {
     alert("보정 내용 저장에 실패했습니다.");
   }
   emit("close");
+  isSubmitting.value = false;
 };
 
 // 폼이 유효한지 확인
@@ -188,9 +191,9 @@ const isFormValid = computed(() => {
           <button
             class="confirm_btn"
             @click="saveCorrection"
-            :disabled="isLoading || !isFormValid"
+            :disabled="(isLoading || !isFormValid, isSubmitting)"
           >
-            저장
+            {{ isSubmitting ? "저장 중..." : "저장" }}
           </button>
         </div>
       </div>
