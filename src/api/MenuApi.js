@@ -16,13 +16,22 @@ export const api = {
         console.log("registerRes", res);
         console.log("code:", res.data.code);
 
-        return res.data.code === 200; // 성공 시 true 반환;
+        if (res.data.code !== 200) {
+          return {
+            success: false,
+            message: res.data.message || "카테고리 등록 실패",
+          };
+        }
+        return { success: true };
       })
       .catch((error) => {
         console.error("Error in registerCategory:", error);
-        return false;
+        const message =
+          error.response?.data?.message || "서버 오류가 발생했습니다.";
+        return { success: false, message };
       });
   },
+
   getCategoryList(page = 0, size = 10, keyword = "") {
     console.log("getCategoryList");
 
@@ -101,8 +110,25 @@ export const api = {
       });
   },
   updateCategory(payload) {
-    return axios.put("/api/category/update", payload);
+    return axios
+      .put("/api/category/update", payload)
+      .then((res) => {
+        if (res.data.code !== 200) {
+          return {
+            success: false,
+            message: res.data.message || "카테고리 수정 실패",
+          };
+        }
+        return { success: true, data: res.data.data };
+      })
+      .catch((error) => {
+        console.error("Error in updateCategory:", error);
+        const message =
+          error.response?.data?.message || "서버 오류가 발생했습니다.";
+        return { success: false, message };
+      });
   },
+
   deleteOptions(optionIdList) {
     return instance
       .post("/option/delete/batch", optionIdList)
@@ -291,29 +317,43 @@ export const api = {
       .post("/menu/register", data)
       .then((res) => {
         if (res.data.code !== 200) {
-          return false;
+          return {
+            success: false,
+            message: res.data.message || "메뉴 등록 실패",
+          };
         }
-        return res.data.data;
+        return { success: true, data: res.data.data };
       })
       .catch((error) => {
         console.error("Error in registerMenu:", error);
-        return false;
+
+        const message =
+          error.response?.data?.message || "서버 오류가 발생했습니다.";
+
+        return { success: false, message };
       });
   },
+
   updateMenu(data) {
     return instance
       .put("/menu/update", data)
       .then((res) => {
         if (res.data.code !== 200) {
-          return false;
+          return {
+            success: false,
+            message: res.data.message || "메뉴 수정 실패",
+          };
         }
-        return res.data.data;
+        return { success: true, data: res.data.data };
       })
       .catch((error) => {
         console.error("Error in updateMenu:", error);
-        return false;
+        const message =
+          error.response?.data?.message || "서버 오류가 발생했습니다.";
+        return { success: false, message };
       });
   },
+
   getStoreInventoryList(page = 0, size = 10, keyword = "") {
     return instance
       .get("/inventory/storeInventory/getList", {

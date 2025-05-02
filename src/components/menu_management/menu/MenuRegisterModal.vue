@@ -94,16 +94,15 @@ const registerMenu = async () => {
         console.log('등록할 메뉴 데이터:', data);
         const response = await api.registerMenu(data);
 
-        if (response) {
+        if (response.success) {
             alert('메뉴가 등록되었습니다.');
             init();
             emit('refresh');
             emit('close');
         } else {
-            alert('메뉴 등록에 실패했습니다. 다시 시도해주세요.');
+            alert(response.message || '메뉴 등록에 실패했습니다.');
         }
     } catch (error) {
-        console.error('등록 중 에러:', error);
         alert('오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
         isSubmitting.value = false;

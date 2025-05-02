@@ -116,12 +116,12 @@ const registerMenu = async () => {
 
         const response = await api.updateMenu(data); // API 호출
         console.log('API 응답:', response);
-        if (response) {
+        if (response.success) {
             alert('메뉴가 수정이 완료되었습니다.');
             emit('refresh');
             emit('close'); // 모달 닫기
         } else {
-            alert('메뉴 등록에 실패했습니다. 다시 시도해주세요.');
+            alert(response.message || '메뉴 수정에 실패했습니다.');
         }
     } else {
         alert('모든 필드를 입력해주세요.');
