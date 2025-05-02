@@ -18,60 +18,34 @@ watch([startDate, endDate], ([newStart, newEnd]) => {
       alert("시작일이 종료일보다 빨라야 합니다");
       return;
     }
-    fetchAndSetSalesData();
-    fetchAndSetMarketData();
+
+    fetchAndSetTwoData();
     fetchAndSetStockData();
   }
 });
 
 const salesMenu = ref([]);
-async function fetchAndSetSalesData() {
-  try {
-    const payload = {
-      startDate: startDate.value,
-      endDate: endDate.value,
-    };
-    const data = await api.SearchInventorySale(payload);
-
-    if (data !== 404) {
-      salesMenu.value = data.map((item) => {
-        const fullDate = new Date(item.date);
-        const date = fullDate.toISOString().slice(0, 10); // "YYYY-MM-DD"
-        const time = fullDate.toTimeString().slice(0, 8); // "HH:mm:ss"
-
-        return {
-          date,
-          time,
-          stockName: item.stockName,
-          changeReason: item.changeReason,
-          quantity: item.quantity,
-          unit: item.unit,
-        };
-      });
-    } else {
-      console.error("판매 데이터를 불러오지 못했습니다.");
-    }
-  } catch (error) {
-    console.error("에러 발생:", error);
-  }
-}
-
 const salesMarket = ref([]);
-async function fetchAndSetMarketData() {
+
+async function fetchAndSetTwoData() {
   try {
     const payload = {
       startDate: startDate.value,
       endDate: endDate.value,
     };
-    const data = await api.SearchInventoryMarket(payload);
+    const data = await api.SearchMenuMarket(payload);
 
     if (data !== 404) {
-      salesMarket.value = data.map((item) => {
+      // 각각 초기화
+      salesMenu.value = [];
+      salesMarket.value = [];
+
+      data.forEach((item) => {
         const fullDate = new Date(item.date);
         const date = fullDate.toISOString().slice(0, 10); // "YYYY-MM-DD"
         const time = fullDate.toTimeString().slice(0, 8); // "HH:mm:ss"
 
-        return {
+        const record = {
           date,
           time,
           stockName: item.stockName,
@@ -79,6 +53,16 @@ async function fetchAndSetMarketData() {
           quantity: item.quantity,
           unit: item.unit,
         };
+
+        if (item.changeReason === "메뉴") {
+          salesMenu.value.push(record);
+          console.log("메뉴입니다");
+          console.log(record);
+        } else {
+          salesMarket.value.push(record);
+          console.log("장터입니다");
+          console.log(record);
+        }
       });
     } else {
       console.error("판매 데이터를 불러오지 못했습니다.");
