@@ -76,16 +76,21 @@ const updateCategory = async () => {
 
     try {
         const payload = {
-            id: props.category, // 또는 id → Spring에서 처리 방식에 따라 다르게
+            id: props.category,
             newName: categoryName.value,
             optionIds: selectedOptions.value.map(option => option.optionId)
         };
         console.log('수정할 카테고리 데이터:', payload);
-        const res = await api.updateCategory(payload);
-        console.log('수정 성공:', res.data);
-        alert('카테고리가 성공적으로 수정되었습니다.');
-        emit('refresh');
-        emit('close');
+
+        const response = await api.updateCategory(payload);
+
+        if (response.success) {
+            alert('카테고리가 성공적으로 수정되었습니다.');
+            emit('refresh');
+            emit('close');
+        } else {
+            alert(response.message || '카테고리 수정에 실패했습니다.');
+        }
     } catch (err) {
         console.error('카테고리 수정 실패:', err);
         alert('카테고리 수정 중 오류가 발생했습니다.');

@@ -51,12 +51,12 @@ const registerCategory = async () => {
             optionIds: optionIds
         });
 
-        if (response) {
+        if (response.success) {
             alert('카테고리가 등록되었습니다.');
             emit('refresh');
             emit('close');
         } else {
-            alert('카테고리 등록에 실패했습니다.');
+            alert(response.message || '카테고리 등록에 실패했습니다.');
         }
     } catch (error) {
         console.error(error);
