@@ -112,11 +112,7 @@ const isFormValid = computed(() => {
 </script>
 
 <template>
-  <div
-    class="particular_modal_container"
-    @click.self="emit('close')"
-    style="z-index: 10000"
-  >
+  <div class="particular_modal_container" style="z-index: 10000">
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">

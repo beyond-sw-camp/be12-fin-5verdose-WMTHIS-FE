@@ -145,12 +145,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    v-if="isOpen"
-    class="store_modal_container"
-    @click.self="emit('close')"
-    style="z-index: 2000"
-  >
+  <div v-if="isOpen" class="store_modal_container" style="z-index: 2000">
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">

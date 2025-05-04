@@ -55,6 +55,9 @@ const disableCustomInput = () => {
   }
 };
 
+const registerInvnetory = () => {
+  registerInventory();
+};
 // 재고 등록 처리 함수
 const registerInventory = async () => {
   if (isSubmitting.value) return; // 중복 제출 방지
@@ -126,12 +129,7 @@ const registerInventory = async () => {
 </script>
 
 <template>
-  <div
-    v-if="isOpen"
-    class="register_modal_container"
-    @click.self="emit('close')"
-    style="z-index: 2000"
-  >
+  <div v-if="isOpen" class="register_modal_container" style="z-index: 2000">
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
