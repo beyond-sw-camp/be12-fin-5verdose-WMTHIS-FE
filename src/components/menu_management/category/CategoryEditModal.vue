@@ -8,7 +8,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close']);
-
+const isSubmitting = ref(false); // 요청 중인지 여부를 추적하는 상태
 const categoryName = ref('');
 const category = ref('');
 const optionList = ref(['면 추가', '밥 추가', '치즈 추가', '고기 추가']);
@@ -16,13 +16,22 @@ const optionName = ref('');
 const selectedOptions = ref([]);
 
 const addOption = () => {
-    if (
-        optionName.value &&
-        !selectedOptions.value.some((opt) => opt.name === optionName.value.name)
-    ) {
-        selectedOptions.value.push(optionName.value);
-        optionName.value = '';
+    if (!optionName.value) {
+        alert('옵션명을 입력해주세요.');
+        return;
     }
+
+    const alreadyExists = selectedOptions.value.some(
+        (opt) => opt.name === optionName.value.name
+    );
+
+    if (alreadyExists) {
+        alert('이미 추가된 옵션입니다.');
+        return;
+    }
+
+    selectedOptions.value.push(optionName.value);
+    optionName.value = '';
 };
 
 
@@ -58,6 +67,8 @@ const loadOptionList = async () => {
     }
 };
 const updateCategory = async () => {
+    if (isSubmitting.value) return;
+    isSubmitting.value = true;
     if (!categoryName.value) {
         alert('카테고리명을 입력해주세요.');
         return;
@@ -65,19 +76,26 @@ const updateCategory = async () => {
 
     try {
         const payload = {
-            id: props.category, // 또는 id → Spring에서 처리 방식에 따라 다르게
+            id: props.category,
             newName: categoryName.value,
             optionIds: selectedOptions.value.map(option => option.optionId)
         };
         console.log('수정할 카테고리 데이터:', payload);
-        const res = await api.updateCategory(payload);
-        console.log('수정 성공:', res.data);
-        alert('카테고리가 성공적으로 수정되었습니다.');
-        emit('refresh');
-        emit('close');
+
+        const response = await api.updateCategory(payload);
+
+        if (response.success) {
+            alert('카테고리가 성공적으로 수정되었습니다.');
+            emit('refresh');
+            emit('close');
+        } else {
+            alert(response.message || '카테고리 수정에 실패했습니다.');
+        }
     } catch (err) {
         console.error('카테고리 수정 실패:', err);
         alert('카테고리 수정 중 오류가 발생했습니다.');
+    } finally {
+        isSubmitting.value = false; // 요청 완료 후 상태 리셋
     }
 };
 
@@ -89,7 +107,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')" style="z-index: 2000;">
+    <div v-if="isOpen" class="modal_overlay" style="z-index: 2000;">
         <div class="modal">
             <div class="modal_content">
                 <div class="modal_header">
@@ -128,7 +146,9 @@ onMounted(() => {
                 </div>
             </div>
             <div class="modal_footer">
-                <button class="confirm_btn" @click=updateCategory>수정</button>
+                <button class="confirm_btn" :disabled="isSubmitting" @click="updateCategory">
+                    {{ isSubmitting ? '수정 중...' : '수정' }}
+                </button>
             </div>
         </div>
     </div>

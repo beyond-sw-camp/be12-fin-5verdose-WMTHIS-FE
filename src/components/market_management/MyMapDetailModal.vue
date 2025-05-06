@@ -3,9 +3,7 @@ import { api } from '@/api/MenuApi.js';
 import { ref, watch } from "vue";
 import { marketApi } from "@/api/MarketApi.js";
 
-import dayjs from 'dayjs';
-import { get } from "lodash";
-import { mdiFormatQuoteClose } from '@mdi/js';
+import dayjs from "dayjs";
 const props = defineProps({
   isOpen: Boolean,
   item: {
@@ -13,7 +11,6 @@ const props = defineProps({
     required: true,
   },
 });
-
 
 const ingredient = ref("");
 
@@ -28,12 +25,12 @@ const form = ref({
   expiryDate: "",
   createdDate: "",
   imageUrls: [],
-  method: "만나서결제"
+  method: "만나서결제",
 });
 
 const methodMap = {
-  "만나서결제": "cash",
-  "카드결제": "credit_card"
+  만나서결제: "cash",
+  카드결제: "credit_card",
 };
 
 
@@ -43,7 +40,6 @@ const quantity = ref("");
 const description = ref("");
 const paymentMethod = ref("만나서결제");
 const emit = defineEmits(["close"]);
-
 
 const setItemData = (item) => {
   console.log("item" + item.value);
@@ -70,33 +66,35 @@ const sendTradeRequest = () => {
     storeInventoryId: id,
     quantity: form.value.quantity,
     price: form.value.price,
-    method: methodMap[form.value.method] || "cash"
-  }
+    method: methodMap[form.value.method] || "cash",
+  };
   console.log(data);
-
-  const response = marketApi.registerPurchase(data);
-
-  // 서버 에러일때
-  if (!response) {
-
+  console.log(Number(data.quantity));
+  console.log(Number(props.item.quantity));
+  if (Number(data.quantity) > Number(props.item.quantity)) {
+    alert("판매하는 양보다 많은 수량은 입력할 수 없습니다");
   } else {
-    const code = response.code;
-    if (code === 200) {
+    const response = marketApi.registerPurchase(data);
 
-      handleClosePanel();
+    // 서버 에러일때
+    if (!response) {
+    } else {
+      const code = response.code;
+      if (code === 200) {
+        handleClosePanel();
+      }
     }
 
+    handleClosePanel();
   }
-
-  handleClosePanel();
-}
+};
 const getDday = (expirationDate) => {
   const today = dayjs();
   const exp = dayjs(expirationDate);
-  const diff = exp.diff(today, 'day');
+  const diff = exp.diff(today, "day");
 
   if (diff > 0) return `D-${diff}`;
-  else if (diff === 0) return 'D-day';
+  else if (diff === 0) return "D-day";
   else return `D+${Math.abs(diff)}`;
 };
 
@@ -174,8 +172,7 @@ const itemLabel = (item) => {
         <div class="title">
           <h1 class="title_left">{{ form.name }}</h1>
           <div class="title_right">
-            <button class="close_btn" @click="handleClosePanel"><img src="@/assets/image/xMark.png"
-                class="x_button" /></button>
+            <button class="close_btn" @click="handleClosePanel"><img src="@/assets/image/xMark.png" class="x_button" /></button>
             <p class="title_store">{{ form.storeName }}</p>
           </div>
         </div>

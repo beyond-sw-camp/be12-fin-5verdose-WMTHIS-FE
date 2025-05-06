@@ -8,7 +8,7 @@ const props = defineProps({
   item: Object, // 수정할 항목 데이터
 });
 const emit = defineEmits(["close", "updateInventory"]);
-
+const isSubmitting = ref(false); // 제출 중 상태
 
 // 입력 필드 상태
 const name = ref("");
@@ -91,6 +91,7 @@ watch(
 // 수정 처리
 
 const updateInventory = async () => {
+  if (isSubmitting.value) return; // 이미 제출 중이면 중복 방지
   const parsedDays = parseInt(customDays.value, 10);
   if (!name.value.trim()) {
     alert("재고명을 입력해 주세요.");
@@ -100,11 +101,19 @@ const updateInventory = async () => {
     alert("단위를 선택해 주세요.");
     return;
   }
-  if (minQuantity.value === null || minQuantity.value === "" || isNaN(minQuantity.value)) {
+  if (
+    minQuantity.value === null ||
+    minQuantity.value === "" ||
+    isNaN(minQuantity.value)
+  ) {
     alert("최소수량을 숫자로 입력해 주세요.");
     return;
   }
-  if (isCustomInput.value && (!customDays.value || isNaN(customDays.value)) && customDays.value > 0) {
+  if (
+    isCustomInput.value &&
+    (!customDays.value || isNaN(customDays.value)) &&
+    customDays.value > 0
+  ) {
     alert("직접 입력한 유통기한을 숫자로 입력해 주세요.");
     return;
   }
@@ -113,11 +122,11 @@ const updateInventory = async () => {
     return false;
   }
 
-  if (isCustomInput.value && parsedDays < 1 || parsedDays > 30) {
+  if ((isCustomInput.value && parsedDays < 1) || parsedDays > 30) {
     alert("직접 입력한 유통기한은 1일에서 30일 사이의 값이어야 합니다.");
     return false;
   }
-
+  isSubmitting.value = true; // 제출 중 상태로 변경
   const payload = {
     storeInventoryId: props.item.id,
     name: name.value,
@@ -138,11 +147,13 @@ const updateInventory = async () => {
   }
 
   emit("close");
+  isSubmitting.value = false; // 제출 완료 상태로 변경
+  // 모달 닫기
 };
 </script>
 
 <template>
-  <div v-if="isOpen" class="modify_modal_container" @click.self="emit('close')" style="z-index: 2000">
+  <div v-if="isOpen" class="modify_modal_container" style="z-index: 2000">
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
@@ -180,10 +191,16 @@ const updateInventory = async () => {
         <div class="input_group">
           <div class="modal_title2 between">
             <label>최소수량</label>
-            <input type="text" v-model="minQuantity" placeholder="5" class="min-qty-input" />
+            <input
+              type="text"
+              v-model="minQuantity"
+              placeholder="5"
+              class="min-qty-input"
+            />
           </div>
           <p class="sub_title">
-            최소 보유하고 있어야하는 재고의 수를 입력해 주세요. <br> 소수점 2자리까지 저장됩니다.
+            최소 보유하고 있어야하는 재고의 수를 입력해 주세요. <br />
+            소수점 2자리까지 저장됩니다.
           </p>
         </div>
         <div class="input_group">
@@ -191,27 +208,51 @@ const updateInventory = async () => {
             <label>입고 후 유통기한</label>
           </div>
           <div class="button_group">
-            <v-btn v-for="day in expiryDate" :key="day.value" :class="{ 'selected-btn': selectedDays === day.value }"
-              @click="selectDay(day.value)" variant="outlined">
+            <v-btn
+              v-for="day in expiryDate"
+              :key="day.value"
+              :class="{ 'selected-btn': selectedDays === day.value }"
+              @click="selectDay(day.value)"
+              variant="outlined"
+            >
               {{ day.label }}
             </v-btn>
 
             <!-- 직접입력 버튼 -->
-            <v-btn v-if="!isCustomInput" :class="{ 'selected-btn': selectedDays === 'custom' }"
-              @click="enableCustomInput" variant="outlined">
+            <v-btn
+              v-if="!isCustomInput"
+              :class="{ 'selected-btn': selectedDays === 'custom' }"
+              @click="enableCustomInput"
+              variant="outlined"
+            >
               직접입력
             </v-btn>
 
             <template v-if="isCustomInput">
-              <v-text-field v-model.number="customDays" class="custom_input" variant="outlined" density="compact"
-                hide-details @blur="disableCustomInput" type="number" min="1" max="30"></v-text-field>
+              <v-text-field
+                v-model.number="customDays"
+                class="custom_input"
+                variant="outlined"
+                density="compact"
+                hide-details
+                @blur="disableCustomInput"
+                type="number"
+                min="1"
+                max="30"
+              ></v-text-field>
               <span class="fixed_text">일 까지</span>
             </template>
           </div>
         </div>
       </div>
       <div class="modal_footer">
-        <button class="confirm_btn" @click="updateInventory">수정</button>
+        <button
+          class="confirm_btn"
+          @click="updateInventory"
+          :disabled="isSubmitting"
+        >
+          {{ isSubmitting ? "수정 중..." : "수정" }}
+        </button>
       </div>
     </div>
   </div>
@@ -536,7 +577,9 @@ const updateInventory = async () => {
   /* 드롭다운 크기 */
   appearance: none;
   /* 기본 스타일 제거 */
-  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
+  background: white
+    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
   background-size: 16px;
 }
 

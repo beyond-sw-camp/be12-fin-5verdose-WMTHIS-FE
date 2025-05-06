@@ -1,6 +1,8 @@
 <script setup>
-import { defineProps, defineEmits, ref, onMounted, watch } from "vue";
+import { defineProps, defineEmits, ref, computed, watch } from "vue";
 import InventoryCorrectionModal from "@/components/inventory_management/InventoryCorrectionModal.vue";
+import DeleteConfirmModal from "@/components/alerts/DeleteConfirmModal.vue";
+import DeleteAlertModal from "@/components/alerts/DeleteAlertModal.vue";
 import { api } from "@/api/MenuApi.js";
 
 const props = defineProps({
@@ -12,10 +14,12 @@ const props = defineProps({
 });
 
 const recipeList = ref([]);
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close", "updated"]);
 const isCorrectionModalOpen = ref(false);
 const correctionItem = ref(null);
 const isParticularModalOpen = ref(false);
+const isDeleteConfirmOpen = ref(false);
+const isDeleteAlertOpen = ref(false);
 const selectedDays = ref("1");
 const customDays = ref("");
 const unit = ref("");
@@ -29,7 +33,6 @@ const closeModal = () => {
 const selectedItem = ref(null);
 
 const openCorrectionModal = (item) => {
-
   console.log("✅ 재고 보정 클릭됨:", item);
   correctionItem.value = item;
   unit.value = props.item.unit;
@@ -38,21 +41,98 @@ const openCorrectionModal = (item) => {
   isModalOpen.value = true;
 };
 
+// 전체 선택 기능
+const select_all = ref(false);
+const isBlocked = computed(
+  () => isDeleteConfirmOpen.value || isDeleteAlertOpen.value
+);
+
+const toggle_select_all = () => {
+  if (!isBlocked.value) {
+    inventory_items.value.forEach((item) => (item.selected = select_all.value));
+  }
+};
+const openDeleteConfirm = () => {
+  const selectedItems = inventory_items.value.some((item) => item.selected);
+  if (selectedItems) {
+    isDeleteConfirmOpen.value = true; // 삭제 확인 모달 열기
+  } else {
+    alert("삭제할 항목을 선택해주세요.");
+  }
+};
 const inventory_items = ref([]);
+const latest = inventory_items.value[0]; // 가장 먼저 입고된 항목
 
 const fetchInventory = async () => {
-  isLoading.value = true; // 로딩 시작
+  isLoading.value = true;
   const response = await api.getInventory(props.item.storeInventoryId);
   console.log("✅ API 호출:", response);
-  inventory_items.value = response.data.map((item) => {
-    return {
-      ...item,
-      purchaseDate: item.purchaseDate.split("T")[0],
-      expiryDate: item.expiryDate.split("T")[0],
-    };
-  });
-  isLoading.value = false; // 로딩 종료
-}
+
+  inventory_items.value = response.data
+    .map((item) => {
+      return {
+        ...item,
+        purchaseDate: item.purchaseDate.split("T")[0],
+        expiryDate: item.expiryDate.split("T")[0],
+      };
+    })
+    .sort((a, b) => {
+      if (a.quantity === 0 && b.quantity > 0) return 1;
+      if (a.quantity > 0 && b.quantity === 0) return -1;
+      return 0;
+    });
+  // ✅ 수량 > 0인 항목 중 유통기한이 가장 빠른 항목 선택
+  const latest = inventory_items.value
+    .filter((i) => i.quantity > 0)
+    .sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate))[0];
+
+  const idx = inventory_items.value.findIndex(
+    (i) => i.storeInventoryId === props.item.storeInventoryId
+  );
+  if (idx !== -1 && latest) {
+    inventory_items.value[idx].expiryDate = latest.expiryDate;
+    inventory_items.value[idx].quantity = latest.quantity;
+    inventory_items.value[idx].status = getStatusFromExpiryDate(
+      latest.expiryDate,
+      latest.purchaseDate,
+      latest.quantity
+    );
+  }
+  console.log("✅ 재고 목록:", inventory_items.value);
+
+  console.log("✅ 정렬된 inventory_items:", inventory_items.value);
+  isLoading.value = false;
+  emit("updated");
+};
+
+const closeDeleteConfirm = () => {
+  isDeleteConfirmOpen.value = false; // 삭제 확인 모달 닫기
+};
+const deleteSelectedItems = async () => {
+  const selectedIds = inventory_items.value
+    .filter((item) => item.selected)
+    .map((item) => item.id);
+
+  if (selectedIds.length > 0) {
+    try {
+      const response = await api.deleteListInventory(selectedIds);
+      console.log("✅ 삭제 API 호출:", response);
+      if (response.code === 200) {
+        alert("삭제되었습니다.");
+        fetchInventory(); // 삭제 후 재고 목록 갱신
+      } else {
+        alert("삭제 실패: " + (response.message || "다시 시도해주세요."));
+      }
+    } catch (error) {
+      alert("삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
+      console.error("삭제 오류:", error);
+    }
+  } else {
+    alert("삭제할 항목을 선택해주세요.");
+  }
+
+  closeDeleteConfirm(); // 삭제 확인 모달 닫기
+};
 
 watch(
   () => props.item,
@@ -65,9 +145,16 @@ watch(
   { immediate: true }
 );
 
+watch(
+  inventory_items,
+  (new_items) => {
+    select_all.value = new_items.every((item) => item.selected);
+  },
+  { deep: true }
+);
 </script>
 <template>
-  <div class="particular_modal_container" @click.self="emit('close')" style="z-index: 9999">
+  <div class="particular_modal_container" style="z-index: 9999">
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
@@ -89,20 +176,30 @@ watch(
                 <strong>재고명 :</strong> {{ props.item.name }}
               </p>
               <p v-if="props.item">
-                <strong>총 수량 :</strong> {{ props.item.quantity }} {{ props.item.unit }}
+                <strong>총 수량 :</strong> {{ props.item.quantity }}
+                {{ props.item.unit }}
               </p>
               <!--
               <p v-if="recipeList.length">
                 <strong>사용메뉴 :</strong> {{ recipeList.join(", ") }}
               </p>
               <p v-else><strong>사용메뉴 :</strong> 메뉴 정보가 없습니다.</p>
-            -->
-            </div>
+            --></div>
           </div>
-
+          <button type="button" @click="openDeleteConfirm" class="delete_btn">
+            삭제
+          </button>
           <table class="inventory_table">
             <thead>
               <tr>
+                <th>
+                  <input
+                    type="checkbox"
+                    v-model="select_all"
+                    @change="toggle_select_all"
+                    class="circle_checkbox"
+                  />
+                </th>
                 <th>입고날짜</th>
                 <th>유통기한</th>
                 <th>수량</th>
@@ -111,6 +208,13 @@ watch(
             </thead>
             <tbody>
               <tr v-for="(item, index) in inventory_items" :key="index">
+                <td>
+                  <input
+                    type="checkbox"
+                    v-model="item.selected"
+                    class="circle_checkbox"
+                  />
+                </td>
                 <td>{{ item.purchaseDate }}</td>
                 <td>{{ item.expiryDate }}</td>
                 <td>{{ item.quantity }} {{ props.item.unit }}</td>
@@ -128,8 +232,19 @@ watch(
         <button class="confirm_btn" @click="emit('close')">확인</button>
       </div>
     </div>
-    <InventoryCorrectionModal v-if="isModalOpen" :item="correctionItem" :unit="unit" :isOpen="isModalOpen"
-      @close="closeModal" />
+    <InventoryCorrectionModal
+      v-if="isModalOpen"
+      :item="correctionItem"
+      :unit="unit"
+      :isOpen="isModalOpen"
+      @close="closeModal"
+      @updated="fetchInventory"
+    />
+    <DeleteConfirmModal
+      :isOpen="isDeleteConfirmOpen"
+      @confirm="deleteSelectedItems"
+      @cancel="closeDeleteConfirm"
+    />
   </div>
 </template>
 
@@ -518,7 +633,9 @@ watch(
   /* 드롭다운 크기 */
   appearance: none;
   /* 기본 스타일 제거 */
-  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
+  background: white
+    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
   background-size: 16px;
 }
 
@@ -601,5 +718,53 @@ watch(
   border-radius: 18px;
   font-size: 14px;
   text-align: right;
+}
+.circle_checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  border: 2px solid #666;
+  border-radius: 50%;
+  /* 둥글게 */
+  background-color: white;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease-in-out;
+}
+
+.circle_checkbox:checked {
+  background-color: #708090;
+  border-color: #708090;
+}
+
+.circle_checkbox:checked::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 8px;
+  height: 8px;
+  background: #708090;
+  border-radius: 50%;
+}
+.text-button {
+  background: none;
+  border: none;
+  color: #1976d2; /* Vuetify 기본 primary 색상 */
+  padding: 6px 8px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.text-button:hover {
+  background-color: rgba(25, 118, 210, 0.1); /* hover 시 약간의 배경색 */
+}
+
+.text-button:focus {
+  outline: none;
+  background-color: rgba(25, 118, 210, 0.2); /* focus 시 더 진한 배경 */
 }
 </style>

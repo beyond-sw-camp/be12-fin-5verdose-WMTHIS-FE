@@ -17,16 +17,19 @@ const category = ref('');
 const categoryList = ref([]);
 const selectedUnit = computed(() => {
     const selected = ingredientOptions.value.find(item => item.name === ingredientName.value.name);
-    console.log('selected', ingredientName.value);
-    return selected ? selected.unit : '';
+    if (!selected) return '';
+    return selected.unit === 'unit' ? '개' : selected.unit;
 });
 const ingredientOptions = ref([]);
 const price = ref(0); // 가격을 위한 ref 추가
+const isSubmitting = ref(false);
 
 watch(() => props.menu, (newVal) => {
     if (newVal) loadMenuDetails();
 });
-
+const displayUnit = (unit) => {
+    return unit === 'unit' ? '개' : unit;
+};
 
 // 카테고리 목록 로딩
 const loadCategories = async () => {
@@ -91,6 +94,9 @@ const removeIngredient = (index) => {
     ingredients.value.splice(index, 1);
 };
 const registerMenu = async () => {
+    if (isSubmitting.value) return; // 이미 요청 중이라면 더 이상 진행하지 않음
+    isSubmitting.value = true;
+
     if (menuName.value && category.value && price.value) {
         // 카테고리 값이 '카테고리 없음'인 경우, null을 전송
         const categoryId = category.value.name === '카테고리 없음' ? null : category.value.id;
@@ -110,15 +116,17 @@ const registerMenu = async () => {
 
         const response = await api.updateMenu(data); // API 호출
         console.log('API 응답:', response);
-        if (response) {
+        if (response.success) {
+            alert('메뉴가 수정이 완료되었습니다.');
             emit('refresh');
             emit('close'); // 모달 닫기
         } else {
-            alert('메뉴 등록에 실패했습니다. 다시 시도해주세요.');
+            alert(response.message || '메뉴 수정에 실패했습니다.');
         }
     } else {
         alert('모든 필드를 입력해주세요.');
     }
+    isSubmitting.value = false;
 };
 const getStoreInventoryList = async () => {
     const result = await api.getStoreInventoryList();
@@ -134,7 +142,6 @@ const getStoreInventoryList = async () => {
     }
 };
 
-
 onMounted(async () => {
     loadCategories();
     getStoreInventoryList();
@@ -142,7 +149,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')" style="z-index: 2000;">
+    <div v-if="isOpen" class="modal_overlay" style="z-index: 2000;">
         <div class="modal">
             <div class="modal_content">
                 <div class="modal_header">
@@ -184,7 +191,7 @@ onMounted(async () => {
 
                 <div class="tag_container">
                     <span v-for="(ingredient, index) in ingredients" :key="index" class="tag">
-                        {{ ingredient.name }} {{ ingredient.amount }}{{ ingredient.unit }}
+                        {{ ingredient.name }} {{ ingredient.amount }}{{ displayUnit(ingredient.unit) }}
                         <button class="remove_btn" @click="removeIngredient(index)">✕</button>
                     </span>
                 </div>
@@ -204,7 +211,9 @@ onMounted(async () => {
                 </div>
             </div>
             <div class="modal_footer">
-                <button class="confirm_btn" @click=registerMenu>등록</button>
+                <button class="confirm_btn" :disabled="isSubmitting" @click="registerMenu">
+                    {{ isSubmitting ? '수정 중...' : '수정' }}
+                </button>
             </div>
         </div>
     </div>

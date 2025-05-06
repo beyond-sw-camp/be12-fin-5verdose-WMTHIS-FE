@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, defineEmits, ref, onMounted } from 'vue';
+import { defineProps, defineEmits, ref, onMounted, watch } from 'vue';
 import { api } from '@/api/MenuApi.js';// API 호출을 위한 axios 인스턴스 import
 
 const props = defineProps({
@@ -7,6 +7,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close']);
+const isSubmitting = ref(false);
 
 const categoryName = ref('');
 const category = ref('');
@@ -15,18 +16,34 @@ const optionName = ref('');
 const selectedOptions = ref([]);
 
 const addOption = () => {
-    if (optionName.value && !selectedOptions.value.includes(optionName.value)) {
-        console.log('추가할 옵션:', optionName.value.optionId);
-        selectedOptions.value.push(optionName.value);
-        optionName.value = '';
+    if (!optionName.value) {
+        alert('옵션명을 입력해주세요.');
+        return;
     }
+
+    const alreadyExists = selectedOptions.value.some(
+        (opt) => opt.name === optionName.value.name
+    );
+
+    if (alreadyExists) {
+        alert('이미 추가된 옵션입니다.');
+        return;
+    }
+
+    selectedOptions.value.push(optionName.value);
+    optionName.value = '';
 };
 
 const registerCategory = async () => {
-    if (categoryName.value && selectedOptions.value.length >= 0) {
-        // name만 추출
-        const optionIds = selectedOptions.value.map(option => option.optionId);
+    if (!categoryName.value) {
+        alert('카테고리명을 입력해주세요.');
+        return;
+    }
 
+    isSubmitting.value = true; // 요청 시작 시 비활성화
+
+    try {
+        const optionIds = selectedOptions.value.map(option => option.optionId);
         console.log('카테고리 등록:', categoryName.value, optionIds);
 
         const response = await api.registerCategory({
@@ -34,18 +51,20 @@ const registerCategory = async () => {
             optionIds: optionIds
         });
 
-        if (response) {
+        if (response.success) {
             alert('카테고리가 등록되었습니다.');
             emit('refresh');
             emit('close');
         } else {
-            alert('카테고리 등록에 실패했습니다.');
+            alert(response.message || '카테고리 등록에 실패했습니다.');
         }
-    } else {
-        alert('카테고리명을 입력해주세요.');
+    } catch (error) {
+        console.error(error);
+        alert('오류가 발생했습니다.');
+    } finally {
+        isSubmitting.value = false; // 요청 끝나면 다시 활성화
     }
 };
-
 
 const removeOption = (index) => {
     selectedOptions.value.splice(index, 1);
@@ -62,6 +81,15 @@ const loadOptionList = async () => {
     }
 };
 
+watch(() => props.isOpen, (newVal) => {
+    if (!newVal) {
+        // 모달이 닫힐 때 입력값 초기화
+        categoryName.value = '';
+        optionName.value = '';
+        selectedOptions.value = [];
+    }
+});
+
 onMounted(() => {
     // 초기화 로직이 필요하다면 여기에 작성
     loadOptionList();
@@ -69,7 +97,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')" style="z-index: 2000;">
+    <div v-if="isOpen" class="modal_overlay" style="z-index: 2000;">
         <div class="modal">
             <div class="modal_content">
                 <div class="modal_header">
@@ -111,7 +139,9 @@ onMounted(() => {
 
             </div>
             <div class="modal_footer">
-                <button class="confirm_btn" @click="registerCategory">등록</button>
+                <button class="confirm_btn" @click="registerCategory" :disabled="isSubmitting">
+                    {{ isSubmitting ? '등록 중...' : '등록' }}
+                </button>
             </div>
         </div>
     </div>

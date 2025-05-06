@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, defineEmits, ref, onMounted, computed } from 'vue';
+import { defineProps, defineEmits, ref, onMounted, computed, watch } from 'vue';
 import { api } from '@/api/MenuApi.js';
 
 const props = defineProps({
@@ -7,6 +7,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close']);
+const isSubmitting = ref(false);
 
 const price = ref('');
 const optionName = ref('');
@@ -18,7 +19,8 @@ const category = ref('');
 
 const selectedUnit = computed(() => {
     const selected = ingredientOptions.value.find(item => item.name === ingredientName.value.name);
-    return selected ? selected.unit : '';
+    if (!selected) return '';
+    return selected.unit === 'unit' ? '개' : selected.unit;
 });
 // 카테고리 목록 로딩
 const loadCategories = async () => {
@@ -62,11 +64,13 @@ const removeIngredient = (index) => {
 };
 
 const handleRegisterOption = async () => {
+    if (isSubmitting.value) return;
     if (!optionName.value || !price.value) {
         alert('옵션명, 가격을 모두 입력해주세요.');
         return;
     }
 
+    isSubmitting.value = true;
 
     const requestData = {
         name: optionName.value,
@@ -76,17 +80,24 @@ const handleRegisterOption = async () => {
             quantity: parseFloat(ingredient.amount),
         })),
     };
-    console.log('등록할 옵션 데이터:', requestData);
-    const success = await api.registerOption(requestData);
-    if (success) {
-        alert('옵션 등록 성공');
 
-        emit('refresh');
-        emit('close');
-    } else {
-        alert('옵션 등록 실패');
+    try {
+        const success = await api.registerOption(requestData);
+        if (success) {
+            alert('옵션 등록 성공');
+            emit('refresh');
+            emit('close');
+        } else {
+            alert('옵션 등록 실패');
+        }
+    } catch (error) {
+        console.error(error);
+        alert('오류가 발생했습니다.');
+    } finally {
+        isSubmitting.value = false;
     }
 };
+
 const getStoreInventoryList = async () => {
     const result = await api.getStoreInventoryList();
     if (result) {
@@ -105,10 +116,21 @@ onMounted(() => {
     loadCategories();
     getStoreInventoryList();
 });
+
+watch(() => props.isOpen, (newVal) => {
+    if (!newVal) {
+        optionName.value = '';
+        price.value = '';
+        ingredientName.value = '';
+        ingredientAmount.value = '';
+        ingredients.value = [];
+    }
+});
+
 </script>
 
 <template>
-    <div v-if="isOpen" class="modal_overlay" @click.self="emit('close')" style="z-index: 2000;">
+    <div v-if="isOpen" class="modal_overlay" style="z-index: 2000;">
         <div class="modal">
             <div class="modal_content">
                 <div class="modal_header">
@@ -158,7 +180,9 @@ onMounted(() => {
 
             </div>
             <div class="modal_footer">
-                <button class="confirm_btn" @click=handleRegisterOption>등록</button>
+                <button class="confirm_btn" @click="handleRegisterOption" :disabled="isSubmitting">
+                    {{ isSubmitting ? '등록 중...' : '등록' }}
+                </button>
             </div>
         </div>
     </div>
