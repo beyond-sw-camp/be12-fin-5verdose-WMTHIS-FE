@@ -97,7 +97,6 @@ const confirmModal = async () => {
     const item = trade_items.value[index];
     if (statusMap[trade_items.value[index].status] === '배송확정') {
         console.log(item.inventoryPurchaseId);
-        marketApi.confirmDelivery(item.inventoryPurchaseId)
         const response = await marketApi.confirmDelivery(item.inventoryPurchaseId);
         console.log(response);
         trade_items.value[index].status = '거래완료';

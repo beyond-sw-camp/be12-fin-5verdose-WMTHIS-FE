@@ -1,8 +1,11 @@
 <script setup>
+import { api } from '@/api/MenuApi.js';
 import { ref, watch } from "vue";
 import { marketApi } from "@/api/MarketApi.js";
 
 import dayjs from 'dayjs';
+import { get } from "lodash";
+import { mdiFormatQuoteClose } from '@mdi/js';
 const props = defineProps({
   isOpen: Boolean,
   item: {
@@ -12,11 +15,13 @@ const props = defineProps({
 });
 
 
+const ingredient = ref("");
 
 const form = ref({
   inventorySaleId: "",
   name: "",
   storeName: "",
+  unit: "",
   price: "",
   quantity: "",
   description: "",
@@ -31,6 +36,8 @@ const methodMap = {
   "카드결제": "credit_card"
 };
 
+
+const ingredients = ref([]);
 const price = ref("");
 const quantity = ref("");
 const description = ref("");
@@ -44,6 +51,7 @@ const setItemData = (item) => {
   form.value.name = item.inventoryName;
   form.value.storeName = item.sellerStoreName;
   form.value.price = item.price;
+  form.value.unit = item.unit;
   form.value.quantity = item.quantity;
   form.value.description = item.content;
   form.value.expiryDate = item.expiryDate;
@@ -54,10 +62,12 @@ const setItemData = (item) => {
 
 // 구매 요청 보내고 닫기
 const sendTradeRequest = () => {
+  const id = ingredient.value !== "" ? ingredient.value.id : null;
 
   const data = {
     inventorySaleId: form.value.inventorySaleId,
     inventoryName: form.value.name,
+    storeInventoryId: id,
     quantity: form.value.quantity,
     price: form.value.price,
     method: methodMap[form.value.method] || "cash"
@@ -94,11 +104,67 @@ const handleClosePanel = () => {
   emit("close");
 };
 
+const unitGroups = {
+  weight: ['kg', 'g'],
+  volume: ['ml', 'L'],
+  count: ['개'],
+};
+function getUnitGroup(unit) {
+  for (const [group, units] of Object.entries(unitGroups)) {
+    if (units.includes(unit)) return group;
+  }
+  return null; // 해당 없는 경우
+}
+
 
 watch(() => props.item, (newItem) => {
   console.log('새로 받은 아이템:', newItem);
+  getStoreInventoryList();
   if (newItem) setItemData(newItem);
 });
+watch(ingredient, (newValue) => {
+  if (newValue) {
+    console.log('선택된 재료:', newValue);
+    console.log(form.value.unit);
+
+    const ingredientUnitGroup = getUnitGroup(newValue.unit);
+    const formUnitGroup = getUnitGroup(form.value.unit);
+
+    if (ingredientUnitGroup !== formUnitGroup) {
+      console.log(
+        '단위가 다릅니다. 재고 단위:',
+        newValue.unit,
+        '물품 단위:',
+        form.value.unit
+      );
+      // 예: 사용자에게 알림 표시
+
+      alert("같은 종류의 단위를 가진 재고만 선택가능합니다.");
+      ingredient.value = ""; // 선택 초기화
+    }
+    console.log(ingredient.value);
+  }
+});
+
+
+const getStoreInventoryList = async () => {
+  const result = await api.getStoreInventoryList();
+  if (result) {
+    ingredients.value = result.map(item => ({
+      id: item.id,
+      name: item.name,
+      unit: item.unit,
+    }));
+    console.log('재고 목록:', ingredients.value);
+  } else {
+    console.log("재고 목록을 불러오는 데 실패했습니다.");
+  }
+};
+
+const itemLabel = (item) => {
+  if (!item) return '';
+  return `${item.name} (단위: ${item.unit})`;
+};
 </script>
 
 <template>
@@ -160,6 +226,17 @@ watch(() => props.item, (newItem) => {
             </div>
           </div>
         </div>
+        <div class="input_group">
+          <label>연결 재고 </label>
+          <p class="sub_title">구매한 재료와 연결될 내 재고를 선택해주세요.<br>같은 종류의 단위를 사용해야합니다. 예시) kg과 g<br>미선택시 새로운 재고로 추가됩니다.</p>
+          <div class="ingredient_inputs">
+            <select v-model="ingredient">
+              <option value="" disabled>재료 선택</option>
+              <option v-for="item in ingredients" :key="item" :value="item">{{ item.name }} 단위 : {{ item.unit }}
+              </option>
+            </select>
+          </div>
+        </div>
         <button class="request_button" @click=sendTradeRequest>거래 요청</button>
       </div>
     </div>
@@ -167,6 +244,51 @@ watch(() => props.item, (newItem) => {
 </template>
 
 <style scoped>
+.input_group input,
+.input_group select {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 18px;
+  font-size: 14px;
+}
+
+.input_group label {
+  font-size: 16px;
+  color: #222;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.ingredient_inputs {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.ingredient_inputs select,
+.ingredient_inputs input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.sub_title {
+  font-size: 12px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  color: #666
+}
+
+.input_group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
 .modal_overlay {
   position: fixed;
   top: 0;

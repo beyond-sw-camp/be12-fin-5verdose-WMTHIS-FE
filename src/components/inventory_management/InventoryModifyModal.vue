@@ -14,7 +14,7 @@ const emit = defineEmits(["close", "updateInventory"]);
 const name = ref("");
 const unit = ref("");
 const minQuantity = ref(0); // 최소 수량 정의
-const unitCategory = ref("Kg"); // 단위 접미사 선택
+const unitCategory = ref("kg"); // 단위 접미사 선택
 
 // 유통기한 관련
 const selectedDays = ref("1");
@@ -167,7 +167,7 @@ const updateInventory = async () => {
             </div>
             <div class="unit_container">
               <select v-model="unitCategory" class="unit_select">
-                <option value="Kg">Kg</option>
+                <option value="kg">kg</option>
                 <option value="g">g</option>
                 <option value="L">L</option>
                 <option value="ml">ml</option>

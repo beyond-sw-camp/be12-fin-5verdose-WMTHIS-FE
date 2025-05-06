@@ -27,7 +27,7 @@ const expiryDate = [
 
 const init = () => {
   name.value = props.item ? props.item.name : "";
-  unit.value = props.item ? props.item.unit : "Kg";
+  unit.value = props.item ? props.item.unit : "kg";
   minQuantity.value = props.item ? props.item.minQuantity : "";
   selectedDays.value = "1";
   isCustomInput.value = false;
@@ -136,7 +136,7 @@ const registerInventory = async () => {
             </div>
             <div class="unit_container">
               <select v-model="unit" class="unit_select">
-                <option value="Kg">Kg</option>
+                <option value="kg">kg</option>
                 <option value="g">g</option>
                 <option value="L">L</option>
                 <option value="ml">ml</option>
