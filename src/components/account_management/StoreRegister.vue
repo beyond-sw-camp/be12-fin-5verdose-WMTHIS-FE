@@ -72,6 +72,7 @@ const waitForKakao = () => {
 
 // 주소 검색
 const searchAddress = async () => {
+    console.log('주소 검색 시작');
     new window.daum.Postcode({
         oncomplete: async function (data) {
             const address = data.address;
@@ -83,7 +84,7 @@ const searchAddress = async () => {
                 if (status === window.kakao.maps.services.Status.OK) {
                     const lat = result[0].y;
                     const lng = result[0].x;
-
+                    console.log('위도:', lat, '경도:', lng);
                     storeLatitude.value = lat;
                     storeLongitude.value = lng;
                 }
@@ -92,6 +93,8 @@ const searchAddress = async () => {
         width: '100%',
         height: '100%',
     }).open();
+    console.log('주소 검색 완료');
+    console.log('storeAddress:', storeLatitude.value, storeLongitude.value);
 };
 
 // 다음 단계로 이동

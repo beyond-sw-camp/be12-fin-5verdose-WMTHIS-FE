@@ -90,22 +90,21 @@ const handleButtonClick = async (status, index) => {
 };
 
 const confirmModal = async () => {
-  const index = currentItemIndex.value;
-  const item = trade_items.value[index];
-  if (statusMap[trade_items.value[index].status] === "배송확정") {
-    console.log(item.inventoryPurchaseId);
-    marketApi.confirmDelivery(item.inventoryPurchaseId);
-    const response = await marketApi.confirmDelivery(item.inventoryPurchaseId);
-    console.log(response);
-    trade_items.value[index].status = "거래완료";
-  } else if (statusMap[trade_items.value[index].status] === "결제하기") {
-    requestPay(item, () => {
-      // 결제 성공 시 상태 변경
-      item.status = "배송확정";
-      showModal.value = false;
-    });
-  }
-  showModal.value = false;
+    const index = currentItemIndex.value;
+    const item = trade_items.value[index];
+    if (statusMap[trade_items.value[index].status] === '배송확정') {
+        console.log(item.inventoryPurchaseId);
+        const response = await marketApi.confirmDelivery(item.inventoryPurchaseId);
+        console.log(response);
+        trade_items.value[index].status = '거래완료';
+    } else if (statusMap[trade_items.value[index].status] === '결제하기') {
+        requestPay(item, () => {
+            // 결제 성공 시 상태 변경
+            item.status = '배송확정';
+            showModal.value = false;
+        });
+    }
+    showModal.value = false;
 };
 
 const cancelModal = () => {

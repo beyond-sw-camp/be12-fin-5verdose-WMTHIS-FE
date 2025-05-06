@@ -1,5 +1,6 @@
 <script setup>
 import { marketApi } from "@/api/MarketApi.js";
+import { api } from '@/api/MenuApi.js';
 import { defineProps, defineEmits, ref, watch } from 'vue';
 
 const props = defineProps({
@@ -14,6 +15,7 @@ const props = defineProps({
         required: true,
     },
 });
+const ingredients = ref([]);
 
 const methodMap = {
     "cash": "만나서결제",
@@ -42,8 +44,22 @@ const setItems = (items) => {
 }
 watch(() => props.items, (newItems) => {
     console.log('새로 받은 아이템:', newItems);
+    getStoreInventoryList(); // 재고 목록을 가져오는 함수 호출
     if (newItems) setItems(newItems);
 });
+const getStoreInventoryList = async () => {
+    const result = await api.getStoreInventoryList();
+    if (result) {
+        ingredients.value = result.map(item => ({
+            id: item.id,
+            name: item.name,
+            unit: item.unit,
+        }));
+        console.log('재고 목록:', ingredients.value);
+    } else {
+        console.log("재고 목록을 불러오는 데 실패했습니다.");
+    }
+};
 </script>
 
 <template>
