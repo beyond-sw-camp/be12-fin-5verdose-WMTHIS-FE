@@ -1,13 +1,23 @@
 <script setup>
-import { ref, computed, onMounted, nextTick, watch } from "vue";
-import upIcon from "@/assets/image/up.png";
-import downIcon from "@/assets/image/down.png";
+import { ref, computed, onMounted, watch, onUnmounted } from "vue";
 import Calendar from "@/components/Calendar.vue";
 import { api } from "@/api/index.js";
 
+const today = new Date();
+const yyyy = today.getFullYear();
+const mm = String(today.getMonth() + 1).padStart(2, "0");
+
+// 이번 달의 첫째 날
+const firstDay = `${yyyy}-${mm}-01`;
+
+// 이번 달의 마지막 날 구하기
+const lastDate = new Date(yyyy, today.getMonth() + 1, 0); // 다음 달 0일 = 이번 달 마지막 날
+const lastDay = `${yyyy}-${mm}-${String(lastDate.getDate()).padStart(2, "0")}`;
+
+// ref로 세팅
 const keyword = ref("");
-const startDate = ref("");
-const endDate = ref("");
+const startDate = ref(firstDay);
+const endDate = ref(lastDay);
 
 watch([startDate, endDate], ([newStart, newEnd]) => {
   if (newStart && newEnd) {
@@ -56,12 +66,8 @@ async function fetchAndSetTwoData() {
 
         if (item.changeReason === "메뉴") {
           salesMenu.value.push(record);
-          console.log("메뉴입니다");
-          console.log(record);
         } else {
           salesMarket.value.push(record);
-          console.log("장터입니다");
-          console.log(record);
         }
       });
     } else {
@@ -127,6 +133,7 @@ onMounted(() => {
 
 const selectedIndex = ref(0);
 const selectedStockName = computed(() => filteredList.value[selectedIndex.value]?.stockName || "");
+
 const selectItem = (index) => {
   selectedIndex.value = index;
 };
@@ -148,7 +155,7 @@ const filteredList = computed(() => {
   const query = keyword.value.trim();
   if (!query) return flatList.value;
 
-  return flatList.filter((item) => item.stockName.includes(query));
+  return flatList.value.filter((item) => item.stockName.includes(query));
 });
 
 // 달력 관련 데이터
@@ -197,28 +204,56 @@ const selectedStockUnit = computed(() => {
   return "";
 });
 
-const selectedDates = ref(null);
-const detailStatus = ref({}); // 날짜별 열림/닫힘 상태 저장
+// 날짜/월별 증가량과 감소량을 분리하여 계산
+const getQuantityByKey = computed(() => {
+  const result = {};
 
-const toggleDetail = (date) => {
-  // 이미 선택된 날짜면 상태 토글
-  detailStatus.value[date] = !detailStatus.value[date];
-  selectedDates.value = date;
-};
+  peroidData.value.forEach((item) => {
+    const key = showByMonth.value ? item.date.slice(0, 7) : item.date;
+    const quantity = parseFloat(item.quantity);
 
-const sortIcon = (date) => {
-  return detailStatus.value[date] ? upIcon : downIcon;
-};
+    if (!result[key]) {
+      result[key] = {
+        increase: 0,
+        decrease: 0,
+        total: 0,
+      };
+    }
 
-// 중복 제거된 날짜 목록
-const uniqueDates = computed(() => {
-  const dates = peroidData.value.map((item) => item.date);
-  return [...new Set(dates)].sort((a, b) => a.localeCompare(b));
+    if (quantity >= 0) {
+      result[key].increase += quantity;
+    } else {
+      result[key].decrease += Math.abs(quantity);
+    }
+
+    // 총 변동량 = 증가량 + 감소량의 절대값
+    result[key].total = result[key].increase + result[key].decrease;
+  });
+
+  return result;
 });
 
-const uniqueMonths = computed(() => {
-  const months = peroidData.value.map((item) => item.date.slice(0, 7)); // 'YYYY-MM'
-  return [...new Set(months)].sort((a, b) => a.localeCompare(b));
+// 최대 변동량을 가진 날짜/월 찾기 (증가량 + 감소량의 절대값이 가장 큰 날짜)
+const maxTotalChangeKey = computed(() => {
+  const changes = getQuantityByKey.value;
+  let maxKey = null;
+  let maxValue = -Infinity;
+
+  for (const [key, value] of Object.entries(changes)) {
+    if (value.total > maxValue) {
+      maxValue = value.total;
+      maxKey = key;
+    }
+  }
+
+  return maxKey
+    ? {
+        key: maxKey,
+        increase: changes[maxKey].increase,
+        decrease: changes[maxKey].decrease,
+        total: changes[maxKey].total,
+      }
+    : null;
 });
 
 //차트 데이터 - 메뉴
@@ -255,7 +290,7 @@ function getDateRange(start, end, byMonth = false) {
   return result;
 }
 
-//차트 데이터 - 메뉴 (수정된 부분)
+//차트 데이터 - 메뉴
 const chartSeries = computed(() => {
   if (!startDate.value || !endDate.value) return [];
 
@@ -318,7 +353,7 @@ const getChartTitle = computed(() => {
   }
 });
 
-// 차트 옵션 (수정된 부분)
+// 차트 옵션
 const chartOptions = computed(() => {
   if (!startDate.value || !endDate.value) return {};
 
@@ -359,6 +394,140 @@ const chartOptions = computed(() => {
     },
   };
 });
+
+// 캐러셀 관련 데이터
+const currentCarousel = ref(0);
+const carouselInterval = ref(null);
+
+// 캐러셀 자동 전환 설정
+onMounted(() => {
+  carouselInterval.value = setInterval(() => {
+    currentCarousel.value = (currentCarousel.value + 1) % summaries.value.length;
+  }, 5000);
+});
+
+// 컴포넌트 언마운트 시 인터벌 정리
+onUnmounted(() => {
+  if (carouselInterval.value) {
+    clearInterval(carouselInterval.value);
+  }
+});
+
+// 탭에 따른 메시지 설정
+const getTabMessage = computed(() => {
+  switch (selectedTab.value) {
+    case "menu":
+      return "메뉴 판매로 인한";
+    case "change":
+      return "재고 수정으로 인한";
+    case "market":
+      return "장터 거래로 인한";
+    default:
+      return "";
+  }
+});
+
+// 날짜 포맷팅
+const formatDate = (dateKey) => {
+  if (!dateKey) return "";
+  return showByMonth.value ? dateKey.replace("-", "년 ") + "월" : dateKey.slice(5).replace("-", "월 ") + "일";
+};
+
+// 캐러셀에 표시할 정보 수정
+const summaries = computed(() => {
+  // 데이터가 없는 경우
+  if (peroidData.value.length === 0) {
+    return [
+      {
+        line1: "선택된 기간에 ",
+        highlight1: selectedStockName.value,
+        line2: "의 변동 데이터가 없습니다.",
+        highlight2: "",
+        highlight3: "",
+        line3: "",
+        line4: "",
+      },
+    ];
+  }
+
+  // 최대 변동량 정보
+  const maxInfo = maxTotalChangeKey.value;
+
+  if (!maxInfo) {
+    return [
+      {
+        line1: "선택된 기간에 ",
+        highlight1: selectedStockName.value,
+        line2: "의 변동이 없습니다.",
+        highlight2: "",
+        highlight3: "",
+        line3: "",
+        line4: "",
+      },
+    ];
+  }
+
+  const formattedDate = formatDate(maxInfo.key);
+  const tabMsg = getTabMessage.value;
+
+  // 증가와 감소가 모두 있는 경우
+  if (maxInfo.increase > 0 && maxInfo.decrease > 0) {
+    return [
+      {
+        line1: "선택된 기간 내 ",
+        highlight1: selectedStockName.value,
+        line2: "의 " + (tabMsg ? tabMsg + " " : "") + "재고 변동량은 ",
+        highlight2: formattedDate,
+        highlight3: "",
+        line3: "에 가장 높습니다.",
+        line4: `${maxInfo.increase.toFixed(2)}${selectedStockUnit.value}이 증가했고, ${maxInfo.decrease.toFixed(2)}${selectedStockUnit.value}이 감소했습니다.`,
+      },
+    ];
+  }
+
+  // 증가만 있는 경우
+  if (maxInfo.increase > 0 && maxInfo.decrease === 0) {
+    return [
+      {
+        line1: "선택된 기간 내 ",
+        highlight1: selectedStockName.value,
+        line2: "의 " + (tabMsg ? tabMsg + " " : "") + "재고 변동량은 ",
+        highlight2: formattedDate,
+        highlight3: "",
+        line3: "에 가장 높습니다.",
+        line4: `${maxInfo.increase.toFixed(2)}${selectedStockUnit.value}이 증가했습니다.`,
+      },
+    ];
+  }
+
+  // 감소만 있는 경우
+  if (maxInfo.increase === 0 && maxInfo.decrease > 0) {
+    return [
+      {
+        line1: "선택된 기간 내 ",
+        highlight1: selectedStockName.value,
+        line2: "의 " + (tabMsg ? tabMsg + " " : "") + "재고 변동량은 ",
+        highlight2: formattedDate,
+        highlight3: "",
+        line3: "에 가장 높습니다.",
+        line4: `${maxInfo.decrease.toFixed(2)}${selectedStockUnit.value}이 감소했습니다.`,
+      },
+    ];
+  }
+
+  // 기본 메시지 (이 경우는 발생하지 않아야 함)
+  return [
+    {
+      line1: "선택된 기간에 ",
+      highlight1: selectedStockName.value,
+      line2: "의 변동이 있습니다.",
+      highlight2: "",
+      highlight3: "",
+      line3: "",
+      line4: "",
+    },
+  ];
+});
 </script>
 
 <template>
@@ -391,67 +560,42 @@ const chartOptions = computed(() => {
         <div class="date_selector">
           <div class="stock_list">
             <span @click="changeTab('total')" :class="{ active: selectedTab === 'total' }">전체</span>
-
             <span @click="changeTab('menu')" :class="{ active: selectedTab === 'menu' }">판매</span>
-
             <span @click="changeTab('change')" :class="{ active: selectedTab === 'change' }">수정</span>
-
             <span @click="changeTab('market')" :class="{ active: selectedTab === 'market' }">장터</span>
           </div>
           <Calendar v-model:startDate="startDate" v-model:endDate="endDate" />
         </div>
       </div>
+
       <div class="chart">
         <apexchart type="bar" height="350" :options="chartOptions" :series="chartSeries"></apexchart>
       </div>
 
-      <!-- 선택된 날짜의 판매 데이터 테이블 -->
-      <div class="sales_detail">
-        <div class="table_wrapper">
-          <div ref="nonScrollableWrapperRef" class="non_scrollable_wrapper">
-            <table ref="tableHeaderRef" class="sales_table header_table">
-              <thead>
-                <tr>
-                  <th>{{ selectedStockName }}</th>
-                  <th>재고</th>
-                  <th>용량</th>
-                </tr>
-              </thead>
-            </table>
+      <div class="carousel-container">
+        <div class="carousel-wrapper">
+          <div class="carousel-slides" :style="{ transform: `translateX(-${currentCarousel * 100}%)` }">
+            <div v-for="(text, i) in summaries" :key="i" class="carousel-slide">
+              <div class="carousel-content">
+                <p class="carousel-line carousel-line-bold">
+                  {{ text.line1 }}
+                  <span class="highlight-text">{{ text.highlight1 }}</span>
+                  {{ text.line2 }}
+                </p>
+                <p class="carousel-line carousel-line-bold">
+                  <span v-if="text.highlight2" class="highlight-text">{{ text.highlight2 }}</span>
+                  <span v-if="text.highlight3" class="highlight-text">{{ text.highlight3 }}</span>
+                  {{ text.line3 }}
+                </p>
+                <p class="carousel-line carousel-line-bold" v-if="text.line4">
+                  {{ text.line4 }}
+                </p>
+              </div>
+            </div>
           </div>
-
-          <div ref="scrollableWrapperRef" class="scrollable_wrapper">
-            <table ref="tableBodyRef" class="sales_table body_table">
-              <tbody>
-                <!-- 날짜 또는 월 기준 목록 -->
-                <template v-for="(key, idx) in showByMonth ? uniqueMonths : uniqueDates" :key="idx">
-                  <tr @click="toggleDetail(key)" :class="{ selected: selectedDates === key }" style="cursor: pointer">
-                    <td colspan="3">
-                      <strong>{{ showByMonth ? key.replace("-", ".") : key.slice(5).replace("-", ".") }}</strong>
-                      &nbsp;
-                      <img :src="sortIcon(key)" alt="정렬 아이콘" class="search_icon" />
-                    </td>
-                  </tr>
-
-                  <!-- 상세 내역: 각 key에 대해 필터링 -->
-                  <tr
-                    v-if="detailStatus[key]"
-                    v-for="(item, idx2) in peroidData.filter((i) => (showByMonth ? i.date.startsWith(key) : i.date === key))"
-                    :key="`detail-${idx}-${idx2}`"
-                  >
-                    <td>{{ showByMonth ? item.date : item.time }}</td>
-                    <td>{{ item.changeReason }}</td>
-                    <td>{{ item.quantity }}{{ item.unit }}</td>
-                  </tr>
-                </template>
-
-                <!-- 데이터 없음 안내 -->
-                <tr v-if="uniqueDates.length === 0">
-                  <td colspan="3" class="no_data">해당 날짜의 판매 데이터가 없습니다.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        </div>
+        <div class="carousel-indicators" v-if="summaries.length > 1">
+          <span v-for="(_, i) in summaries" :key="i" class="carousel-indicator" :class="{ active: currentCarousel === i }" @click="currentCarousel = i"></span>
         </div>
       </div>
     </div>
@@ -594,75 +738,73 @@ const chartOptions = computed(() => {
 }
 
 .stock_list span.active {
-  background-color: #b8c0c8; /* 진한 인디고 */
+  background-color: #b8c0c8;
 }
 
-/* 판매 데이터 테이블 스타일 */
-.sales_detail {
-  background-color: white;
-  border-radius: 8px;
-  padding: 15px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  max-height: 200px;
+/* 캐러셀 스타일 */
+.carousel-container {
+  background-color: #f5f5f5;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-.table_wrapper {
-  width: 100%;
+.carousel-wrapper {
+  overflow: hidden;
   position: relative;
 }
 
-.non_scrollable_wrapper {
-  width: 100%;
-  overflow: hidden;
+.carousel-slides {
+  display: flex;
+  transition: transform 0.5s ease;
 }
 
-.scrollable_wrapper {
-  max-height: 130px;
-  overflow-y: auto;
-  width: 100%;
-}
-
-.sales_table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-  font-size: 14px;
-}
-
-/* 헤더 테이블과 본문 테이블 스타일 분리 */
-.header_table {
-  margin-bottom: 0;
-}
-
-.body_table {
-  margin-top: 0;
-}
-
-/* 셀 스타일 */
-.sales_table th,
-.sales_table td {
-  padding: 10px;
-  text-align: left;
+.carousel-slide {
+  min-width: 100%;
   box-sizing: border-box;
 }
 
-/* 헤더 스타일 */
-.sales_table th {
-  font-weight: bold;
-}
-
-.sales_table tr {
-  border-top: 1px solid #e3e3e3;
-}
-
-.sales_table tr:hover {
-  background-color: #f9f9f9;
-}
-
-/* 데이터 없을 때 표시 */
-.no_data {
+.carousel-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   text-align: center;
-  color: #999;
-  padding: 20px;
+  padding: 10px;
+}
+
+.carousel-line {
+  font-size: 18px;
+  margin: 4px 0;
+  color: #424242;
+}
+
+.carousel-line-bold {
+  font-weight: 600;
+}
+
+.highlight-text {
+  color: #e53935;
+}
+
+.carousel-indicators {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.carousel-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #ccc;
+  margin: 0 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.carousel-indicator.active {
+  background-color: #333;
 }
 </style>
