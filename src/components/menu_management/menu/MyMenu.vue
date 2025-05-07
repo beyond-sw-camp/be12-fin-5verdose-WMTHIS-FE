@@ -131,7 +131,7 @@ onMounted(() => {
         <div class="search_container">
             <div class="search_box">
                 <input type="text" v-model="searchKeyword" class="search_input" placeholder="메뉴명 검색"
-                    @input="fetchMenus(0)" />
+                    @keyup.enter="fetchMenus(0)" />
                 <button class="search_btn" @click="fetchMenus(0)">
                     <img src="@/assets/image/search_button.png" class="search_icon">
                 </button>
