@@ -82,16 +82,16 @@ const handleRegisterOption = async () => {
     };
 
     try {
-        const success = await api.registerOption(requestData);
-        if (success) {
+        const response = await api.registerOption(requestData);
+        if (response.success) {
             alert('옵션 등록 성공');
             emit('refresh');
             emit('close');
         } else {
-            alert('옵션 등록 실패');
+            alert(response.message || '옵션 등록 실패');
         }
     } catch (error) {
-        console.error(error);
+        console.error('옵션 등록 중 예외 발생:', error);
         alert('오류가 발생했습니다.');
     } finally {
         isSubmitting.value = false;

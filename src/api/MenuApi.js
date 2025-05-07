@@ -83,14 +83,23 @@ export const api = {
     return instance
       .post("/option/register", data)
       .then((res) => {
-        console.log("registerRes", res);
-        return res.data.code === 200; // 성공 여부 반환
+        if (res.data.code !== 200) {
+          return {
+            success: false,
+            message: res.data.message || "옵션 등록 실패",
+          };
+        }
+        return { success: true };
       })
       .catch((error) => {
         console.error("Error in registerOption:", error);
-        return false;
+        return {
+          success: false,
+          message: error.response?.data?.message || "옵션 등록 중 오류 발생",
+        };
       });
   },
+
   getOptionList(page = 0, size = 10, keyword = "") {
     let url = `/option/list?page=${page}&size=${size}`;
     if (keyword && keyword.trim() !== "") {
@@ -109,26 +118,6 @@ export const api = {
         return false;
       });
   },
-  updateCategory(payload) {
-    return axios
-      .put("/api/category/update", payload)
-      .then((res) => {
-        if (res.data.code !== 200) {
-          return {
-            success: false,
-            message: res.data.message || "카테고리 수정 실패",
-          };
-        }
-        return { success: true, data: res.data.data };
-      })
-      .catch((error) => {
-        console.error("Error in updateCategory:", error);
-        const message =
-          error.response?.data?.message || "서버 오류가 발생했습니다.";
-        return { success: false, message };
-      });
-  },
-
   deleteOptions(optionIdList) {
     return instance
       .post("/option/delete/batch", optionIdList)
@@ -141,18 +130,27 @@ export const api = {
         return false;
       });
   },
+
   updateOption(requestData) {
     return instance
       .put("/option", requestData)
       .then((res) => {
-        console.log("deleteOptions res", res);
-        return res.data.code === 200;
+        if (res.data.code !== 200) {
+          return {
+            success: false,
+            message: res.data.message || "옵션 수정 실패",
+          };
+        }
+        return { success: true, data: res.data.data };
       })
       .catch((error) => {
-        console.error("Error in deleteOptions:", error);
-        return false;
+        console.error("Error in updateOption:", error);
+        const message =
+          error.response?.data?.message || "서버 오류가 발생했습니다.";
+        return { success: false, message };
       });
   },
+
   getOptionById(optionId) {
     return instance
       .get(`/option/${optionId}`)
