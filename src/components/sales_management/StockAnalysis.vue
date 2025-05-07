@@ -129,6 +129,10 @@ async function fetchAndSetFlatList() {
 
 onMounted(() => {
   fetchAndSetFlatList();
+  if (startDate.value && endDate.value) {
+    fetchAndSetTwoData();
+    fetchAndSetStockData();
+  }
 });
 
 const selectedIndex = ref(0);
@@ -165,12 +169,19 @@ const showByMonth = computed(() => {
   const start = new Date(startDate.value);
   const end = new Date(endDate.value);
 
+  const sameMonth = start.getFullYear() === end.getFullYear() && start.getMonth() === end.getMonth();
+
+  if (sameMonth) {
+    // ✅ 같은 달이면 무조건 일별 표시
+    return false;
+  }
+
   const timeDiff = end.getTime() - start.getTime();
   const dayCount = timeDiff / (1000 * 60 * 60 * 24) + 1; // +1 해서 당일 포함
 
+  // ✅ 다른 달인데 30일 초과면 월별 표시, 아니면 일별
   return dayCount > 30;
 });
-
 // 선택된 날짜의 판매 데이터
 const peroidData = computed(() => {
   const start = new Date(startDate.value);
