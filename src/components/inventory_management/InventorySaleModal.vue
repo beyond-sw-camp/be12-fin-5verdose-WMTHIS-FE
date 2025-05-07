@@ -42,7 +42,7 @@ const fetchIngredients = async () => {
   try {
     const response = await api.getStoreInventoryList();
     console.log("Fetched ingredients:", response);
-    ingredients.value = response.map(item => ({
+    ingredients.value = response.map((item) => ({
       id: item.id,
       name: item.name,
       unit: item.unit,
@@ -80,7 +80,7 @@ const register = async () => {
     price: price.value,
     content: content.value,
     imageUrls: imagePaths.value,
-  }
+  };
   console.log("Registering inventory sale with data:", data);
   const response = await marketApi.registerInventorySale(data);
   if (response.code === 200) {
@@ -88,9 +88,9 @@ const register = async () => {
   } else {
     alert("판매 등록에 실패했습니다. 다시 시도해주세요.");
   }
-  
+
   emit("close");
-}
+};
 
 watch(
   () => props.isOpen,
@@ -116,7 +116,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="isOpen" class="sale_modal_container" @click.self="emit('close')" style="z-index: 2000">
+  <div v-if="isOpen" class="sale_modal_container" style="z-index: 2000">
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
@@ -134,9 +134,15 @@ onMounted(() => {
             </div>
             <p class="sub_title">판매할 재고명을 선택해주세요.</p>
             <div class="unit-container">
-              <select v-model="ingredient" class="unit-select" style="width: 200px">
+              <select
+                v-model="ingredient"
+                class="unit-select"
+                style="width: 200px"
+              >
                 <option value="" disabled selected>재료 선택</option>
-                <option v-for="item in ingredients" :key="item" :value="item">{{ item.name }}</option>
+                <option v-for="item in ingredients" :key="item" :value="item">
+                  {{ item.name }}
+                </option>
               </select>
             </div>
           </div>
@@ -149,8 +155,14 @@ onMounted(() => {
             </div>
             <p class="sub_title">물품의 희망가격을 입력해주세요.</p>
             <div class="unit-container">
-              <input type="text" v-model="price" style="width: 200px" placeholder="ex) 3000" class="min-qty-input" />
-              <p style="margin-right: 10px;">원</p>
+              <input
+                type="text"
+                v-model="price"
+                style="width: 200px"
+                placeholder="ex) 3000"
+                class="min-qty-input"
+              />
+              <p style="margin-right: 10px">원</p>
             </div>
           </div>
         </div>
@@ -164,13 +176,22 @@ onMounted(() => {
 
             <!-- 오른쪽: 수량 입력 + 단위 -->
             <div class="input-inline-row">
-              <input type="text" v-model="quantity" placeholder="ex) 5" class="min-qty-input" />
-              <span class="unit-text" style="margin-left: 10px; margin-right: 10px;">{{ ingredient.unit }}</span>
+              <input
+                type="text"
+                v-model="quantity"
+                placeholder="ex) 5"
+                class="min-qty-input"
+              />
+              <span
+                class="unit-text"
+                style="margin-left: 10px; margin-right: 10px"
+                >{{ ingredient.unit }}</span
+              >
             </div>
           </div>
         </div>
 
-        <div class="input_group" style="margin-right: 10px;">
+        <div class="input_group" style="margin-right: 10px">
           <div class="modal_title2">
             <label>사진등록</label>
           </div>
@@ -179,8 +200,16 @@ onMounted(() => {
             가능해요.)
           </p>
           <div class="unit-container">
-            <v-file-input v-model="files" variant="outlined" accept="image/*" multiple :counter="true"
-              :rules="[maxFileRule]" :show-size="true" hide-details="auto" />
+            <v-file-input
+              v-model="files"
+              variant="outlined"
+              accept="image/*"
+              multiple
+              :counter="true"
+              :rules="[maxFileRule]"
+              :show-size="true"
+              hide-details="auto"
+            />
           </div>
           <div class="input_group">
             <div class="modal_title2">
@@ -188,13 +217,17 @@ onMounted(() => {
             </div>
             <p class="sub_title">물품의 상태를 자세히 설명해주세요.</p>
             <div class="unit-container">
-              <v-textarea v-model="content" placeholder="상태가 아주 좋아용" variant="outlined"></v-textarea>
+              <v-textarea
+                v-model="content"
+                placeholder="상태가 아주 좋아용"
+                variant="outlined"
+              ></v-textarea>
             </div>
           </div>
         </div>
       </div>
       <div class="modal_footer">
-        <button class="confirm_btn" @click=register>판매하기</button>
+        <button class="confirm_btn" @click="register">판매하기</button>
       </div>
     </div>
   </div>
@@ -293,8 +326,6 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
 }
-
-
 
 .min-qty-input {
   width: 80px;
@@ -528,7 +559,9 @@ onMounted(() => {
   /* 드롭다운 크기 */
   appearance: none;
   /* 기본 스타일 제거 */
-  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
+  background: white
+    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
   background-size: 16px;
 }
 
@@ -600,13 +633,12 @@ onMounted(() => {
   gap: 8px;
   /* 입력창과 단위 사이 간격 */
   text-align: right;
-
-
 }
 
 .min-qty-input {
   width: 100px;
-  /* 필요에 따라 조정 가능 */  text-align: right;
+  /* 필요에 따라 조정 가능 */
+  text-align: right;
 }
 
 .unit-text {

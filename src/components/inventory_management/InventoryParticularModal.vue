@@ -61,9 +61,10 @@ const openDeleteConfirm = () => {
   }
 };
 const inventory_items = ref([]);
+const latest = inventory_items.value[0]; // 가장 먼저 입고된 항목
 
 const fetchInventory = async () => {
-  isLoading.value = true; // 로딩 시작
+  isLoading.value = true;
   const response = await api.getInventory(props.item.storeInventoryId);
   console.log("✅ API 호출:", response);
 
@@ -76,18 +77,31 @@ const fetchInventory = async () => {
       };
     })
     .sort((a, b) => {
-      // 수량 0인 항목은 아래로
-      if (a.quantity === 0 && b.quantity !== 0) return 1;
-      if (a.quantity !== 0 && b.quantity === 0) return -1;
-
-      // 유통기한 오름차순
-      const aExpiry = new Date(a.expiryDate);
-      const bExpiry = new Date(b.expiryDate);
-      return aExpiry - bExpiry;
+      if (a.quantity === 0 && b.quantity > 0) return 1;
+      if (a.quantity > 0 && b.quantity === 0) return -1;
+      return 0;
     });
+  // ✅ 수량 > 0인 항목 중 유통기한이 가장 빠른 항목 선택
+  const latest = inventory_items.value
+    .filter((i) => i.quantity > 0)
+    .sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate))[0];
+
+  const idx = inventory_items.value.findIndex(
+    (i) => i.storeInventoryId === props.item.storeInventoryId
+  );
+  if (idx !== -1 && latest) {
+    inventory_items.value[idx].expiryDate = latest.expiryDate;
+    inventory_items.value[idx].quantity = latest.quantity;
+    inventory_items.value[idx].status = getStatusFromExpiryDate(
+      latest.expiryDate,
+      latest.purchaseDate,
+      latest.quantity
+    );
+  }
+  console.log("✅ 재고 목록:", inventory_items.value);
 
   console.log("✅ 정렬된 inventory_items:", inventory_items.value);
-  isLoading.value = false; // 로딩 종료
+  isLoading.value = false;
   emit("updated");
 };
 
@@ -140,11 +154,7 @@ watch(
 );
 </script>
 <template>
-  <div
-    class="particular_modal_container"
-    @click.self="emit('close')"
-    style="z-index: 9999"
-  >
+  <div class="particular_modal_container" style="z-index: 9999">
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
@@ -176,7 +186,9 @@ watch(
               <p v-else><strong>사용메뉴 :</strong> 메뉴 정보가 없습니다.</p>
             --></div>
           </div>
-
+          <button type="button" @click="openDeleteConfirm" class="delete_btn">
+            삭제
+          </button>
           <table class="inventory_table">
             <thead>
               <tr>
@@ -214,9 +226,6 @@ watch(
               </tr>
             </tbody>
           </table>
-          <button type="button" @click="openDeleteConfirm" class="btn">
-            삭제
-          </button>
         </div>
       </div>
       <div class="modal_footer">

@@ -10,7 +10,7 @@ const props = defineProps({
   },
 });
 const emit = defineEmits(["close", "registerInventory", "totalInventory"]);
-
+const isSubmitting = ref(false); // 제출 중 상태
 
 // 입력 필드 상태
 const quantity = ref(0); // 재고 수량
@@ -62,6 +62,7 @@ const init = () => {
 };
 // 등록 처리
 const totalInventory = async () => {
+  if (isSubmitting.value) return; // 이미 제출 중이면 함수 종료
   if (!ingredient.value || !ingredient.value.id) {
     console.error("재료가 선택되지 않았습니다.");
     return;
@@ -70,9 +71,9 @@ const totalInventory = async () => {
     storeInventoryId: ingredient.value.id,
     quantity: quantity.value,
     price: price.value,
-  }
+  };
 
-
+  isSubmitting.value = true; // 제출 중 상태로 변경
   console.log("등록할 재고 데이터:", data);
 
   const response = await api.registerInventory(data);
@@ -85,6 +86,7 @@ const totalInventory = async () => {
   }
   init();
   emit("close");
+  isSubmitting.value = false; // 제출 완료 상태로 변경
 };
 
 const fetchIngredients = async () => {
@@ -143,7 +145,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="isOpen" class="store_modal_container" @click.self="emit('close')" style="z-index: 2000">
+  <div v-if="isOpen" class="store_modal_container" style="z-index: 2000">
     <div class="modal">
       <div class="modal_content">
         <div class="modal_header">
@@ -159,7 +161,11 @@ onMounted(() => {
           </div>
           <p class="sub_title">입고할 재고명을 선택해주세요.</p>
           <div class="unit-container">
-            <select v-model="ingredient" class="unit-select" style="width: 200px">
+            <select
+              v-model="ingredient"
+              class="unit-select"
+              style="width: 200px"
+            >
               <option value="" disabled>재고 선택</option>
               <option v-for="item in ingredients" :key="item.id" :value="item">
                 {{ item.name }}
@@ -175,7 +181,12 @@ onMounted(() => {
               <p class="title_warn">(필수)</p>
             </div>
             <div class="unit_container">
-              <input type="text" v-model="quantity" placeholder="5" class="min_qty_input" />
+              <input
+                type="text"
+                v-model="quantity"
+                placeholder="5"
+                class="min_qty_input"
+              />
               <div class="inventory_info">
                 <p>
                   {{ ingredient.unit }}
@@ -229,10 +240,15 @@ onMounted(() => {
       </div>
       
     </div>
-      -->
-      </div>
+      --></div>
       <div class="modal_footer">
-        <button class="confirm_btn" @click="totalInventory">확인</button>
+        <button
+          class="confirm_btn"
+          :disabled="isSubmitting"
+          @click="totalInventory"
+        >
+          {{ isSubmitting ? "등록 중..." : "등록" }}
+        </button>
       </div>
     </div>
   </div>
@@ -565,7 +581,9 @@ onMounted(() => {
   /* 드롭다운 크기 */
   appearance: none;
   /* 기본 스타일 제거 */
-  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
+  background: white
+    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
   background-size: 16px;
 }
 

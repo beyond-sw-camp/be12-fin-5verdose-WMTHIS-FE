@@ -88,11 +88,11 @@ const fetchMenus = async (page = 0) => {
     const MIN_LOADING_TIME = 500; // 최소 0.5초
 
     const response = await api.getMenuList(page, pageSize, searchKeyword.value);
+    console.log("메뉴 목록 응답:", response);
 
     setTimeout(() => {
         if (!response) {
             menu_items.value = [];
-            errorMessage.value = "서버 오류입니다. 잠시만 기다려주세요..";
         } else {
             if (response.code === 200) {
                 menu_items.value = response.data.content.map(item => ({
@@ -101,10 +101,8 @@ const fetchMenus = async (page = 0) => {
                 }));
                 currentPage.value = response.data.page.number;
                 totalPages.value = response.data.page.totalPages;
-                errorMessage.value = menu_items.value.length === 0 ? "메뉴가 없습니다." : '';
             } else {
                 menu_items.value = [];
-                errorMessage.value = response.data.message;
             }
         }
         isLoading.value = false;
