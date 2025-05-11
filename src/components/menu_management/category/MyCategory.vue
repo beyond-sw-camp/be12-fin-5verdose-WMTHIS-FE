@@ -5,6 +5,8 @@ import CategoryRegisterModal from '@/components/menu_management/category/Categor
 import DeleteConfirmModal from '@/components/alerts/DeleteConfirmModal.vue';
 import DeleteAlertModal from '@/components/alerts/DeleteAlertModal.vue';
 import CategoryEditModal from '@/components/menu_management/category/CategoryEditModal.vue';
+import { useMenuStore } from '@/stores/useMenuStore';
+const menuStore = useMenuStore();
 
 const isLoading = ref(true);
 const searchKeyword = ref('');
@@ -104,6 +106,7 @@ const goToPage = (page) => {
 
 onMounted(() => {
     fetchCategoryList(0);
+    menuStore.initializeOptions();
 });
 </script>
 
@@ -114,7 +117,7 @@ onMounted(() => {
             <div class="search_box">
                 <input type="text" v-model="searchKeyword" class="search_input" placeholder="카테고리 검색"
                     @keyup.enter="fetchCategoryList(0)" />
-                <button class="search_btn" @Click="fetchCategoryList(0)">
+                <button class="search_btn" @click="fetchCategoryList(0)">
                     <img src="@/assets/image/search_button.png" class="search_icon">
                 </button>
             </div>

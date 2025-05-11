@@ -1,11 +1,13 @@
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue';
 import { api } from '@/api/MenuApi.js'; // api.js에서 api 객체를 가져옵니다.
+import { useMenuStore } from '@/stores/useMenuStore';
 import MenuRegisterModal from '@/components/menu_management/menu/MenuRegisterModal.vue';
 import MenuDetailModal from '@/components/menu_management/menu/MenuDetailModal.vue';
 import DeleteConfirmModal from '@/components/alerts/DeleteConfirmModal.vue';
 import DeleteAlertModal from '@/components/alerts/DeleteAlertModal.vue';
 
+const menuStore = useMenuStore();
 const isLoading = ref(true);
 const searchKeyword = ref('');
 const isModalOpen = ref(false);
@@ -15,7 +17,6 @@ const isDeleteAlertOpen = ref(false); // 삭제 항목 선택 안내 모달
 const selectedMenu = ref(null); // 선택된 메뉴 항목
 const openModal = () => { isModalOpen.value = true; };
 const closeModal = () => {
-    fetchMenus(0);
     isModalOpen.value = false;
 };
 const openDetailModal = (item) => {
@@ -24,7 +25,6 @@ const openDetailModal = (item) => {
     isDetailModalOpen.value = true;
 };
 const closeDetailModal = () => {
-    fetchMenus(0);
     isDetailModalOpen.value = false;
 };
 const menu_items = ref([]);
@@ -85,7 +85,7 @@ const deleteSelectedItems = async () => {
 const fetchMenus = async (page = 0) => {
     isLoading.value = true;
 
-    const MIN_LOADING_TIME = 500; // 최소 0.5초
+    const MIN_LOADING_TIME = 100; // 최소 0.5초
 
     const response = await api.getMenuList(page, pageSize, searchKeyword.value);
     console.log("메뉴 목록 응답:", response);
@@ -119,6 +119,7 @@ const goToPage = (page) => {
 
 onMounted(() => {
     fetchMenus(0);
+    menuStore.initialize()
 });
 
 </script>

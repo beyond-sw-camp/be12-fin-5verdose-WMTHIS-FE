@@ -1,6 +1,9 @@
 <script setup>
 import { defineProps, defineEmits, ref, onMounted, watch } from 'vue';
 import { api } from '@/api/MenuApi.js';// API 호출을 위한 axios 인스턴스 import
+import { useMenuStore } from '@/stores/useMenuStore';
+const menuStore = useMenuStore();
+
 
 const props = defineProps({
     isOpen: Boolean
@@ -10,8 +13,6 @@ const emit = defineEmits(['close']);
 const isSubmitting = ref(false);
 
 const categoryName = ref('');
-const category = ref('');
-const optionList = ref(['면 추가', '밥 추가', '치즈 추가', '고기 추가']);
 const optionName = ref('');
 const selectedOptions = ref([]);
 
@@ -70,17 +71,6 @@ const removeOption = (index) => {
     selectedOptions.value.splice(index, 1);
 };
 
-// 옵션 리스트 로딩
-const loadOptionList = async () => {
-    const result = await api.getOptionList();
-    if (result) {
-        console.log('옵션 목록:', result);
-        optionList.value = result.content;
-    } else {
-        console.log("옵션 목록을 불러오는 데 실패했습니다.");
-    }
-};
-
 watch(() => props.isOpen, (newVal) => {
     if (!newVal) {
         // 모달이 닫힐 때 입력값 초기화
@@ -88,11 +78,6 @@ watch(() => props.isOpen, (newVal) => {
         optionName.value = '';
         selectedOptions.value = [];
     }
-});
-
-onMounted(() => {
-    // 초기화 로직이 필요하다면 여기에 작성
-    loadOptionList();
 });
 </script>
 
@@ -123,7 +108,8 @@ onMounted(() => {
                     <div class="ingredient_inputs">
                         <select v-model="optionName">
                             <option value="" disabled selected>옵션 선택</option>
-                            <option v-for="item in optionList" :key="item" :value="item">{{ item.name }}</option>
+                            <option v-for="item in menuStore.optionList" :key="item" :value="item">{{ item.name }}
+                            </option>
                         </select>
                         <button class="add_btn" @click="addOption">추가</button>
                     </div>

@@ -379,7 +379,8 @@ const chartOptions = computed(() => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, idx) in filteredList" :key="idx" @click="selectItem(idx)" :class="{ selected: selectedIndex === idx }">
+          <tr v-for="(item, idx) in filteredList" :key="idx" @click="selectItem(idx)"
+            :class="{ selected: selectedIndex === idx }">
             <td>{{ item.stockName }}</td>
             <td>{{ item.quantity }}{{ item.unit }}</td>
           </tr>
@@ -434,11 +435,9 @@ const chartOptions = computed(() => {
                   </tr>
 
                   <!-- 상세 내역: 각 key에 대해 필터링 -->
-                  <tr
-                    v-if="detailStatus[key]"
+                  <tr v-if="detailStatus[key]"
                     v-for="(item, idx2) in peroidData.filter((i) => (showByMonth ? i.date.startsWith(key) : i.date === key))"
-                    :key="`detail-${idx}-${idx2}`"
-                  >
+                    :key="`detail-${idx}-${idx2}`">
                     <td>{{ showByMonth ? item.date : item.time }}</td>
                     <td>{{ item.changeReason }}</td>
                     <td>{{ item.quantity }}{{ item.unit }}</td>
@@ -459,6 +458,48 @@ const chartOptions = computed(() => {
 </template>
 
 <style scoped>
+.menu_table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* 헤더 고정, tbody 스크롤 처리 */
+.menu_table thead {
+  background: #f5f5f5;
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.menu_table tbody {
+  display: block;
+  max-height: 300px;
+  /* 여기에서 스크롤 높이 지정 */
+  overflow-y: auto;
+  /* 세로 스크롤 */
+  width: 100%;
+  table-layout: fixed;
+}
+
+.menu_table th,
+.menu_table td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+/* tbody 안의 tr은 다시 table-layout 유지 */
+.menu_table tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* 선택된 행 스타일 */
+.selected {
+  background-color: #ffe58a;
+}
+
 .menu_analysis {
   width: 100%;
   height: 100%;
@@ -594,7 +635,8 @@ const chartOptions = computed(() => {
 }
 
 .stock_list span.active {
-  background-color: #b8c0c8; /* 진한 인디고 */
+  background-color: #b8c0c8;
+  /* 진한 인디고 */
 }
 
 /* 판매 데이터 테이블 스타일 */

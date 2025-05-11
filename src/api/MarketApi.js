@@ -158,7 +158,7 @@ export const marketApi = {
     return instance
       .get("/store/getAddress")
       .then((res) => {
-        console.log("res", res);
+        console.log("myStore", res);
         return res.data;
       })
       .catch((error) => {

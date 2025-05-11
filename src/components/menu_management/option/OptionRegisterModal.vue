@@ -1,6 +1,8 @@
 <script setup>
 import { defineProps, defineEmits, ref, onMounted, computed, watch } from 'vue';
 import { api } from '@/api/MenuApi.js';
+import { useMenuStore } from '@/stores/useMenuStore';
+const menuStore = useMenuStore();
 
 const props = defineProps({
     isOpen: Boolean
@@ -112,11 +114,6 @@ const getStoreInventoryList = async () => {
     }
 };
 
-onMounted(() => {
-    loadCategories();
-    getStoreInventoryList();
-});
-
 watch(() => props.isOpen, (newVal) => {
     if (!newVal) {
         optionName.value = '';
@@ -156,7 +153,8 @@ watch(() => props.isOpen, (newVal) => {
                     <div class="ingredient_inputs">
                         <select v-model="ingredientName">
                             <option value="" disabled selected>재료 선택</option>
-                            <option v-for="item in ingredientOptions" :key="item" :value="item">{{ item.name }}</option>
+                            <option v-for="item in menuStore.inventoryOptions" :key="item" :value="item">{{ item.name }}
+                            </option>
                         </select>
                         <input type="number" v-model="ingredientAmount" min="1" placeholder="수량" />
                         <label>{{ selectedUnit }}</label>
