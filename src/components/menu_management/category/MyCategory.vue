@@ -79,7 +79,7 @@ const fetchCategoryList = async (page = 0) => {
     isLoading.value = true;
     console.log(searchKeyword.value);
 
-    const MIN_LOADING_TIME = 1000; // 최소 0.5초
+    const MIN_LOADING_TIME = 100; // 최소 0.5초
     const res = await api.getCategoryList(page, pageSize, searchKeyword.value);
 
     setTimeout(() => {

@@ -95,7 +95,7 @@ const goToPage = (page) => {
 
 const fetchOptionList = async (page = 0) => {
     isLoading.value = true;
-    const MIN_LOADING_TIME = 500; // 최소 로딩 시간 (ms)
+    const MIN_LOADING_TIME = 100; // 최소 로딩 시간 (ms)
 
     const response = await api.getOptionList(page, pageSize, searchKeyword.value);
     setTimeout(() => {
