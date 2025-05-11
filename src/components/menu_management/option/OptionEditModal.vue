@@ -1,6 +1,8 @@
 <script setup>
 import { defineProps, defineEmits, ref, watch, computed, onMounted } from 'vue';
 import { api } from '@/api/MenuApi.js'; // API 호출을 위한 axios 인스턴스 import
+import { useMenuStore } from '@/stores/useMenuStore';
+const menuStore = useMenuStore();
 const props = defineProps({
     isOpen: Boolean,
     optionId: Number
@@ -138,10 +140,6 @@ const updateOption = async () => {
     }
 };
 
-
-onMounted(() => {
-    getStoreInventoryList();
-});
 </script>
 
 <template>
@@ -171,7 +169,8 @@ onMounted(() => {
                     <div class="ingredient_inputs">
                         <select v-model="ingredientName">
                             <option value="" disabled selected>재료 선택</option>
-                            <option v-for="item in ingredientOptions" :key="item" :value="item">{{ item.name }}</option>
+                            <option v-for="item in menuStore.inventoryOptions" :key="item" :value="item">{{ item.name }}
+                            </option>
                         </select>
                         <input type="number" v-model="ingredientAmount" min="1" placeholder="수량" />
                         <label>{{ selectedUnit }}</label>

@@ -559,7 +559,8 @@ const summaries = computed(() => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, idx) in filteredList" :key="idx" @click="selectItem(idx)" :class="{ selected: selectedIndex === idx }">
+          <tr v-for="(item, idx) in filteredList" :key="idx" @click="selectItem(idx)"
+            :class="{ selected: selectedIndex === idx }">
             <td>{{ item.stockName }}</td>
             <td>{{ item.quantity }}{{ item.unit }}</td>
           </tr>
@@ -614,6 +615,48 @@ const summaries = computed(() => {
 </template>
 
 <style scoped>
+.menu_table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* 헤더 고정, tbody 스크롤 처리 */
+.menu_table thead {
+  background: #f5f5f5;
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.menu_table tbody {
+  display: block;
+  max-height: 300px;
+  /* 여기에서 스크롤 높이 지정 */
+  overflow-y: auto;
+  /* 세로 스크롤 */
+  width: 100%;
+  table-layout: fixed;
+}
+
+.menu_table th,
+.menu_table td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+/* tbody 안의 tr은 다시 table-layout 유지 */
+.menu_table tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* 선택된 행 스타일 */
+.selected {
+  background-color: #ffe58a;
+}
+
 .menu_analysis {
   width: 100%;
   height: 100%;
@@ -750,6 +793,16 @@ const summaries = computed(() => {
 
 .stock_list span.active {
   background-color: #b8c0c8;
+  /* 진한 인디고 */
+}
+
+/* 판매 데이터 테이블 스타일 */
+.sales_detail {
+  background-color: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  max-height: 200px;
 }
 
 /* 캐러셀 스타일 */

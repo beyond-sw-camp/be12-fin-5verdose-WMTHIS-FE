@@ -49,7 +49,7 @@ const getNearbyStores = async () => {
   const nearbyStore = await marketApi.getNearbyStore();
   console.log(nearbyStore);
   nearbyStores.value = nearbyStore;
-  console.log(nearbyStores.value);
+  console.log('주변가게', nearbyStores.value);
   aList.value = nearbyStores.value.map((store) => {
     return {
       label: store.name,

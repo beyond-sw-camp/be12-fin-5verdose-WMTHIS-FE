@@ -102,7 +102,7 @@ const fetchInventory = async () => {
 
   console.log("✅ 정렬된 inventory_items:", inventory_items.value);
   isLoading.value = false;
-  emit("updated");
+  //emit("updated");
 };
 
 const closeDeleteConfirm = () => {
@@ -184,7 +184,8 @@ watch(
                 <strong>사용메뉴 :</strong> {{ recipeList.join(", ") }}
               </p>
               <p v-else><strong>사용메뉴 :</strong> 메뉴 정보가 없습니다.</p>
-            --></div>
+            -->
+            </div>
           </div>
           <button type="button" @click="openDeleteConfirm" class="delete_btn">
             삭제
@@ -193,12 +194,7 @@ watch(
             <thead>
               <tr>
                 <th>
-                  <input
-                    type="checkbox"
-                    v-model="select_all"
-                    @change="toggle_select_all"
-                    class="circle_checkbox"
-                  />
+                  <input type="checkbox" v-model="select_all" @change="toggle_select_all" class="circle_checkbox" />
                 </th>
                 <th>입고날짜</th>
                 <th>유통기한</th>
@@ -209,11 +205,7 @@ watch(
             <tbody>
               <tr v-for="(item, index) in inventory_items" :key="index">
                 <td>
-                  <input
-                    type="checkbox"
-                    v-model="item.selected"
-                    class="circle_checkbox"
-                  />
+                  <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
                 </td>
                 <td>{{ item.purchaseDate }}</td>
                 <td>{{ item.expiryDate }}</td>
@@ -232,19 +224,9 @@ watch(
         <button class="confirm_btn" @click="emit('close')">확인</button>
       </div>
     </div>
-    <InventoryCorrectionModal
-      v-if="isModalOpen"
-      :item="correctionItem"
-      :unit="unit"
-      :isOpen="isModalOpen"
-      @close="closeModal"
-      @updated="fetchInventory"
-    />
-    <DeleteConfirmModal
-      :isOpen="isDeleteConfirmOpen"
-      @confirm="deleteSelectedItems"
-      @cancel="closeDeleteConfirm"
-    />
+    <InventoryCorrectionModal v-if="isModalOpen" :item="correctionItem" :unit="unit" :isOpen="isModalOpen"
+      @close="closeModal" @updated="fetchInventory" />
+    <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
   </div>
 </template>
 
@@ -633,9 +615,7 @@ watch(
   /* 드롭다운 크기 */
   appearance: none;
   /* 기본 스타일 제거 */
-  background: white
-    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
-    no-repeat right 10px center;
+  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
   background-size: 16px;
 }
 
@@ -719,6 +699,7 @@ watch(
   font-size: 14px;
   text-align: right;
 }
+
 .circle_checkbox {
   appearance: none;
   -webkit-appearance: none;
@@ -748,10 +729,12 @@ watch(
   background: #708090;
   border-radius: 50%;
 }
+
 .text-button {
   background: none;
   border: none;
-  color: #1976d2; /* Vuetify 기본 primary 색상 */
+  color: #1976d2;
+  /* Vuetify 기본 primary 색상 */
   padding: 6px 8px;
   font-size: 14px;
   cursor: pointer;
@@ -760,11 +743,13 @@ watch(
 }
 
 .text-button:hover {
-  background-color: rgba(25, 118, 210, 0.1); /* hover 시 약간의 배경색 */
+  background-color: rgba(25, 118, 210, 0.1);
+  /* hover 시 약간의 배경색 */
 }
 
 .text-button:focus {
   outline: none;
-  background-color: rgba(25, 118, 210, 0.2); /* focus 시 더 진한 배경 */
+  background-color: rgba(25, 118, 210, 0.2);
+  /* focus 시 더 진한 배경 */
 }
 </style>

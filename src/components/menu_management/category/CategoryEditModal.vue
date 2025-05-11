@@ -1,6 +1,8 @@
 <script setup>
 import { defineProps, defineEmits, ref, watch, onMounted } from 'vue';
 import { api } from '@/api/MenuApi.js';// API 호출을 위한 axios 인스턴스 import
+import { useMenuStore } from '@/stores/useMenuStore';
+const menuStore = useMenuStore();
 
 const props = defineProps({
     isOpen: Boolean,
@@ -10,8 +12,6 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 const isSubmitting = ref(false); // 요청 중인지 여부를 추적하는 상태
 const categoryName = ref('');
-const category = ref('');
-const optionList = ref(['면 추가', '밥 추가', '치즈 추가', '고기 추가']);
 const optionName = ref('');
 const selectedOptions = ref([]);
 
@@ -56,16 +56,6 @@ watch(() => props.category, (newVal) => {
     if (newVal) getCategory();
 });
 
-// 옵션 리스트 로딩
-const loadOptionList = async () => {
-    const result = await api.getOptionList();
-    if (result) {
-        console.log('옵션 목록:', result);
-        optionList.value = result.content;
-    } else {
-        console.log("옵션 목록을 불러오는 데 실패했습니다.");
-    }
-};
 const updateCategory = async () => {
     if (isSubmitting.value) return;
     isSubmitting.value = true;
@@ -99,11 +89,6 @@ const updateCategory = async () => {
     }
 };
 
-
-onMounted(() => {
-    // 초기화 로직이 필요하다면 여기에 작성
-    loadOptionList();
-});
 </script>
 
 <template>
@@ -130,7 +115,7 @@ onMounted(() => {
                     <div class="ingredient_inputs">
                         <select v-model="optionName">
                             <option disabled value="">옵션 선택</option>
-                            <option v-for="item in optionList" :key="item.id" :value="item">
+                            <option v-for="item in menuStore.optionList" :key="item.id" :value="item">
                                 {{ item.name }}
                             </option>
                         </select>

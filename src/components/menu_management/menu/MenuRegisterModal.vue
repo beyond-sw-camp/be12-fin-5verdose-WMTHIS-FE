@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, defineEmits, ref, onMounted, computed } from 'vue';
+import { defineProps, defineEmits, ref, onMounted, computed, watch } from 'vue';
 import { api } from '@/api/MenuApi.js'; // API 호출을 위한 axios 인스턴스
 const props = defineProps({
     isOpen: Boolean
@@ -122,15 +122,18 @@ const getStoreInventoryList = async () => {
     }
 };
 
+watch(() => props.isOpen, (newVal) => {
+    if (newVal) {
+        loadCategories();
+        getStoreInventoryList();
+    }
+});
+
 const closeModal = () => {
     init();
     emit('close');
 };
 
-onMounted(() => {
-    loadCategories();
-    getStoreInventoryList();
-});
 </script>
 
 <template>

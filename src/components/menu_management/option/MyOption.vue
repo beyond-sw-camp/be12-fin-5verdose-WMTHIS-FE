@@ -6,6 +6,8 @@ import OptionRegisterModal from '@/components/menu_management/option/OptionRegis
 import OptionEditModal from '@/components/menu_management/option/OptionEditModal.vue';
 import DeleteConfirmModal from '@/components/alerts/DeleteConfirmModal.vue';
 import DeleteAlertModal from '@/components/alerts/DeleteAlertModal.vue';
+import { useMenuStore } from '@/stores/useMenuStore';
+const menuStore = useMenuStore();
 
 
 const isLoading = ref(true);
@@ -114,6 +116,7 @@ const fetchOptionList = async (page = 0) => {
 
 onMounted(() => {
     fetchOptionList(0);
+    menuStore.initialize();
 });
 </script>
 

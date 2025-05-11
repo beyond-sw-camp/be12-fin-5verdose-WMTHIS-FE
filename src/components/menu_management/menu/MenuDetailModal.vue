@@ -1,6 +1,7 @@
 <script setup>
 import { defineProps, defineEmits, ref, onMounted, computed, watch } from 'vue';
 import { api } from '@/api/MenuApi.js'; // API 호출을 위한 axios 인스턴스
+import { useMenuStore } from '@/stores/useMenuStore'
 const props = defineProps({
     isOpen: Boolean,
     menu: Object
@@ -8,6 +9,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close']);
 
+const menuStore = useMenuStore();
 const activeTab = ref('단일메뉴'); // 기본 선택된 탭
 const menuName = ref('');
 const ingredientName = ref('');
@@ -27,6 +29,10 @@ const isSubmitting = ref(false);
 watch(() => props.menu, (newVal) => {
     if (newVal) loadMenuDetails();
 });
+watch(() => props.isOpen, (newVal) => {
+    if (newVal) {
+    }
+});
 const displayUnit = (unit) => {
     return unit === 'unit' ? '개' : unit;
 };
@@ -41,6 +47,19 @@ const loadCategories = async () => {
         console.log("카테고리 목록을 불러오는 데 실패했습니다.");
     }
 };
+const getStoreInventoryList = async () => {
+    const result = await api.getStoreInventoryList();
+    if (result) {
+        ingredientOptions.value = result.map(item => ({
+            id: item.id,
+            name: item.name,
+            unit: item.unit,
+        }));
+        console.log('재고 목록:', ingredientOptions.value);
+    } else {
+        console.log("재고 목록을 불러오는 데 실패했습니다.");
+    }
+};
 
 // 메뉴 상세 정보 로딩
 const loadMenuDetails = async () => {
@@ -49,7 +68,7 @@ const loadMenuDetails = async () => {
     console.log('메뉴 상세 정보:', result);
     if (result) {
         menuName.value = result.name;
-        category.value = categoryList.value.find(cat => cat.id === result.categoryId);
+        category.value = menuStore.categories.find(cat => cat.id === result.categoryId);
         price.value = result.price;
         ingredients.value = result.ingredients.map(ingredient => ({
             id: ingredient.storeInventoryId,
@@ -58,6 +77,7 @@ const loadMenuDetails = async () => {
             unit: ingredient.unit,
         }));
         console.log('메뉴 상세 정보:', result);
+        console.log(category.value);
     } else {
         alert("메뉴 상세 정보를 불러오는 데 실패했습니다.");
     }
@@ -128,24 +148,7 @@ const registerMenu = async () => {
     }
     isSubmitting.value = false;
 };
-const getStoreInventoryList = async () => {
-    const result = await api.getStoreInventoryList();
-    if (result) {
-        ingredientOptions.value = result.map(item => ({
-            id: item.id,
-            name: item.name,
-            unit: item.unit,
-        }));
-        console.log('재고 목록:', ingredientOptions.value);
-    } else {
-        console.log("재고 목록을 불러오는 데 실패했습니다.");
-    }
-};
 
-onMounted(async () => {
-    loadCategories();
-    getStoreInventoryList();
-});
 </script>
 
 <template>
@@ -181,7 +184,8 @@ onMounted(async () => {
                     <div class="ingredient_inputs">
                         <select v-model="ingredientName">
                             <option value="" disabled selected>재료 선택</option>
-                            <option v-for="item in ingredientOptions" :key="item" :value="item">{{ item.name }}</option>
+                            <option v-for="item in menuStore.inventoryOptions" :key="item" :value="item">{{ item.name
+                                }}</option>
                         </select>
                         <input type="number" v-model="ingredientAmount" min="1" placeholder="수량" />
                         <label>{{ selectedUnit }}</label>
@@ -200,7 +204,7 @@ onMounted(async () => {
                     <label>카테고리</label>
                     <p class="sub_title"> 메뉴가 속한 카테고리를 입력해 주세요.</p>
                     <select v-model="category">
-                        <option v-for="item in categoryList" :key="item" :value="item">{{ item.name }}</option>
+                        <option v-for="item in menuStore.categories" :key="item" :value="item">{{ item.name }}</option>
                     </select>
                 </div>
 
