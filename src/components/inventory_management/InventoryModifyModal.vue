@@ -55,7 +55,7 @@ const loadData = () => {
   if (props.item) {
     name.value = props.item.name || "";
     unit.value = props.item.unit?.split(" ")[0] || "";
-    unitCategory.value = props.item.unit || "Kg";
+    unitCategory.value = props.item.unit || "kg";
     minQuantity.value = props.item.minQuantity || 0;
 
     const days = props.item.expiryDate;
@@ -191,12 +191,7 @@ const updateInventory = async () => {
         <div class="input_group">
           <div class="modal_title2 between">
             <label>최소수량</label>
-            <input
-              type="text"
-              v-model="minQuantity"
-              placeholder="5"
-              class="min-qty-input"
-            />
+            <input type="text" v-model="minQuantity" placeholder="5" class="min-qty-input" />
           </div>
           <p class="sub_title">
             최소 보유하고 있어야하는 재고의 수를 입력해 주세요. <br />
@@ -208,49 +203,27 @@ const updateInventory = async () => {
             <label>입고 후 유통기한</label>
           </div>
           <div class="button_group">
-            <v-btn
-              v-for="day in expiryDate"
-              :key="day.value"
-              :class="{ 'selected-btn': selectedDays === day.value }"
-              @click="selectDay(day.value)"
-              variant="outlined"
-            >
+            <v-btn v-for="day in expiryDate" :key="day.value" :class="{ 'selected-btn': selectedDays === day.value }"
+              @click="selectDay(day.value)" variant="outlined">
               {{ day.label }}
             </v-btn>
 
             <!-- 직접입력 버튼 -->
-            <v-btn
-              v-if="!isCustomInput"
-              :class="{ 'selected-btn': selectedDays === 'custom' }"
-              @click="enableCustomInput"
-              variant="outlined"
-            >
+            <v-btn v-if="!isCustomInput" :class="{ 'selected-btn': selectedDays === 'custom' }"
+              @click="enableCustomInput" variant="outlined">
               직접입력
             </v-btn>
 
             <template v-if="isCustomInput">
-              <v-text-field
-                v-model.number="customDays"
-                class="custom_input"
-                variant="outlined"
-                density="compact"
-                hide-details
-                @blur="disableCustomInput"
-                type="number"
-                min="1"
-                max="30"
-              ></v-text-field>
+              <v-text-field v-model.number="customDays" class="custom_input" variant="outlined" density="compact"
+                hide-details @blur="disableCustomInput" type="number" min="1" max="30"></v-text-field>
               <span class="fixed_text">일 까지</span>
             </template>
           </div>
         </div>
       </div>
       <div class="modal_footer">
-        <button
-          class="confirm_btn"
-          @click="updateInventory"
-          :disabled="isSubmitting"
-        >
+        <button class="confirm_btn" @click="updateInventory" :disabled="isSubmitting">
           {{ isSubmitting ? "수정 중..." : "수정" }}
         </button>
       </div>
@@ -577,9 +550,7 @@ const updateInventory = async () => {
   /* 드롭다운 크기 */
   appearance: none;
   /* 기본 스타일 제거 */
-  background: white
-    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
-    no-repeat right 10px center;
+  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
   background-size: 16px;
 }
 

@@ -1,13 +1,23 @@
 <script setup>
-import { ref, computed, onMounted, nextTick, watch } from "vue";
-import upIcon from "@/assets/image/up.png";
-import downIcon from "@/assets/image/down.png";
+import { ref, computed, onMounted, watch, onUnmounted } from "vue";
 import Calendar from "@/components/Calendar.vue";
 import { api } from "@/api/index.js";
 
+const today = new Date();
+const yyyy = today.getFullYear();
+const mm = String(today.getMonth() + 1).padStart(2, "0");
+
+// 이번 달의 첫째 날
+const firstDay = `${yyyy}-${mm}-01`;
+
+// 이번 달의 마지막 날 구하기
+const lastDate = new Date(yyyy, today.getMonth() + 1, 0); // 다음 달 0일 = 이번 달 마지막 날
+const lastDay = `${yyyy}-${mm}-${String(lastDate.getDate()).padStart(2, "0")}`;
+
+// ref로 세팅
 const keyword = ref("");
-const startDate = ref("");
-const endDate = ref("");
+const startDate = ref(firstDay);
+const endDate = ref(lastDay);
 
 watch([startDate, endDate], ([newStart, newEnd]) => {
   if (newStart && newEnd) {
@@ -70,6 +80,9 @@ async function fetchAndSetFlatList() {
 
 onMounted(() => {
   fetchAndSetFlatList();
+  if (startDate.value && endDate.value) {
+    fetchAndSetSalesData();
+  }
 });
 
 const selectedIndex = ref(0);
@@ -92,14 +105,21 @@ const showByMonth = computed(() => {
   const start = new Date(startDate.value);
   const end = new Date(endDate.value);
 
+  const sameMonth = start.getFullYear() === end.getFullYear() && start.getMonth() === end.getMonth();
+
+  if (sameMonth) {
+    // ✅ 같은 달이면 무조건 일별 표시
+    return false;
+  }
+
   const timeDiff = end.getTime() - start.getTime();
   const dayCount = timeDiff / (1000 * 60 * 60 * 24) + 1; // +1 해서 당일 포함
 
+  // ✅ 다른 달인데 30일 초과면 월별 표시, 아니면 일별
   return dayCount > 30;
 });
 
 // 선택된 날짜의 판매 데이터
-const sortOrder = ref("asc");
 const periodSales = computed(() => {
   const start = new Date(startDate.value);
   const end = new Date(endDate.value);
@@ -112,39 +132,14 @@ const periodSales = computed(() => {
   });
 
   const filteredByMenu = filteredSales.filter((item) => item.menuName === selectedName);
-  // 키워드 필터링
 
   filteredByMenu.sort((a, b) => {
-    const dateCompare = sortOrder.value === "asc" ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
+    const dateCompare = a.date.localeCompare(b.date);
     if (dateCompare !== 0) return dateCompare;
-    return sortOrder.value === "asc" ? a.time.localeCompare(b.time) : b.time.localeCompare(a.time);
+    return a.time.localeCompare(b.time);
   });
 
   return Object.values(filteredByMenu);
-});
-
-const selectedDates = ref(null);
-const detailStatus = ref({}); // 날짜별 열림/닫힘 상태 저장
-
-const toggleDetail = (date) => {
-  // 이미 선택된 날짜면 상태 토글
-  detailStatus.value[date] = !detailStatus.value[date];
-  selectedDates.value = date;
-};
-
-const sortIcon = (date) => {
-  return detailStatus.value[date] ? upIcon : downIcon;
-};
-
-// 중복 제거된 날짜 목록
-const uniqueDates = computed(() => {
-  const dates = periodSales.value.map((item) => item.date);
-  return [...new Set(dates)].sort((a, b) => (sortOrder.value === "asc" ? a.localeCompare(b) : b.localeCompare(a)));
-});
-
-const uniqueMonths = computed(() => {
-  const months = periodSales.value.map((item) => item.date.slice(0, 7)); // 'YYYY-MM'
-  return [...new Set(months)].sort((a, b) => (sortOrder.value === "asc" ? a.localeCompare(b) : b.localeCompare(a)));
 });
 
 //차트 데이터
@@ -181,6 +176,50 @@ function getDateRange(start, end, byMonth = false) {
   return result;
 }
 
+// 날짜/월별 판매량 계산
+const getSalesByKey = computed(() => {
+  const result = {};
+
+  periodSales.value.forEach((item) => {
+    const key = showByMonth.value ? item.date.slice(0, 7) : item.date;
+    const quantity = parseInt(item.quantity) || 1; // 수량이 없으면 1로 간주
+
+    if (!result[key]) {
+      result[key] = {
+        count: 0, // 판매 건수
+        totalQuantity: 0, // 총 판매 수량
+      };
+    }
+
+    result[key].count += 1;
+    result[key].totalQuantity += quantity;
+  });
+
+  return result;
+});
+
+// 최대 판매량을 가진 날짜/월 찾기
+const maxSalesKey = computed(() => {
+  const sales = getSalesByKey.value;
+  let maxKey = null;
+  let maxValue = -Infinity;
+
+  for (const [key, value] of Object.entries(sales)) {
+    if (value.totalQuantity > maxValue) {
+      maxValue = value.totalQuantity;
+      maxKey = key;
+    }
+  }
+
+  return maxKey
+    ? {
+        key: maxKey,
+        count: sales[maxKey].count,
+        totalQuantity: sales[maxKey].totalQuantity,
+      }
+    : null;
+});
+
 const chartSeries = computed(() => {
   if (!startDate.value || !endDate.value) return [];
 
@@ -202,12 +241,12 @@ const chartSeries = computed(() => {
       key = `${String(itemDate.getMonth() + 1).padStart(2, "0")}.${String(itemDate.getDate()).padStart(2, "0")}`;
     }
 
-    counts[key] = (counts[key] || 0) + 1;
+    counts[key] = (counts[key] || 0) + (parseInt(item.quantity) || 1);
   });
 
   return [
     {
-      name: "판매 수",
+      name: "판매 수량",
       data: labels.map((label) => counts[label] || 0), // 라벨 기준으로 맞춤
     },
   ];
@@ -226,7 +265,7 @@ const chartOptions = computed(() => {
       height: 350,
     },
     title: {
-      text: showByMonth.value ? "월별 판매 건수" : "일별 판매 건수",
+      text: showByMonth.value ? "월별 판매 수량" : "일별 판매 수량",
       align: "center",
     },
     xaxis: {
@@ -234,7 +273,7 @@ const chartOptions = computed(() => {
     },
     yaxis: {
       title: {
-        text: "판매 건수",
+        text: "판매 수량",
       },
     },
     colors: ["#4CAF50"],
@@ -242,6 +281,76 @@ const chartOptions = computed(() => {
       enabled: false,
     },
   };
+});
+
+// 날짜 포맷팅
+const formatDate = (dateKey) => {
+  if (!dateKey) return "";
+  return showByMonth.value ? dateKey.replace("-", "년 ") + "월" : dateKey.slice(5).replace("-", "월 ") + "일";
+};
+
+// 캐러셀 관련 데이터
+const currentCarousel = ref(0);
+const carouselInterval = ref(null);
+
+// 캐러셀 자동 전환 설정
+onMounted(() => {
+  carouselInterval.value = setInterval(() => {
+    currentCarousel.value = (currentCarousel.value + 1) % summaries.value.length;
+  }, 5000);
+});
+
+// 컴포넌트 언마운트 시 인터벌 정리
+onUnmounted(() => {
+  if (carouselInterval.value) {
+    clearInterval(carouselInterval.value);
+  }
+});
+
+// 캐러셀에 표시할 정보 수정
+const summaries = computed(() => {
+  // 데이터가 없는 경우
+  if (periodSales.value.length === 0) {
+    return [
+      {
+        line1: "선택된 기간에 ",
+        highlight1: selectedMenuName.value,
+        line2: "가 판매되지 않았습니다.",
+        highlight2: "",
+        line3: "",
+        line4: "",
+      },
+    ];
+  }
+
+  // 최대 판매량 정보
+  const maxInfo = maxSalesKey.value;
+
+  if (!maxInfo) {
+    return [
+      {
+        line1: "선택된 기간에 ",
+        highlight1: selectedMenuName.value,
+        line2: "가 판매되지 않았습니다.",
+        highlight2: "",
+        line3: "",
+        line4: "",
+      },
+    ];
+  }
+
+  const formattedDate = formatDate(maxInfo.key);
+
+  return [
+    {
+      line1: "선택된 기간 내 ",
+      highlight1: selectedMenuName.value,
+      line2: "는",
+      highlight2: formattedDate,
+      line3: "에 가장 많이 판매되었습니다.",
+      line4: `총 ${maxInfo.totalQuantity}개가 판매되었습니다.`,
+    },
+  ];
 });
 </script>
 
@@ -277,55 +386,31 @@ const chartOptions = computed(() => {
           <Calendar v-model:startDate="startDate" v-model:endDate="endDate" />
         </div>
       </div>
+
       <div class="chart">
         <apexchart type="bar" height="350" :options="chartOptions" :series="chartSeries" />
       </div>
-
-      <!-- 선택된 날짜의 판매 데이터 테이블 -->
-      <div class="sales_detail">
-        <div class="table_wrapper">
-          <div ref="nonScrollableWrapperRef" class="non_scrollable_wrapper">
-            <table ref="tableHeaderRef" class="sales_table header_table">
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>메뉴명</th>
-                  <th>수량</th>
-                </tr>
-              </thead>
-            </table>
+      <div class="carousel-container">
+        <div class="carousel-wrapper">
+          <div class="carousel-slides" :style="{ transform: `translateX(-${currentCarousel * 100}%)` }">
+            <div v-for="(text, i) in summaries" :key="i" class="carousel-slide">
+              <div class="carousel-content">
+                <p class="carousel-line carousel-line-bold">
+                  {{ text.line1 }}
+                  <span class="highlight-text">{{ text.highlight1 }}</span>
+                  {{ text.line2 }}
+                  <span v-if="text.highlight2" class="highlight-text">{{ text.highlight2 }}</span>
+                  {{ text.line3 }}
+                </p>
+                <p class="carousel-line carousel-line-bold" v-if="text.line4">
+                  {{ text.line4 }}
+                </p>
+              </div>
+            </div>
           </div>
-
-          <div ref="scrollableWrapperRef" class="scrollable_wrapper">
-            <table ref="tableBodyRef" class="sales_table body_table">
-              <tbody>
-                <!-- 날짜 또는 월 기준 목록 -->
-                <template v-for="(key, idx) in showByMonth ? uniqueMonths : uniqueDates" :key="idx">
-                  <tr @click="toggleDetail(key)" :class="{ selected: selectedDates === key }" style="cursor: pointer">
-                    <td colspan="3">
-                      <strong>{{ showByMonth ? key.replace("-", ".") : key.slice(5).replace("-", ".") }}</strong>
-                      &nbsp;
-                      <img :src="sortIcon(key)" alt="정렬 아이콘" class="search_icon" />
-                    </td>
-                  </tr>
-
-                  <!-- 상세 내역: 각 key에 대해 필터링 -->
-                  <tr v-if="detailStatus[key]"
-                    v-for="(item, idx2) in periodSales.filter((i) => (showByMonth ? i.date.startsWith(key) : i.date === key))"
-                    :key="`detail-${idx}-${idx2}`">
-                    <td>{{ showByMonth ? item.date : item.time }}</td>
-                    <td>{{ item.menuName }}</td>
-                    <td>{{ item.quantity }}</td>
-                  </tr>
-                </template>
-
-                <!-- 데이터 없음 안내 -->
-                <tr v-if="uniqueDates.length === 0">
-                  <td colspan="3" class="no_data">해당 날짜의 판매 데이터가 없습니다.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        </div>
+        <div class="carousel-indicators" v-if="summaries.length > 1">
+          <span v-for="(_, i) in summaries" :key="i" class="carousel-indicator" :class="{ active: currentCarousel === i }" @click="currentCarousel = i"></span>
         </div>
       </div>
     </div>
@@ -496,67 +581,70 @@ const chartOptions = computed(() => {
   margin-left: auto;
 }
 
-.sales_detail {
-  background-color: white;
-  border-radius: 8px;
-  padding: 15px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  max-height: 200px;
+/* 캐러셀 스타일 */
+.carousel-container {
+  background-color: #f5f5f5;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-.table_wrapper {
-  width: 100%;
+.carousel-wrapper {
+  overflow: hidden;
   position: relative;
 }
 
-.non_scrollable_wrapper {
-  width: 100%;
-  overflow: hidden;
+.carousel-slides {
+  display: flex;
+  transition: transform 0.5s ease;
 }
 
-.scrollable_wrapper {
-  max-height: 130px;
-  overflow-y: auto;
-  width: 100%;
-}
-
-.sales_table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-  font-size: 14px;
-}
-
-.header_table {
-  margin-bottom: 0;
-}
-
-.body_table {
-  margin-top: 0;
-}
-
-.sales_table th,
-.sales_table td {
-  padding: 10px;
-  text-align: left;
+.carousel-slide {
+  min-width: 100%;
   box-sizing: border-box;
 }
 
-.sales_table th {
-  font-weight: bold;
-}
-
-.sales_table tr {
-  border-top: 1px solid #e3e3e3;
-}
-
-.sales_table tr:hover {
-  background-color: #f9f9f9;
-}
-
-.no_data {
+.carousel-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   text-align: center;
-  color: #999;
-  padding: 20px;
+  padding: 10px;
+}
+
+.carousel-line {
+  font-size: 18px;
+  margin: 4px 0;
+  color: #424242;
+}
+
+.carousel-line-bold {
+  font-weight: 600;
+}
+
+.highlight-text {
+  color: #e53935;
+}
+
+.carousel-indicators {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.carousel-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #ccc;
+  margin: 0 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.carousel-indicator.active {
+  background-color: #333;
 }
 </style>

@@ -106,10 +106,13 @@ const removeIngredient = (index) => {
 const updateOption = async () => {
     if (isSubmitting.value) return; // 이미 요청 중이라면 더 이상 진행하지 않음
     isSubmitting.value = true;
+
     if (!optionName.value || !price.value) {
         alert('옵션명, 가격을 모두 입력해주세요.');
+        isSubmitting.value = false;
         return;
     }
+
     const requestData = {
         optionId: props.optionId,
         name: optionName.value,
@@ -120,16 +123,21 @@ const updateOption = async () => {
         })),
     };
 
-    const success = await api.updateOption(requestData);
-    if (success) {
-        alert('옵션 수정 성공');
-
-        emit('refresh');
-        emit('close');
-    } else {
-        alert('옵션 수정 실패');
+    try {
+        const response = await api.updateOption(requestData);
+        if (response.success) {
+            alert('옵션 수정 성공');
+            emit('refresh');
+            emit('close');
+        } else {
+            alert(response.message || '옵션 수정 실패');
+        }
+    } catch (error) {
+        console.error('옵션 수정 중 예외 발생:', error);
+        alert('오류가 발생했습니다.');
+    } finally {
+        isSubmitting.value = false;
     }
-    isSubmitting.value = false;
 };
 
 </script>
