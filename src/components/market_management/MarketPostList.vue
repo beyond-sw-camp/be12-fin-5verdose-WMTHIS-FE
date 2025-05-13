@@ -164,7 +164,7 @@ onMounted(() => {
             <tbody>
                 <tr v-for="(item, index) in filteredItems" :key="index">
                     <td class="bold_text">{{ item.inventoryName }}</td>
-                    <td class="bold_text">{{ item.quantity }}</td>
+                    <td class="bold_text">{{ item.quantity }} </td>
                     <td>{{ getDday(item.expirationDate) }}</td>
                     <td>{{ item.price.toLocaleString() }}원</td>
                     <td>{{ getRelativeDate(item.createdDate) }}</td>
