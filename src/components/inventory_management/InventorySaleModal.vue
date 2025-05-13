@@ -7,6 +7,7 @@ const props = defineProps({
   isOpen: Boolean,
 });
 
+const isSubmitting = ref(false); // 중복 클릭 방지
 const emit = defineEmits(["close"]);
 const files = ref([]);
 const ingredient = ref(""); // 선택된 재료명
@@ -53,6 +54,7 @@ const fetchIngredients = async () => {
   }
 };
 const register = async () => {
+  if (isSubmitting.value) return; // 중복 클릭 방지
   if (!ingredient.value || !ingredient.value.id) {
     alert("재고명을 선택해주세요.");
     return;
@@ -73,7 +75,7 @@ const register = async () => {
     alert("물품 설명을 입력해주세요.");
     return;
   }
-
+  isSubmitting.value = true; // 중복 클릭 방지
   const data = {
     storeInventoryId: ingredient.value.id,
     quantity: quantity.value,
@@ -90,6 +92,7 @@ const register = async () => {
   }
 
   emit("close");
+  isSubmitting.value = false; // 중복 클릭 방지
 };
 
 watch(
@@ -227,7 +230,9 @@ onMounted(() => {
         </div>
       </div>
       <div class="modal_footer">
-        <button class="confirm_btn" @click="register">판매하기</button>
+        <button class="confirm_btn" :disabled="isSubmitting" @click="register">
+          {{ isSubmitting ? "등록 중..." : "등록" }}
+        </button>
       </div>
     </div>
   </div>
