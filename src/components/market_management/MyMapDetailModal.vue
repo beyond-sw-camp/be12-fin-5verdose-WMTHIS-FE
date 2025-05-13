@@ -56,8 +56,10 @@ const setItemData = (item) => {
   console.log(form.value);
 };
 
+const isSubmitting = ref(false);
 // 구매 요청 보내고 닫기
-const sendTradeRequest = () => {
+const sendTradeRequest = async () => {
+  if (isSubmitting.value) return;
   const id = ingredient.value !== "" ? ingredient.value.id : null;
 
   const data = {
@@ -71,23 +73,36 @@ const sendTradeRequest = () => {
   console.log(data);
   console.log(Number(data.quantity));
   console.log(Number(props.item.quantity));
+
   if (Number(data.quantity) > Number(props.item.quantity)) {
     alert("판매하는 양보다 많은 수량은 입력할 수 없습니다");
-  } else {
-    const response = marketApi.registerPurchase(data);
+  }
 
-    // 서버 에러일때
-    if (!response) {
-    } else {
-      const code = response.code;
-      if (code === 200) {
+  else {
+    if (isSubmitting.value) return; // 중복 요청 방지
+    isSubmitting.value = true;
+
+    try {
+      const response = await marketApi.registerPurchase(data); // 반드시 await 필요
+
+      if (!response) {
+        alert("서버 오류가 발생했습니다.");
+      } else if (response.data.code === 200) {
+        alert("거래 요청이 완료되었습니다.");
         handleClosePanel();
+      } else {
+        alert(`요청 실패 (코드: ${response.data.code})`);
       }
     }
-
-    handleClosePanel();
+    catch (error) {
+      console.error("요청 중 에러 발생:", error);
+      alert("요청 처리 중 오류가 발생했습니다.");
+    } finally {
+      isSubmitting.value = false;
+    }
   }
 };
+
 const getDday = (expirationDate) => {
   const today = dayjs();
   const exp = dayjs(expirationDate);
@@ -172,7 +187,8 @@ const itemLabel = (item) => {
         <div class="title">
           <h1 class="title_left">{{ form.name }}</h1>
           <div class="title_right">
-            <button class="close_btn" @click="handleClosePanel"><img src="@/assets/image/xMark.png" class="x_button" /></button>
+            <button class="close_btn" @click="handleClosePanel"><img src="@/assets/image/xMark.png"
+                class="x_button" /></button>
             <p class="title_store">{{ form.storeName }}</p>
           </div>
         </div>
@@ -374,7 +390,7 @@ const itemLabel = (item) => {
 
 .detail_modal {
   width: 520px;
-  height: 750px;
+  height: 100%;
   padding: 20px;
   box-sizing: border-box;
   overflow-y: auto;
@@ -402,7 +418,7 @@ input.no_spinner {
 
 .image_area {
   width: 100%;
-  height: 25%;
+  height: 20%;
   margin-top: 20px;
   display: flex;
 }
@@ -431,7 +447,7 @@ input.no_spinner {
 
 .description_area {
   margin-top: 20px;
-  height: 25%;
+  height: 20%;
 }
 
 .description_item {

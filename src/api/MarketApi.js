@@ -96,13 +96,14 @@ export const marketApi = {
       .post("/market/registerPurchase", data)
       .then((res) => {
         console.log("registerPurchase res", res);
-        return res.data.code === 200; // 성공 시 true 반환;
+        return res; // 전체 데이터 반환
       })
       .catch((error) => {
         console.error("Error in registerPurchase:", error);
-        return false;
+        return null; // 에러 발생 시 null 반환
       });
   },
+
   approvePurchase(saleId, purchaseId) {
     console.log("approvePurchase saleId:", saleId, "purchaseId:", purchaseId);
     return instance
