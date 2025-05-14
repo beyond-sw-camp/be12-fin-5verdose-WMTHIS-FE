@@ -1,4 +1,5 @@
 import axios from "axios";
+import routes from "@/router";
 
 const instance = axios.create({
   baseURL: "/api", // 백엔드 API 주소로 변경
@@ -7,6 +8,21 @@ const instance = axios.create({
   },
   withCredentials: true, // 필요 시 (ex: 쿠키 인증)
 });
+
+let redirecting = false;
+instance.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    const status = err.response?.status;
+    if ((status === 401 || status === 403) && !redirecting) {
+      redirecting = true;
+      routes.push({ name: "login" }).finally(() => {
+        redirecting = false;
+      });
+    }
+    return Promise.reject(err);
+  }
+);
 
 export const api = {
   verify(data) {
@@ -37,7 +53,8 @@ export const api = {
         console.error("Error in signUp:", error);
         return {
           success: false,
-          message: error.response?.data?.message || "회원가입에 실패하였습니다.",
+          message:
+            error.response?.data?.message || "회원가입에 실패하였습니다.",
         }; // 기본 메시지 반환
       });
   },
@@ -192,7 +209,10 @@ export const api = {
     console.log("updateInventory storeInventoryData", storeInventoryData);
 
     try {
-      const res = instance.put(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
+      const res = instance.put(
+        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
+        storeInventoryData
+      );
       console.log("updateRes", res);
       console.log("code:", res.data.code);
 
@@ -209,7 +229,10 @@ export const api = {
 
   async SearchInventory(storeInventoryData) {
     try {
-      const res = await instance.get(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
+      const res = await instance.get(
+        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
+        storeInventoryData
+      );
       console.log("searchRes", res);
       console.log("code:", res.data.code);
 
@@ -313,7 +336,9 @@ export const api = {
       .then((res) => {
         if (res.data.code !== 200) {
           // 실패한 응답인 경우 에러로 던짐
-          throw new Error(res.data.message || "결제 처리 중 오류가 발생했습니다.");
+          throw new Error(
+            res.data.message || "결제 처리 중 오류가 발생했습니다."
+          );
         }
         return res.data; // 성공한 응답만 반환
       })
