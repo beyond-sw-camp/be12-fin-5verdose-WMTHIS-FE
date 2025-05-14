@@ -1,4 +1,5 @@
 import axios from "axios";
+import routes from "@/router";
 
 const instance = axios.create({
   baseURL: "/api", // 백엔드 API 주소로 변경
@@ -7,6 +8,21 @@ const instance = axios.create({
   },
   withCredentials: true, // 필요 시 (ex: 쿠키 인증)
 });
+
+let redirecting = false;
+instance.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    const status = err.response?.status;
+    if ((status === 401 || status === 403) && !redirecting) {
+      redirecting = true;
+      routes.push({ name: "login" }).finally(() => {
+        redirecting = false;
+      });
+    }
+    return Promise.reject(err);
+  }
+);
 
 export const api = {
   verify(data) {
