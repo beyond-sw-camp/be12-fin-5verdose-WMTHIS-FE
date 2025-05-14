@@ -90,21 +90,21 @@ const handleButtonClick = async (status, index) => {
 };
 
 const confirmModal = async () => {
-    const index = currentItemIndex.value;
-    const item = trade_items.value[index];
-    if (statusMap[trade_items.value[index].status] === '배송확정') {
-        console.log(item.inventoryPurchaseId);
-        const response = await marketApi.confirmDelivery(item.inventoryPurchaseId);
-        console.log(response);
-        trade_items.value[index].status = '거래완료';
-    } else if (statusMap[trade_items.value[index].status] === '결제하기') {
-        requestPay(item, () => {
-            // 결제 성공 시 상태 변경
-            item.status = '배송확정';
-            showModal.value = false;
-        });
-    }
-    showModal.value = false;
+  const index = currentItemIndex.value;
+  const item = trade_items.value[index];
+  if (statusMap[trade_items.value[index].status] === '배송확정') {
+    console.log(item.inventoryPurchaseId);
+    const response = await marketApi.confirmDelivery(item.inventoryPurchaseId);
+    console.log(response);
+    trade_items.value[index].status = '거래완료';
+  } else if (statusMap[trade_items.value[index].status] === '결제하기') {
+    requestPay(item, () => {
+      // 결제 성공 시 상태 변경
+      item.status = '배송확정';
+      showModal.value = false;
+    });
+  }
+  showModal.value = false;
 };
 
 const cancelModal = () => {
@@ -157,7 +157,7 @@ const runPayment = (item, onSuccess) => {
       pay_method: "card",
       merchant_uid: makeMerchantUid,
       name: item.name,
-      amount: item.price * item.quantity,
+      amount: item.price,
       buyer_name: "WHTHIS",
       buyer_tel: "010-1234-5678",
       buyer_addr: "서울특별시 보라매로 87",
@@ -258,13 +258,10 @@ onMounted(() => {
           <td>{{ item.type ? "판매" : "구매" }}</td>
           <td class="bold_text">{{ item.name }}</td>
           <td>{{ item.price.toLocaleString() }}원</td>
-          <td>{{ item.quantity }}</td>
+          <td>{{ item.quantity }} {{ item.unit }}</td>
           <td>
-            <button
-              v-if="['요청확인', '결제하기', '배송확정'].includes(statusMap[item.status])"
-              @click="handleButtonClick(statusMap[item.status], index)"
-              class="detail_btn"
-            >
+            <button v-if="['요청확인', '결제하기', '배송확정'].includes(statusMap[item.status])"
+              @click="handleButtonClick(statusMap[item.status], index)" class="detail_btn">
               {{ statusMap[item.status] }}
             </button>
             <span v-else>{{ statusMap[item.status] }}</span>
@@ -288,13 +285,8 @@ onMounted(() => {
   </div>
 
   <!-- 요청 목록 모달 - 별도 컴포넌트로 분리 -->
-  <TradeRequestModal
-    :isOpen="showRequestListModal"
-    :productName="selectedProductName"
-    :items="responseItem"
-    :saleId="selectedProductId"
-    @close="showRequestListModal = false"
-  />
+  <TradeRequestModal :isOpen="showRequestListModal" :productName="selectedProductName" :items="responseItem"
+    :saleId="selectedProductId" @close="showRequestListModal = false" />
 </template>
 
 <style scoped>

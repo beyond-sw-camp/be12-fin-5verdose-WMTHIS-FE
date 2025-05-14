@@ -331,11 +331,11 @@ export const api = {
   },
 
   posOrder(data) {
+    console.log("Sending order data:", data); // 데이터 전송 전에 콘솔 로그로 확인
     return instance
       .post("/order/create", data)
       .then((res) => {
         if (res.data.code !== 200) {
-          // 실패한 응답인 경우 에러로 던짐
           throw new Error(
             res.data.message || "결제 처리 중 오류가 발생했습니다."
           );
@@ -343,8 +343,11 @@ export const api = {
         return res.data; // 성공한 응답만 반환
       })
       .catch((error) => {
-        // axios 에러이거나 서버 응답 오류를 처리
-        const message = error?.message || "결제 처리 중 오류가 발생했습니다.";
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          "결제 처리 중 오류가 발생했습니다."; // 서버 응답 메시지를 가져옴
+        console.error(message); // 오류 메시지 출력
         throw new Error(message);
       });
   },
