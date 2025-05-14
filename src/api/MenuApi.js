@@ -14,11 +14,11 @@ instance.interceptors.response.use(
   (res) => res,
   (err) => {
     const status = err.response?.status;
-    if ((status === 401 || status === 403) && !redirecting) {
-      redirecting = true;
-      routes.push({ name: "login" }).finally(() => {
-        redirecting = false;
-      });
+    const errorCode = err.response?.headers["Error-Code"];
+    if (errorCode === "NO_STORE_ID") {
+      router.push({ name: "storeRegister" });
+    } else if (status === 401 || status === 403) {
+      router.push({ name: "login" });
     }
     return Promise.reject(err);
   }
