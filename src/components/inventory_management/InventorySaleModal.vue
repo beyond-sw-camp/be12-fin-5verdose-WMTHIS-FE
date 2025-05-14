@@ -231,7 +231,7 @@ onMounted(() => {
       </div>
       <div class="modal_footer">
         <button class="confirm_btn" :disabled="isSubmitting" @click="register">
-          {{ isSubmitting ? "등록 중..." : "등록" }}
+          {{ isSubmitting ? "판매 중..." : "판매하기" }}
         </button>
       </div>
     </div>
