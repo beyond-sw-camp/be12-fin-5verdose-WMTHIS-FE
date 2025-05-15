@@ -149,6 +149,26 @@ export const api = {
       });
   },
 
+  updateCategory(requestData) {
+    return instance
+      .put("/category/update", requestData)
+      .then((res) => {
+        if (res.data.code !== 200) {
+          return {
+            success: false,
+            message: res.data.message || "카테고리 수정 실패",
+          };
+        }
+        return { success: true, data: res.data.data };
+      })
+      .catch((error) => {
+        console.error("Error in updateOption:", error);
+        const message =
+          error.response?.data?.message || "서버 오류가 발생했습니다.";
+        return { success: false, message };
+      });
+  },
+
   updateOption(requestData) {
     return instance
       .put("/option", requestData)
