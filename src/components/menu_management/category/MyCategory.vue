@@ -88,8 +88,8 @@ const fetchCategoryList = async (page = 0) => {
                 ...item,
                 selected: false,
             }));
-            currentPage.value = res.page.number;
-            totalPages.value = res.page.totalPages;
+            currentPage.value = response.data.data.number;
+            totalPages.value = response.data.data.totalPages;
         } else {
             console.error("카테고리 목록 가져오기 실패:", res.message);
         }
