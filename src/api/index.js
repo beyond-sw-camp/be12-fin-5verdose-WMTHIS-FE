@@ -14,7 +14,8 @@ instance.interceptors.response.use(
   (res) => res,
   (err) => {
     const status = err.response?.status;
-    const errorCode = err.response?.headers["Error-Code"];
+    const errorCode = err.response?.headers["error-code"];
+    console.log("errorCode", errorCode);
     if (errorCode === "NO_STORE_ID") {
       routes.push({ name: "storeRegister" });
     } else if (status === 401 || status === 403) {
