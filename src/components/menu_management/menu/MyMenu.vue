@@ -99,8 +99,8 @@ const fetchMenus = async (page = 0) => {
                     ...item,
                     selected: false
                 }));
-                currentPage.value = response.data.data.number;
-                totalPages.value = response.data.data.totalPages;
+                currentPage.value = response.data.number;
+                totalPages.value = response.data.totalPages;
             } else {
                 menu_items.value = [];
             }
