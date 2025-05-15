@@ -180,4 +180,30 @@ export const marketApi = {
         return false;
       });
   },
+  getNotification() {
+    console.log("getNotification");
+    return instance
+      .get("/notification/get")
+      .then((res) => {
+        console.log("res", res);
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in getMyStoreAddress:", error);
+        return false;
+      });
+  },
+  postNotification() {
+    console.log("postNotification");
+    return instance
+      .post("/notification/post")
+      .then((res) => {
+        console.log("res", res);
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in getMyStoreAddress:", error);
+        return false;
+      });
+  },
 };
