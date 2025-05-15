@@ -105,8 +105,8 @@ const fetchOptionList = async (page = 0) => {
                 ...item,
                 selected: false
             }));
-            currentPage.value = response.data.number;
-            totalPages.value = response.data.totalPages;
+            currentPage.value = response.number;
+            totalPages.value = response.totalPages;
         } else {
             console.error('옵션 목록 불러오기 실패:', response);
         }
