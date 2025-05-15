@@ -5,8 +5,10 @@ import InventoryModifyModal from "@/components/inventory_management/InventoryMod
 import DeleteConfirmModal from "@/components/alerts/DeleteConfirmModal.vue";
 import DeleteAlertModal from "@/components/alerts/DeleteAlertModal.vue";
 import { api } from "@/api/MenuApi.js"; // api import
+import { isLength } from "lodash";
 
 // 모달 상태
+const isLoading = ref(true);
 const isModalOpen = ref(false);
 const isDetailModalOpen = ref(false);
 const isDeleteConfirmOpen = ref(false);
@@ -21,22 +23,34 @@ const searchKeyword = ref("");
 const inventory_items = ref([]);
 
 const fecthStoreInventoryList = async (page = 0) => {
-  const res = await api.getStoreInventoryPageList(page, pageSize, searchKeyword.value);
-  console.log("InventoryItems 응답:", res);
+  isLoading.value = true;
+  const MIN_LOADING_TIME = 100;
+  const res = await api.getStoreInventoryPageList(
+    page,
+    pageSize,
+    searchKeyword.value
+  );
+  console.log("재고 목록 응답:", res);
 
-  // 구조 맞게 수정
-  if (res && res.code === 200 && res.data) {
-    currentPage.value = res.data.page.number;
-    totalPages.value = res.data.page.totalPages;
-    inventory_items.value = res.data.content.map((item) => ({
-      ...item,
-      selected: false,
-    }));
-  } else {
-    console.error("재고 목록 불러오기 실패", res);
-  }
+  setTimeout(() => {
+    if (!res) {
+      inventory_items.value = [];
+    } else {
+      // 구조 맞게 수정
+      if (res && res.code === 200 && res.data) {
+        currentPage.value = res.data.page.number;
+        totalPages.value = res.data.page.totalPages;
+        inventory_items.value = res.data.content.map((item) => ({
+          ...item,
+          selected: false,
+        }));
+      } else {
+        inventory_items.value = [];
+      }
+    }
+    isLoading.value = false;
+  }, MIN_LOADING_TIME);
 };
-
 
 // 모달 열기/닫기
 const openModal = () => {
@@ -60,7 +74,6 @@ const openDetailModal = (item) => {
 const closeModal = () => {
   isModalOpen.value = false;
 };
-
 
 // // 추가 (등록)
 // const addNewInventoryItem = async () => {
@@ -111,7 +124,7 @@ const closeDeleteAlert = () => {
 const deleteSelectedItems = async () => {
   isDeleteConfirmOpen.value = false;
   const selectedIds = inventory_items.value
-    .filter(item => item.selected)
+    .filter((item) => item.selected)
     .map((item) => item.id);
   console.log("선택된 전체 아이템 리스트:", selectedIds);
   const response = await api.deleteStoreInventorys(selectedIds);
@@ -120,11 +133,9 @@ const deleteSelectedItems = async () => {
     alert("삭제되었습니다.");
   } else {
     alert(message);
-
   }
   fecthStoreInventoryList(0); // 서버에서 다시 받아오기
 };
-
 
 onMounted(() => {
   fecthStoreInventoryList(0);
@@ -138,8 +149,13 @@ onMounted(() => {
     <!-- 검색 바 및 등록/삭제 버튼 -->
     <div class="search_container">
       <div class="search_box">
-        <input type="text" class="search_input" v-model="searchKeyword" placeholder="재고명 검색"
-          @input="fecthStoreInventoryList(0)" />
+        <input
+          type="text"
+          class="search_input"
+          v-model="searchKeyword"
+          placeholder="재고명 검색"
+          @input="fecthStoreInventoryList(0)"
+        />
         <button class="search_btn" @Click="fecthStoreInventoryList(0)">
           <img src="@/assets/image/search_button.png" class="search_icon" />
         </button>
@@ -150,66 +166,151 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- 상품 목록 -->
-    <table class="inventory_table">
-      <thead>
-        <tr>
-          <th>
-            <input type="checkbox" v-model="select_all" @change="toggle_select_all" class="circle_checkbox" />
-          </th>
-          <th>재고명</th>
-          <th>단위</th>
-          <th>최소수량</th>
-          <th>입고 후 유통기한</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(item, index) in inventory_items" :key="index" :class="{ selected_row: item.selected }">
-          <td>
-            <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
-          </td>
-          <td class="bold_text">{{ item.name }}</td>
-          <td>{{ item.unit === 'unit' ? '개' : item.unit }}</td>
-          <td>{{ item.minQuantity }}</td>
-          <td>{{ item.expiryDate }}일</td>
-          <td>
-            <button class="detail_btn" @click="openDetailModal(item)">
-              상세
+    <transition name="fade" mode="out-in">
+      <template v-if="isLoading">
+        <!-- 로딩 중 스켈레톤 테이블 -->
+        <table class="inventory_table" key="loading">
+          <thead>
+            <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  v-model="select_all"
+                  @change="toggle_select_all"
+                  class="circle_checkbox"
+                />
+              </th>
+              <th>재고명</th>
+              <th>단위</th>
+              <th>최소수량</th>
+              <th>입고 후 유통기한</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="n in 5" :key="n">
+              <td><div class="skeleton-cell checkbox"></div></td>
+              <td><div class="skeleton-cell name"></div></td>
+              <td><div class="skeleton-cell category"></div></td>
+              <td><div class="skeleton-cell stock"></div></td>
+              <td><div class="skeleton-cell btn"></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </template>
+
+      <template v-else-if="inventory_items.length === 0">
+        <!-- 빈 상태 화면 -->
+        <div key="empty" class="empty-state">
+          <img
+            src="@/assets/image/empty.png"
+            alt="빈 재고"
+            class="empty-icon"
+          />
+          <p class="empty-text">
+            등록된 재고가 없습니다.<br />오른쪽 상단의 [등록] 버튼을 눌러
+            추가해보세요.
+          </p>
+        </div>
+      </template>
+
+      <template v-else>
+        <!-- 실제 데이터 테이블과 페이지네이션 -->
+        <div key="loaded">
+          <table class="inventory_table">
+            <thead>
+              <tr>
+                <th>
+                  <input
+                    type="checkbox"
+                    v-model="select_all"
+                    @change="toggle_select_all"
+                    class="circle_checkbox"
+                  />
+                </th>
+                <th>재고명</th>
+                <th>단위</th>
+                <th>최소수량</th>
+                <th>입고 후 유통기한</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(item, index) in inventory_items"
+                :key="index"
+                :class="{ selected_row: item.selected }"
+              >
+                <td>
+                  <input
+                    type="checkbox"
+                    v-model="item.selected"
+                    class="circle_checkbox"
+                  />
+                </td>
+                <td class="bold_text">{{ item.name }}</td>
+                <td>{{ item.unit === "unit" ? "개" : item.unit }}</td>
+                <td>{{ item.minQuantity }}</td>
+                <td>{{ item.expiryDate }}일</td>
+                <td>
+                  <button class="detail_btn" @click="openDetailModal(item)">
+                    상세
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="pagination_container">
+            <button
+              :disabled="currentPage === 0"
+              @click="goToPage(currentPage - 1)"
+            >
+              ◀ 이전
             </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
 
-    <!-- ✨ 항목이 없을 경우 메시지 출력 -->
+            <span
+              v-for="page in totalPages"
+              :key="page"
+              @click="goToPage(page - 1)"
+              :class="{ 'page-number': true, active: currentPage === page - 1 }"
+            >
+              {{ page }}
+            </span>
 
-    <div v-if="inventory_items.length === 0" class="no_items_message">
-      등록된 재고가 없습니다.
-    </div>
-    <div class="pagination_container">
-      <button :disabled="currentPage === 0" @click="goToPage(currentPage - 1)">
-        ◀ 이전
-      </button>
-
-      <span v-for="page in totalPages" :key="page" @click="goToPage(page - 1)"
-        :class="{ 'page-number': true, active: currentPage === page - 1 }">
-        {{ page }}
-      </span>
-
-      <button :disabled="currentPage === totalPages - 1" @click="goToPage(currentPage + 1)">
-        다음 ▶
-      </button>
-    </div>
+            <button
+              :disabled="currentPage === totalPages - 1"
+              @click="goToPage(currentPage + 1)"
+            >
+              다음 ▶
+            </button>
+          </div>
+        </div>
+      </template>
+    </transition>
 
     <!-- 모달 컴포넌트들 -->
-    <InventoryRegisterModal v-if="modalType === 'register'" :item="selectedItem" :isOpen="isModalOpen"
-      @close="closeModal" @refresh="fecthStoreInventoryList(0)" />
+    <InventoryRegisterModal
+      v-if="modalType === 'register'"
+      :item="selectedItem"
+      :isOpen="isModalOpen"
+      @close="closeModal"
+      @refresh="fecthStoreInventoryList(0)"
+    />
 
-    <InventoryModifyModal v-if="modalType === 'modify'" :isOpen="isModalOpen" :item="selectedItem" @close="closeModal"
-      @refresh="fecthStoreInventoryList(0)" />
+    <InventoryModifyModal
+      v-if="modalType === 'modify'"
+      :isOpen="isModalOpen"
+      :item="selectedItem"
+      @close="closeModal"
+      @refresh="fecthStoreInventoryList(0)"
+    />
 
-    <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
+    <DeleteConfirmModal
+      :isOpen="isDeleteConfirmOpen"
+      @confirm="deleteSelectedItems"
+      @cancel="closeDeleteConfirm"
+    />
     <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
   </div>
 </template>
@@ -223,6 +324,69 @@ onMounted(() => {
 .bold_text {
   font-weight: bolder;
   color: #413d3d;
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.empty-state {
+  text-align: center;
+  margin-top: 80px;
+  color: #888;
+}
+
+.empty-icon {
+  width: 100px;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* 기본 skeleton cell 애니메이션 */
+.skeleton-cell {
+  background: #e0e0e0;
+  border-radius: 6px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* 애니메이션 효과 */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 /* 제목 */
@@ -409,7 +573,7 @@ onMounted(() => {
 }
 
 .page-number.active {
-  background-color: #ffcc00;
+  background-color: #98a8b8;
   font-weight: bold;
 }
 </style>
