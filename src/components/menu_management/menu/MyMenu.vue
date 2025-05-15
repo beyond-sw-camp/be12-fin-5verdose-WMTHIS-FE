@@ -89,6 +89,7 @@ const deleteSelectedItems = async () => {
   menu_items.value = menu_items.value.filter((item) => !item.selected);
 };
 const fetchMenus = async (page = 0) => {
+
   isLoading.value = true;
 
   const MIN_LOADING_TIME = 100; // 최소 0.5npm 초
@@ -113,6 +114,32 @@ const fetchMenus = async (page = 0) => {
     }
     isLoading.value = false;
   }, MIN_LOADING_TIME);
+
+    isLoading.value = true;
+
+    const MIN_LOADING_TIME = 100; // 최소 0.5초
+
+    const response = await api.getMenuList(page, pageSize, searchKeyword.value);
+    console.log("메뉴 목록 응답:", response);
+
+    setTimeout(() => {
+        if (!response) {
+            menu_items.value = [];
+        } else {
+            if (response.code === 200) {
+                menu_items.value = response.data.content.map(item => ({
+                    ...item,
+                    selected: false
+                }));
+                currentPage.value = response.data.number;
+                totalPages.value = response.data.totalPages;
+            } else {
+                menu_items.value = [];
+            }
+        }
+        isLoading.value = false;
+    }, MIN_LOADING_TIME);
+
 };
 
 const goToPage = (page) => {

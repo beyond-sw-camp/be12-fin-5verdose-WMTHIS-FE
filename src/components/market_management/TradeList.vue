@@ -92,20 +92,27 @@ const handleButtonClick = async (status, index) => {
 const confirmModal = async () => {
   const index = currentItemIndex.value;
   const item = trade_items.value[index];
-  if (statusMap[trade_items.value[index].status] === '배송확정') {
-    console.log(item.inventoryPurchaseId);
+
+  if (statusMap[item.status] === '배송확정') {
     const response = await marketApi.confirmDelivery(item.inventoryPurchaseId);
     console.log(response);
     trade_items.value[index].status = '거래완료';
-  } else if (statusMap[trade_items.value[index].status] === '결제하기') {
+    alert("배송이 확정되었습니다.");
+    location.reload(); // 새로고침
+  } else if (statusMap[item.status] === '결제하기') {
     requestPay(item, () => {
       // 결제 성공 시 상태 변경
       item.status = '배송확정';
       showModal.value = false;
+      alert("결제가 완료되었습니다.");
+      location.reload(); // 결제 완료 후 새로고침
     });
+    return;
   }
+
   showModal.value = false;
 };
+// 모달 취소
 
 const cancelModal = () => {
   showModal.value = false;

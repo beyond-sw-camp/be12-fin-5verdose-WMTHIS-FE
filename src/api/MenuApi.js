@@ -1,4 +1,5 @@
 import axios from "axios";
+import routes from "@/router";
 
 const instance = axios.create({
   baseURL: "/api", // 백엔드 API 주소로 변경
@@ -7,6 +8,23 @@ const instance = axios.create({
   },
   withCredentials: true, // 필요 시 (ex: 쿠키 인증)
 });
+
+let redirecting = false;
+instance.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    const status = err.response?.status;
+    const errorCode = err.response?.headers["error-code"];
+    console.log("errorCode", errorCode);
+    if (errorCode === "NO_STORE_ID") {
+      routes.push({ name: "storeRegister" });
+    } else if (status === 401 || status === 403) {
+      routes.push({ name: "login" });
+    }
+    return Promise.reject(err);
+  }
+);
+
 export const api = {
   registerCategory(data) {
     console.log("registerCategory data", data);
@@ -128,6 +146,26 @@ export const api = {
       .catch((error) => {
         console.error("Error in deleteOptions:", error);
         return false;
+      });
+  },
+
+  updateCategory(requestData) {
+    return instance
+      .put("/category/update", requestData)
+      .then((res) => {
+        if (res.data.code !== 200) {
+          return {
+            success: false,
+            message: res.data.message || "카테고리 수정 실패",
+          };
+        }
+        return { success: true, data: res.data.data };
+      })
+      .catch((error) => {
+        console.error("Error in updateOption:", error);
+        const message =
+          error.response?.data?.message || "서버 오류가 발생했습니다.";
+        return { success: false, message };
       });
   },
 

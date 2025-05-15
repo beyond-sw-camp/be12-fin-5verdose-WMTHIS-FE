@@ -96,6 +96,7 @@ const deleteSelectedItems = async () => {
 };
 
 const fetchCategoryList = async (page = 0) => {
+
   isLoading.value = true;
   console.log(searchKeyword.value);
 
@@ -116,6 +117,28 @@ const fetchCategoryList = async (page = 0) => {
 
     isLoading.value = false;
   }, MIN_LOADING_TIME);
+
+    isLoading.value = true;
+    console.log(searchKeyword.value);
+
+    const MIN_LOADING_TIME = 100; // 최소 0.5초
+    const res = await api.getCategoryList(page, pageSize, searchKeyword.value);
+
+    setTimeout(() => {
+        if (res) {
+            category_items.value = res.content.map(item => ({
+                ...item,
+                selected: false,
+            }));
+            currentPage.value = res.number;
+            totalPages.value = res.totalPages;
+        } else {
+            console.error("카테고리 목록 가져오기 실패:", res.message);
+        }
+
+        isLoading.value = false;
+    }, MIN_LOADING_TIME);
+
 };
 
 const goToPage = (page) => {

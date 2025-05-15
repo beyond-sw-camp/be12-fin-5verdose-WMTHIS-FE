@@ -1,4 +1,5 @@
 import axios from "axios";
+import routes from "@/router";
 
 const instance = axios.create({
   baseURL: "/api", // 백엔드 API 주소로 변경
@@ -7,6 +8,23 @@ const instance = axios.create({
   },
   withCredentials: true, // 필요 시 (ex: 쿠키 인증)
 });
+
+let redirecting = false;
+instance.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    const status = err.response?.status;
+    const errorCode = err.response?.headers["error-code"];
+    console.log("errorCode", errorCode);
+    if (errorCode === "NO_STORE_ID") {
+      routes.push({ name: "storeRegister" });
+    } else if (status === 401 || status === 403) {
+      routes.push({ name: "login" });
+    }
+    return Promise.reject(err);
+  }
+);
+
 export const marketApi = {
   uploadImages(formData) {
     return instance
@@ -171,6 +189,32 @@ export const marketApi = {
     console.log("getNearbyStore");
     return instance
       .get("/store/getNearbyStores")
+      .then((res) => {
+        console.log("res", res);
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in getMyStoreAddress:", error);
+        return false;
+      });
+  },
+  getNotification() {
+    console.log("getNotification");
+    return instance
+      .get("/notification/get")
+      .then((res) => {
+        console.log("res", res);
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error in getMyStoreAddress:", error);
+        return false;
+      });
+  },
+  postNotification() {
+    console.log("postNotification");
+    return instance
+      .post("/notification/post")
       .then((res) => {
         console.log("res", res);
         return res.data;

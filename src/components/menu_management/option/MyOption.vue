@@ -104,6 +104,7 @@ const goToPage = (page) => {
 };
 
 const fetchOptionList = async (page = 0) => {
+
   isLoading.value = true;
   const MIN_LOADING_TIME = 100; // 최소 로딩 시간 (ms)
 
@@ -121,6 +122,26 @@ const fetchOptionList = async (page = 0) => {
     }
     isLoading.value = false;
   }, MIN_LOADING_TIME);
+
+    isLoading.value = true;
+    const MIN_LOADING_TIME = 100; // 최소 로딩 시간 (ms)
+
+    const response = await api.getOptionList(page, pageSize, searchKeyword.value);
+    console.log('옵션 목록:', response);
+    setTimeout(() => {
+        if (response) {
+            option_items.value = response.content.map(item => ({
+                ...item,
+                selected: false
+            }));
+            currentPage.value = response.number;
+            totalPages.value = response.totalPages;
+        } else {
+            console.error('옵션 목록 불러오기 실패:', response);
+        }
+        isLoading.value = false;
+    }, MIN_LOADING_TIME);
+
 };
 
 onMounted(() => {
