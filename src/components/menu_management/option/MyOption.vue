@@ -98,6 +98,7 @@ const fetchOptionList = async (page = 0) => {
     const MIN_LOADING_TIME = 100; // 최소 로딩 시간 (ms)
 
     const response = await api.getOptionList(page, pageSize, searchKeyword.value);
+    console.log('옵션 목록:', response);
     setTimeout(() => {
         if (response) {
             option_items.value = response.content.map(item => ({
