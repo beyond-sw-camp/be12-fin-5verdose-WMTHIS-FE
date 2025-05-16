@@ -15,6 +15,25 @@
 
 ---
 
+## 📌 목차
+
+
+- [👥 팀원 구성](#-팀원-구성)
+- [🔧 기술 스택](#-기술-스택)
+- [🔮 프로젝트 소개](#-프로젝트-소개)
+    - [자동 재고 관리 시스템](#자동-재고-관리-시스템)
+    - [POS 기능으로 재고 자동화 관리](#pos-기능으로-재고-자동화-관리)
+    - [매장 관리 기능](#매장-관리-기능)
+    - [재료 공유 및 거래 시스템](#재료-공유-및-거래-시스템)
+- [⚠️ 서비스 이용 전 확인](#서비스-이용-전-반드시-확인해-주세요)
+- [🗂️ 프로젝트 기획](#-프로젝트-기획)
+- [📜 프로젝트 설계](#-프로젝트-설계)
+- [📚 기술 소개](#-기술-소개)
+
+
+
+---
+
 # <img src="https://i.namu.wiki/i/pUSVyUCiN_NvwLXMZIvgzvr9XCAGZSzDzPm1_ypZRXSKaMEQ2_L9lYT-m2d-d8LF7cOUVPc1PLK5U37qLyNgUeWJ8OL70GyWxx4bQfGDZTrQbasowkpjGTbHdCi5gY3V3KO47CvdI9oK1q4QPZDh5Q.svg" alt="logo" width="30"> 팀원 구성
 
 <div align="center">
@@ -54,11 +73,19 @@
 <img src="https://img.shields.io/badge/Pinia-%23FFF000?style=flat&logo=pinia&logoColor=white">&nbsp;
 <img src="https://img.shields.io/badge/axios-%236361db?style=flat&logo=axios&logoColor=white">&nbsp;
 
+### DevOps
+
+
+<img src="https://img.shields.io/badge/Ansible-%23000000?logo=ansible&logoColor=white">&nbsp;
+<img src="https://img.shields.io/badge/Helm-%230074C1?logo=helm&logoColor=white">&nbsp;
+
 ### CI/CD
 
-<img src="https://img.shields.io/badge/Kubernetes-%231572B6?style=flat&logo=kubernetes&logoColor=white">&nbsp;
+<img src="https://img.shields.io/badge/Kubernetes-%23326CE5?logo=kubernetes&logoColor=white">&nbsp;
 <img src="https://img.shields.io/badge/Docker-002260?style=flat&logo=docker&logoColor=white">&nbsp;
 <img src="https://img.shields.io/badge/Jenkins-CF4045?style=flat&logo=jenkins&logoColor=white">&nbsp;
+<img src="https://img.shields.io/badge/GitHub%20Webhook-%23181717?logo=github&logoColor=white">&nbsp;
+
 
 ### Monotoring
 
@@ -69,7 +96,6 @@
 
 <img src="https://img.shields.io/badge/JMeter-D22128?style=flat&logo=apachejmeter&logoColor=white">&nbsp;
 <img src="https://img.shields.io/badge/Locust-%23009639?style=flat&logo=locust&logoColor=white">&nbsp;
-<img src="https://img.shields.io/badge/Git-F05032?style=flat&logo=git&logoColor=white">&nbsp;
 
 ### Cooperation
 
@@ -81,58 +107,10 @@
 
 ---
 
-# 🌟 프로젝트 배경
-
-<!--
-<div align="center">
-  <img src="./docs/img/프로젝트배경_1.png" alt="프로젝트 배경1" width="45%">
-  <img src="./docs/img/프로젝트배경_2.jpg" alt="프로젝트 배경2" width="40%">
-</div>
-
-<br>
--->
-
-### 요식업 매장의 재고 관리 문제와 해결책
-
-요식업 매장은 메뉴 하나를 판매할 때마다 다양한 **재료가 소비**됩니다.  
-예를 들어, **떡볶이 한 그릇**에는 다음과 같은 재료가 사용됩니다.
-
-- 떡
-- 고추장
-- 어묵
-- 야채
-
-각 재료마다 **보관 기간과 소모량**이 다르기 때문에,  
-**수작업이나 엑셀 기반 관리**로는 실시간 변동을 효과적으로 파악하기 어렵습니다.
-
----
-
-#### 기존 방식의 한계점
-
-- **재고 관리의 어려움**
-- **신선식품 관리의 불편함**
-- **불필요한 폐기물과 비용 손실**
-
-이러한 문제로 인해 요식업계에서는  
-**자동화 솔루션 도입의 필요성**이 점점 커지고 있습니다.
-
----
-
-#### 해결책: 새로운 재고 관리 솔루션
-
-기존 방식에서는  
-불필요한 **발주**로 인해 재료가 과잉 남거나  
-필요한 **재료를 신속히 구하지 못해** 영업에 차질이 발생했습니다.
-
-이를 해결하기 위해,
-
-**기존 POS 시스템과 연동하면서,** <br>
-**주변 매장과 재료를 공유 및 거래**할 수 있는  
-새로운 형태의 **재고 관리 솔루션**을 개발하게 되었습니다.
 
 # 🔮 프로젝트 소개
 
-### **WMTHIS: 효율적인 재고 및 영업 관리 솔루션**
+## **WMTHIS: 효율적인 재고 및 영업 관리 솔루션**
 
 **WMTHIS** 솔루션은  
 📊 **매출 데이터 기반의 영업 관리**와  
@@ -149,19 +127,27 @@
 - 메뉴 판매 시 **레시피에 명시된 정량**에 따라 **재료 소비량을 자동 측정**
 - **남은 재료를 실시간 업데이트**하여 **체계적으로 관리 가능**
 
+<br>
+
 > 📌 **수작업 없이도 재료 관리가 더욱 정확하고 효율적!**
+
+<br>
 
 - 주문 및 **결제 완료 후**, 레시피에 맞는 **정량만큼 재고가 자동으로 차감**됩니다.
 - 자동 차감을 위해, **재고 기준 등록 → 재고 입고 등록** 순서로 세팅이 필요합니다.
+
+<br>
 
 > ✅ **재고 관리 탭에서 기준을 등록**하면,
 >
 > - 카테고리 및 옵션 항목에서 **레시피에 따른 정량 사용**이 가능하며
 > - **재고 등록 탭**에서 입고된 수량 기준으로 정확한 재고 관리를 수행할 수 있습니다.
 
+<br>
+
 ---
 
-### **🧾 POS 기능으로 재고 자동화 관리**
+### **POS 기능으로 재고 자동화 관리**
 
 - 메뉴 등록 시 POS기에서 바로 **주문 가능**
 
@@ -177,7 +163,7 @@
 
 ---
 
-### **📦 매장 관리 기능 (메뉴관리, 재고 관리)**
+### **매장 관리 기능**
 
 - 가게에서 사용하는 재고 기준만 등록해두면 **입고 기능이 간편해서 즉시 사용 가능**
 
@@ -187,7 +173,7 @@
 
 ---
 
-### **🛒 재료 공유 및 거래 시스템**
+### **재료 공유 및 거래 시스템**
 
 - 3km 이내의 가게들만 거래 게시물에 표시되어 근처 가게와의 빠르고 **효율적인 거래 가능**
 
@@ -204,14 +190,13 @@
 
 ---
 
-## ⚠️**서비스 이용 전 반드시 확인해 주세요**⚠️
+## ⚠️**서비스 이용 전 반드시 확인해 주세요**
 
 ### 📱 **휴대폰 인증 관련 설명**
 
 휴대폰 인증의 경우, 여러 번 시도하면 요금이 발생할 수 있습니다.  
-임시로 콘솔 창에 **휴대폰 인증 번호**가 나타나도록 설정해두었습니다.
+임시로 인증번호 확인창에 **휴대폰 인증 번호**가 나타나도록 설정해두었습니다.
 
-<img src="./src/assets/image/phoneverify.png" width="500" height="300"/>
 
 ### 📦 **재고 관리 관련 설명**
 
@@ -235,6 +220,7 @@
 
 ---
 
+
 # 🗂️ 프로젝트 기획
 
 <br>
@@ -251,7 +237,7 @@
 
 [**🎨 화면설계서 바로가기**](https://www.figma.com/design/UhQdny2lyLYVBKfeSDM0ER/Untitled?node-id=0-1&p=f&t=BJpdqml8x7np3fWT-0)
 
-[**📃 API 명세서 바로가기**](http://www.cheeeze.kro.kr/swagger-ui/index.html)
+[**시연 영상**](https://www.figma.com/design/UhQdny2lyLYVBKfeSDM0ER/Untitled?node-id=0-1&p=f&t=BJpdqml8x7np3fWT-0)
 
 <br>
 
