@@ -320,7 +320,7 @@ const hasUnreadNotification = computed(() => {
 onMounted(() => {
   window.addEventListener("scroll", handleScroll);
   getNotification();
-  const socket = new WebSocket("ws://localhost:8080/ws");
+  const socket = new WebSocket("wss://www.wmthis.n-e.kr/ws");
 
   socket.onopen = () => {
     console.log("✅ WebSocket 연결됨");
