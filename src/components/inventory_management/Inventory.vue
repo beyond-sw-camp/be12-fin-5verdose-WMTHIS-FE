@@ -26,8 +26,8 @@ const fecthStoreInventoryList = async (page = 0) => {
 
   // 구조 맞게 수정
   if (res && res.code === 200 && res.data) {
-    currentPage.value = res.data.page.number;
-    totalPages.value = res.data.page.totalPages;
+    currentPage.value = res.data.number;
+    totalPages.value = res.data.totalPages;
     inventory_items.value = res.data.content.map((item) => ({
       ...item,
       selected: false,
