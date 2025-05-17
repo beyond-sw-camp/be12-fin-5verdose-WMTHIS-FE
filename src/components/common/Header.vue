@@ -155,15 +155,15 @@
     <v-menu v-model="showNotificationMenu" :close-on-content-click="false" offset-y>
       <template v-slot:activator="{ props }">
         <v-btn icon class="text-white custom-icon-btn" v-bind="props" @click="toggleMenuIfHasNotifications">
-          <v-icon>
-            {{ notifications.length > 0 ? "mdi-bell-alert" : "mdi-bell" }}
+          <v-icon :key="hasUnreadNotification">
+            {{ hasUnreadNotification ? "mdi-bell-alert" : "mdi-bell" }}
           </v-icon>
         </v-btn>
       </template>
 
       <v-list class="notification-list">
-        <v-list-item v-for="(msg, index) in notifications" :key="index" class="notification-item" @click="goToTransactions(index)">
-          <v-list-item-title>{{ msg }}</v-list-item-title>
+        <v-list-item v-if="notifications.length > 0 || !mariadbNotification.value" class="notification-item" @click="goToTransactions()">
+          <v-list-item-title>거래 요청이 왔습니다</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>
@@ -184,9 +184,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, reactive } from "vue";
+import { ref, onMounted, onBeforeUnmount, reactive, computed } from "vue";
 import { useRouter } from "vue-router";
 import { api } from "@/api/index.js";
+import { marketApi } from "../../api/MarketApi";
 
 const router = useRouter();
 
@@ -259,20 +260,67 @@ const setActiveDropdown = (menu, item) => {
 const showNotificationMenu = ref(false);
 const notifications = ref([]); // WebSocket으로 받은 메시지들
 let socket;
+const mariadbNotification = ref(true); // 안읽은 알림이 있으면 false
 
 function toggleMenuIfHasNotifications() {
-  showNotificationMenu.value = notifications.value.length > 0;
+  showNotificationMenu.value = hasUnreadNotification.value;
 }
 
-function goToTransactions(index) {
-  notifications.value.splice(index, 1); // 클릭한 알림 제거
-  showNotificationMenu.value = false; // 알림창 닫기
-  router.push("/transactions"); // 페이지 이동
+function goToTransactions() {
+  // 1. 알림 목록 초기화
+  notifications.value = [];
+
+  // 2. 알림창 닫기
+  showNotificationMenu.value = false;
+
+  // 3. mariadbNotification 상태 초기화
+  mariadbNotification.value = false;
+
+  // 4. 알림 상태 변경 요청 (DB에 알림 읽음 처리)
+  postNotification();
+
+  // 5. 거래 페이지로 이동
+  router.push("/transactions");
 }
+
+async function getNotification() {
+  try {
+    const data = await marketApi.getNotification();
+    console.log(data);
+    if (data !== 404) {
+      mariadbNotification.value = data.data;
+    } else {
+      console.error("판매 데이터를 불러오지 못했습니다.");
+    }
+  } catch (error) {
+    console.error("에러 발생:", error);
+  }
+}
+
+async function postNotification() {
+  try {
+    const data = await marketApi.postNotification();
+    console.log(data);
+    if (data !== 404) {
+      mariadbNotification.value = data.data;
+    } else {
+      console.error("판매 데이터를 불러오지 못했습니다.");
+    }
+  } catch (error) {
+    console.error("에러 발생:", error);
+  }
+}
+
+const hasUnreadNotification = computed(() => {
+  console.log("🔔 notifications.length =", notifications.value.length);
+  console.log("🔔 mariadbNotification =", mariadbNotification.value);
+  return notifications.value.length > 0 || !mariadbNotification.value;
+});
 
 onMounted(() => {
   window.addEventListener("scroll", handleScroll);
-  const socket = new WebSocket("ws://localhost:8080/ws");
+  getNotification();
+  const socket = new WebSocket("wss://www.wmthis.n-e.kr/ws");
 
   socket.onopen = () => {
     console.log("✅ WebSocket 연결됨");
@@ -395,7 +443,8 @@ onBeforeUnmount(() => {
 .notification-list {
   max-width: 300px;
   padding: 0;
-  background-color: #ffffff;
+  background-color: #708090 !important;
+  border-radius: 8px;
 }
 
 .notification-item {

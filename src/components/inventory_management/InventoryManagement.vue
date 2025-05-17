@@ -7,7 +7,9 @@ import DeleteAlertModal from "@/components/alerts/DeleteAlertModal.vue";
 import InventoryParticularModal from "@/components/inventory_management/InventoryParticularModal.vue";
 import InventorySaleModal from "@/components/inventory_management/InventorySaleModal.vue";
 import { api } from "@/api/MenuApi.js"; // API 임포트 추가
+import { template } from "lodash";
 
+const isLoading = ref(true);
 const tab = ref("exp");
 const isStoreOpen = ref(false);
 const selectedFilter = ref("전체");
@@ -18,7 +20,6 @@ const isDeleteConfirmOpen = ref(false);
 const isDeleteAlertOpen = ref(false);
 const modalType = ref("");
 const selectedItem = ref(null);
-const isLoading = ref(false); // 로딩 상태 추가
 
 // 재고 아이템 데이터
 const inventory_items = ref([]);
@@ -26,25 +27,32 @@ const inventory_items = ref([]);
 // API에서 데이터 가져오기
 const InventoryItems = async () => {
   isLoading.value = true;
+  const MIN_LOADING_TIME = 100;
   const response = await api.getInvenList();
   console.log("InventoryItems 응답:", response);
 
-  if (response.code && response.code === 200) {
-    inventory_items.value = response.data.map((item) => ({
-      storeInventoryId: item.id,
-      name: item.name,
-      minQuantity: item.minQuantity,
-      quantity: item.quantity,
-      unit: item.unit,
-      expiryDate: item.expiryDate,
-      orderNeed: item.quantity <= item.minQuantity ? "필요" : "충분",
-      status: getStatusFromExpiryDate(item.expiryDate),
-    }));
-    console.log("재고 목록:", inventory_items.value);
-
+  setTimeout(() => {
+    if (!response) {
+      inventory_items.value = [];
+    } else {
+      if (response.code && response.code === 200) {
+        inventory_items.value = response.data.map((item) => ({
+          storeInventoryId: item.id,
+          name: item.name,
+          minQuantity: item.minQuantity,
+          quantity: item.quantity,
+          unit: item.unit,
+          expiryDate: item.expiryDate,
+          orderNeed: item.quantity <= item.minQuantity ? "필요" : "충분",
+          status: getStatusFromExpiryDate(item.expiryDate),
+        }));
+        console.log("재고 목록:", inventory_items.value);
+      } else {
+        inventory_items.value = [];
+      }
+    }
     isLoading.value = false;
-  } else {
-  }
+  }, MIN_LOADING_TIME);
 };
 
 // 유통기한 기반으로 상태 결정
@@ -373,54 +381,122 @@ const orderNeededItems = computed(() => {
             <button @click="openSaleModal" class="particular_btn">판매</button>
           </div>
         </div>
+        <transition name="fade" mode="out-in">
+          <template v-if="isLoading">
+            <table class="inventory_table" key="loading">
+              <thead>
+                <tr>
+                  <th>재고명</th>
+                  <th>총수량</th>
+                  <th>유통기한</th>
+                  <th>발주필요</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="n in 5" :key="n">
+                  <td><div class="skeleton-cell checkbox"></div></td>
+                  <td><div class="skeleton-cell name"></div></td>
+                  <td><div class="skeleton-cell category"></div></td>
+                  <td><div class="skeleton-cell stock"></div></td>
+                  <td><div class="skeleton-cell btn"></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
 
-        <!-- 로딩 인디케이터 -->
-        <div v-if="isLoading" class="loading-container">
-          <div class="loading-spinner"></div>
-          <p>데이터를 불러오는 중...</p>
-        </div>
+          <template v-else-if="inventory_items.length === 0">
+            <!-- 빈 상태 화면 -->
+            <div key="empty" class="empty-state">
+              <img
+                src="@/assets/image/empty.png"
+                alt="빈 재고입고"
+                class="empty-icon"
+              />
+              <p class="empty-text">
+                등록된 입고가 없습니다.<br />오른쪽 상단의 [입고] 버튼을 눌러
+                추가해보세요.
+              </p>
+            </div>
+          </template>
 
-        <table v-else class="inventory_table">
-          <thead>
-            <tr>
-              <th>재고명</th>
-              <th>총수량</th>
-              <th>유통기한</th>
-              <th>발주필요</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(item, index) in filteredItems"
-              :key="item.id"
-              :class="{ 'selected-row': item.selected }"
-            >
-              <td class="bold-text">{{ item.name }}</td>
-              <td>{{ item.quantity }} {{ item.unit }}</td>
-              <td>
-                <span :class="'status ' + item.status">{{ item.status }}</span>
-              </td>
-              <td>
-                <span
-                  v-if="item.orderNeed !== '-'"
-                  :class="'status ' + item.orderNeed"
-                  >{{ item.orderNeed }}</span
-                >
-                <span v-else>-</span>
-              </td>
+          <template v-else>
+            <div key="loaded">
+              <table class="inventory_table">
+                <thead>
+                  <tr>
+                    <th>재고명</th>
+                    <th>총수량</th>
+                    <th>유통기한</th>
+                    <th>발주필요</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(item, index) in filteredItems"
+                    :key="item.id"
+                    :class="{ 'selected-row': item.selected }"
+                  >
+                    <td class="bold-text">{{ item.name }}</td>
+                    <td>{{ item.quantity }} {{ item.unit }}</td>
+                    <td>
+                      <span :class="'status ' + item.status">{{
+                        item.status
+                      }}</span>
+                    </td>
+                    <td>
+                      <span
+                        v-if="item.orderNeed !== '-'"
+                        :class="'status ' + item.orderNeed"
+                      >
+                        {{ item.orderNeed }}
+                      </span>
+                      <span v-else>-</span>
+                    </td>
+                    <td>
+                      <button
+                        @click="openParticularModal(item)"
+                        class="particular_btn"
+                      >
+                        상세
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
 
-              <td>
+              <div class="pagination_container">
                 <button
-                  @click="openParticularModal(item)"
-                  class="particular_btn"
+                  :disabled="currentPage === 0"
+                  @click="goToPage(currentPage - 1)"
                 >
-                  상세
+                  ◀ 이전
                 </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+
+                <span
+                  v-for="page in totalPages"
+                  :key="page"
+                  @click="goToPage(page - 1)"
+                  :class="{
+                    'page-number': true,
+                    active: currentPage === page - 1,
+                  }"
+                >
+                  {{ page }}
+                </span>
+
+                <button
+                  :disabled="currentPage === totalPages - 1"
+                  @click="goToPage(currentPage + 1)"
+                >
+                  다음 ▶
+                </button>
+              </div>
+            </div>
+          </template>
+        </transition>
+
         <InventoryParticularModal
           v-if="modalType === 'particular' && isModalOpen && selectedItem"
           :item="selectedItem"
@@ -462,6 +538,69 @@ const orderNeededItems = computed(() => {
 </template>
 
 <style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.empty-state {
+  text-align: center;
+  margin-top: 80px;
+  color: #888;
+}
+
+.empty-icon {
+  width: 100px;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* 기본 skeleton cell 애니메이션 */
+.skeleton-cell {
+  background: #e0e0e0;
+  border-radius: 6px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* 애니메이션 효과 */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
 .label {
   font-size: 22px;
   color: #59595e;
@@ -757,5 +896,23 @@ const orderNeededItems = computed(() => {
   background-color: transparent !important;
   box-shadow: none !important;
   border: none !important;
+}
+.pagination_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+  gap: 0.5rem;
+}
+
+.page-number {
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.page-number.active {
+  background-color: #98a8b8;
+  font-weight: bold;
 }
 </style>
