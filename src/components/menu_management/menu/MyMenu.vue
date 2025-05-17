@@ -92,7 +92,7 @@ const fetchMenus = async (page = 0) => {
 
   isLoading.value = true;
 
-  const MIN_LOADING_TIME = 100; // 최소 0.5npm 초
+  const MIN_LOADING_TIME = 100; // 최소 0.5초
 
   const response = await api.getMenuList(page, pageSize, searchKeyword.value);
   console.log("메뉴 목록 응답:", response);
@@ -102,43 +102,18 @@ const fetchMenus = async (page = 0) => {
       menu_items.value = [];
     } else {
       if (response.code === 200) {
-        menu_items.value = response.data.content.map((item) => ({
+        menu_items.value = response.data.content.map(item => ({
           ...item,
-          selected: false,
+          selected: false
         }));
-        currentPage.value = response.data.page.number;
-        totalPages.value = response.data.page.totalPages;
+        currentPage.value = response.data.number;
+        totalPages.value = response.data.totalPages;
       } else {
         menu_items.value = [];
       }
     }
     isLoading.value = false;
   }, MIN_LOADING_TIME);
-
-    isLoading.value = true;
-
-    const MIN_LOADING_TIME = 100; // 최소 0.5초
-
-    const response = await api.getMenuList(page, pageSize, searchKeyword.value);
-    console.log("메뉴 목록 응답:", response);
-
-    setTimeout(() => {
-        if (!response) {
-            menu_items.value = [];
-        } else {
-            if (response.code === 200) {
-                menu_items.value = response.data.content.map(item => ({
-                    ...item,
-                    selected: false
-                }));
-                currentPage.value = response.data.number;
-                totalPages.value = response.data.totalPages;
-            } else {
-                menu_items.value = [];
-            }
-        }
-        isLoading.value = false;
-    }, MIN_LOADING_TIME);
 
 };
 
@@ -163,13 +138,8 @@ onMounted(() => {
     <!-- 검색 바 및 등록/삭제 버튼 -->
     <div class="search_container">
       <div class="search_box">
-        <input
-          type="text"
-          v-model="searchKeyword"
-          class="search_input"
-          placeholder="메뉴명 검색"
-          @keyup.enter="fetchMenus(0)"
-        />
+        <input type="text" v-model="searchKeyword" class="search_input" placeholder="메뉴명 검색"
+          @keyup.enter="fetchMenus(0)" />
         <button class="search_btn" @click="fetchMenus(0)">
           <img src="@/assets/image/search_button.png" class="search_icon" />
         </button>
@@ -214,11 +184,7 @@ onMounted(() => {
       </table>
 
       <!-- 등록된 메뉴가 없을 때 -->
-      <div
-        v-else-if="!isLoading && menu_items.length === 0"
-        key="empty"
-        class="empty-state"
-      >
+      <div v-else-if="!isLoading && menu_items.length === 0" key="empty" class="empty-state">
         <img src="@/assets/image/empty.png" alt="빈 메뉴" class="empty-icon" />
         <p class="empty-text">
           등록된 메뉴가 없습니다.<br />오른쪽 상단의 [등록] 버튼을 눌러
@@ -232,12 +198,7 @@ onMounted(() => {
           <thead>
             <tr>
               <th>
-                <input
-                  type="checkbox"
-                  v-model="select_all"
-                  @change="toggle_select_all"
-                  class="circle_checkbox"
-                />
+                <input type="checkbox" v-model="select_all" @change="toggle_select_all" class="circle_checkbox" />
               </th>
               <th>상품</th>
               <th>카테고리</th>
@@ -246,17 +207,9 @@ onMounted(() => {
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="(item, index) in menu_items"
-              :key="index"
-              :class="{ 'selected-row': item.selected }"
-            >
+            <tr v-for="(item, index) in menu_items" :key="index" :class="{ 'selected-row': item.selected }">
               <td>
-                <input
-                  type="checkbox"
-                  v-model="item.selected"
-                  class="circle_checkbox"
-                />
+                <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
               </td>
               <td class="bold-text">{{ item.name }}</td>
               <td>{{ item.category }}</td>
@@ -271,55 +224,29 @@ onMounted(() => {
         </table>
 
         <div class="pagination_container">
-          <button
-            :disabled="
-              currentPage === 0 || totalPages <= 1 || menu_items.length === 0
-            "
-            @click="goToPage(currentPage - 1)"
-          >
+          <button :disabled="currentPage === 0 || totalPages <= 1 || menu_items.length === 0
+            " @click="goToPage(currentPage - 1)">
             ◀ 이전
           </button>
 
-          <span
-            v-for="page in totalPages"
-            :key="page"
-            @click="goToPage(page - 1)"
-            v-if="totalPages >= 1"
-            :class="{ 'page-number': true, active: currentPage === page - 1 }"
-          >
+          <span v-for="page in totalPages" :key="page" @click="goToPage(page - 1)" v-if="totalPages >= 1"
+            :class="{ 'page-number': true, active: currentPage === page - 1 }">
             {{ page }}
           </span>
 
-          <button
-            :disabled="
-              currentPage === totalPages - 1 ||
-              totalPages <= 1 ||
-              menu_items.length === 0
-            "
-            @click="goToPage(currentPage + 1)"
-          >
+          <button :disabled="currentPage === totalPages - 1 ||
+            totalPages <= 1 ||
+            menu_items.length === 0
+            " @click="goToPage(currentPage + 1)">
             다음 ▶
           </button>
         </div>
       </div>
     </transition>
     <!-- 모달 컴포넌트들 -->
-    <MenuRegisterModal
-      :isOpen="isModalOpen"
-      @close="closeModal"
-      @refresh="fetchMenus"
-    />
-    <MenuDetailModal
-      :isOpen="isDetailModalOpen"
-      :menu="selectedMenu"
-      @close="closeDetailModal"
-      @refresh="fetchMenus"
-    />
-    <DeleteConfirmModal
-      :isOpen="isDeleteConfirmOpen"
-      @confirm="deleteSelectedItems"
-      @cancel="closeDeleteConfirm"
-    />
+    <MenuRegisterModal :isOpen="isModalOpen" @close="closeModal" @refresh="fetchMenus" />
+    <MenuDetailModal :isOpen="isDetailModalOpen" :menu="selectedMenu" @close="closeDetailModal" @refresh="fetchMenus" />
+    <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
     <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
   </div>
 </template>
