@@ -455,7 +455,7 @@ export const api = {
 
   checkStockAvailability(data) {
     return instance
-      .post("/inventory/validateOrder", data)
+      .post("/order/validateOrder", data)
       .then((res) => {
         return res.data; // 그냥 res.data 통째로 반환 (code, message, data 모두)
       })
