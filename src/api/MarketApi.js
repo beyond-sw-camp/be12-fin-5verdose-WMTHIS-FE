@@ -224,4 +224,19 @@ export const marketApi = {
         return false;
       });
   },
+  async getPresignedUrls(data) {
+    try {
+      const res = await instance.post(`/user/presign`, data);
+      console.log("getPresignedUrls res", res);
+
+      if (res.data.code === 200) {
+        return res.data.data; // 데이터를 반환
+      } else {
+        return 404; // 오류 처리
+      }
+    } catch (error) {
+      console.error("Error in getPresignedUrls:", error);
+      return 404; // 오류 처리
+    }
+  },
 };

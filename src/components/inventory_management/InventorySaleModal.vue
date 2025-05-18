@@ -25,7 +25,7 @@ watch(files, async (newFiles) => {
     filename: file.name,
     contentType: file.type,
   }));
-  const presigns = await api.getPresignedUrls(reqs);
+  const presigns = await marketApi.getPresignedUrls(reqs);
   // presigns: [{ key, url }, …]
 
   // 2) S3로 파일 PUT
