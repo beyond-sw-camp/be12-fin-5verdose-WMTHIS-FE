@@ -188,7 +188,7 @@ export const marketApi = {
   getNearbyStore() {
     console.log("getNearbyStore");
     return instance
-      .get("/store/getNearbyStores")
+      .get("/market/getNearbyStores")
       .then((res) => {
         console.log("res", res);
         return res.data;

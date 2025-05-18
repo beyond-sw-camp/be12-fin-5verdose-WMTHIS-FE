@@ -98,28 +98,7 @@ const fetchCategoryList = async (page = 0) => {
 
   setTimeout(() => {
     if (res) {
-      category_items.value = res.content.map((item) => ({
-        ...item,
-        selected: false,
-      }));
-      currentPage.value = res.page.number;
-      totalPages.value = res.page.totalPages;
-    } else {
-      console.error("카테고리 목록 가져오기 실패:", res.message);
-    }
-
-    isLoading.value = false;
-  }, MIN_LOADING_TIME);
-
-  isLoading.value = true;
-  console.log(searchKeyword.value);
-
-  //const MIN_LOADING_TIME = 100; // 최소 0.5초
-  //const res = await api.getCategoryList(page, pageSize, searchKeyword.value);
-
-  setTimeout(() => {
-    if (res) {
-      category_items.value = res.content.map((item) => ({
+      category_items.value = res.content.map(item => ({
         ...item,
         selected: false,
       }));
@@ -131,6 +110,7 @@ const fetchCategoryList = async (page = 0) => {
 
     isLoading.value = false;
   }, MIN_LOADING_TIME);
+
 };
 
 const goToPage = (page) => {
@@ -150,7 +130,8 @@ onMounted(() => {
     <h1 class="page_title">카테고리 관리</h1>
     <div class="search_container">
       <div class="search_box">
-        <input type="text" v-model="searchKeyword" class="search_input" placeholder="카테고리 검색" @keyup.enter="fetchCategoryList(0)" />
+        <input type="text" v-model="searchKeyword" class="search_input" placeholder="카테고리 검색"
+          @keyup.enter="fetchCategoryList(0)" />
         <button class="search_btn" @click="fetchCategoryList(0)">
           <img src="@/assets/image/search_button.png" class="search_icon" />
         </button>
@@ -222,17 +203,23 @@ onMounted(() => {
         </table>
 
         <div class="pagination_container">
-          <button :disabled="currentPage === 0" @click="goToPage(currentPage - 1)">◀ 이전</button>
-          <span v-for="page in totalPages" :key="page" @click="goToPage(page - 1)" :class="{ 'page-number': true, active: currentPage === page - 1 }">
+          <button :disabled="currentPage === 0" @click="goToPage(currentPage - 1)">
+            ◀ 이전
+          </button>
+          <span v-for="page in totalPages" :key="page" @click="goToPage(page - 1)"
+            :class="{ 'page-number': true, active: currentPage === page - 1 }">
             {{ page }}
           </span>
-          <button :disabled="currentPage === totalPages - 1" @click="goToPage(currentPage + 1)">다음 ▶</button>
+          <button :disabled="currentPage === totalPages - 1" @click="goToPage(currentPage + 1)">
+            다음 ▶
+          </button>
         </div>
       </div>
     </transition>
 
     <CategoryRegisterModal :isOpen="isRegisterModalOpen" @close="closeRegisterModal" @refresh="fetchCategoryList" />
-    <CategoryEditModal :isOpen="isEditModalOpen" :category="selectedCategory" @close="closeEditModal" @refresh="fetchCategoryList" />
+    <CategoryEditModal :isOpen="isEditModalOpen" :category="selectedCategory" @close="closeEditModal"
+      @refresh="fetchCategoryList" />
     <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
     <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
   </div>

@@ -38,8 +38,8 @@ const fecthStoreInventoryList = async (page = 0) => {
     } else {
       // 구조 맞게 수정
       if (res && res.code === 200 && res.data) {
-        currentPage.value = res.data.page.number;
-        totalPages.value = res.data.page.totalPages;
+        currentPage.value = res.data.number;
+        totalPages.value = res.data.totalPages;
         inventory_items.value = res.data.content.map((item) => ({
           ...item,
           selected: false,
@@ -149,13 +149,8 @@ onMounted(() => {
     <!-- 검색 바 및 등록/삭제 버튼 -->
     <div class="search_container">
       <div class="search_box">
-        <input
-          type="text"
-          class="search_input"
-          v-model="searchKeyword"
-          placeholder="재고명 검색"
-          @input="fecthStoreInventoryList(0)"
-        />
+        <input type="text" class="search_input" v-model="searchKeyword" placeholder="재고명 검색"
+          @input="fecthStoreInventoryList(0)" />
         <button class="search_btn" @Click="fecthStoreInventoryList(0)">
           <img src="@/assets/image/search_button.png" class="search_icon" />
         </button>
@@ -173,12 +168,7 @@ onMounted(() => {
           <thead>
             <tr>
               <th>
-                <input
-                  type="checkbox"
-                  v-model="select_all"
-                  @change="toggle_select_all"
-                  class="circle_checkbox"
-                />
+                <input type="checkbox" v-model="select_all" @change="toggle_select_all" class="circle_checkbox" />
               </th>
               <th>재고명</th>
               <th>단위</th>
@@ -189,11 +179,21 @@ onMounted(() => {
           </thead>
           <tbody>
             <tr v-for="n in 5" :key="n">
-              <td><div class="skeleton-cell checkbox"></div></td>
-              <td><div class="skeleton-cell name"></div></td>
-              <td><div class="skeleton-cell category"></div></td>
-              <td><div class="skeleton-cell stock"></div></td>
-              <td><div class="skeleton-cell btn"></div></td>
+              <td>
+                <div class="skeleton-cell checkbox"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell name"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell category"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell stock"></div>
+              </td>
+              <td>
+                <div class="skeleton-cell btn"></div>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -202,11 +202,7 @@ onMounted(() => {
       <template v-else-if="inventory_items.length === 0">
         <!-- 빈 상태 화면 -->
         <div key="empty" class="empty-state">
-          <img
-            src="@/assets/image/empty.png"
-            alt="빈 재고"
-            class="empty-icon"
-          />
+          <img src="@/assets/image/empty.png" alt="빈 재고" class="empty-icon" />
           <p class="empty-text">
             등록된 재고가 없습니다.<br />오른쪽 상단의 [등록] 버튼을 눌러
             추가해보세요.
@@ -221,12 +217,7 @@ onMounted(() => {
             <thead>
               <tr>
                 <th>
-                  <input
-                    type="checkbox"
-                    v-model="select_all"
-                    @change="toggle_select_all"
-                    class="circle_checkbox"
-                  />
+                  <input type="checkbox" v-model="select_all" @change="toggle_select_all" class="circle_checkbox" />
                 </th>
                 <th>재고명</th>
                 <th>단위</th>
@@ -236,17 +227,9 @@ onMounted(() => {
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="(item, index) in inventory_items"
-                :key="index"
-                :class="{ selected_row: item.selected }"
-              >
+              <tr v-for="(item, index) in inventory_items" :key="index" :class="{ selected_row: item.selected }">
                 <td>
-                  <input
-                    type="checkbox"
-                    v-model="item.selected"
-                    class="circle_checkbox"
-                  />
+                  <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
                 </td>
                 <td class="bold_text">{{ item.name }}</td>
                 <td>{{ item.unit === "unit" ? "개" : item.unit }}</td>
@@ -262,26 +245,16 @@ onMounted(() => {
           </table>
 
           <div class="pagination_container">
-            <button
-              :disabled="currentPage === 0"
-              @click="goToPage(currentPage - 1)"
-            >
+            <button :disabled="currentPage === 0" @click="goToPage(currentPage - 1)">
               ◀ 이전
             </button>
 
-            <span
-              v-for="page in totalPages"
-              :key="page"
-              @click="goToPage(page - 1)"
-              :class="{ 'page-number': true, active: currentPage === page - 1 }"
-            >
+            <span v-for="page in totalPages" :key="page" @click="goToPage(page - 1)"
+              :class="{ 'page-number': true, active: currentPage === page - 1 }">
               {{ page }}
             </span>
 
-            <button
-              :disabled="currentPage === totalPages - 1"
-              @click="goToPage(currentPage + 1)"
-            >
+            <button :disabled="currentPage === totalPages - 1" @click="goToPage(currentPage + 1)">
               다음 ▶
             </button>
           </div>
@@ -290,27 +263,13 @@ onMounted(() => {
     </transition>
 
     <!-- 모달 컴포넌트들 -->
-    <InventoryRegisterModal
-      v-if="modalType === 'register'"
-      :item="selectedItem"
-      :isOpen="isModalOpen"
-      @close="closeModal"
-      @refresh="fecthStoreInventoryList(0)"
-    />
+    <InventoryRegisterModal v-if="modalType === 'register'" :item="selectedItem" :isOpen="isModalOpen"
+      @close="closeModal" @refresh="fecthStoreInventoryList(0)" />
 
-    <InventoryModifyModal
-      v-if="modalType === 'modify'"
-      :isOpen="isModalOpen"
-      :item="selectedItem"
-      @close="closeModal"
-      @refresh="fecthStoreInventoryList(0)"
-    />
+    <InventoryModifyModal v-if="modalType === 'modify'" :isOpen="isModalOpen" :item="selectedItem" @close="closeModal"
+      @refresh="fecthStoreInventoryList(0)" />
 
-    <DeleteConfirmModal
-      :isOpen="isDeleteConfirmOpen"
-      @confirm="deleteSelectedItems"
-      @cancel="closeDeleteConfirm"
-    />
+    <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
     <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
   </div>
 </template>
@@ -325,6 +284,7 @@ onMounted(() => {
   font-weight: bolder;
   color: #413d3d;
 }
+
 .fade-enter-active,
 .fade-leave-active {
   transition: all 0.3s ease;
