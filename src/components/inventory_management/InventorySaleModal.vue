@@ -43,7 +43,7 @@ watch(files, async (newFiles) => {
   // 3) 업로드된 키(객체 경로)를 DB에 저장하거나
   //    그대로 이미지 URL로 사용
   imagePaths.value = uploadedKeys.map(k =>
-    `https://${BUCKET_NAME}.s3.${REGION}.amazonaws.com/${k}`
+    `https://wmthis-2025.s3.ap-northeast-2.amazonaws.com/${k}`
   );
 });
 
