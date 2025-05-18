@@ -43,6 +43,7 @@ export const useMenuStore = defineStore("menu", {
             unit: item.unit,
           }));
         }
+        console.log("재고 목록 store:", this.inventoryOptions);
       } catch (e) {
         console.error("재고 목록 로딩 실패", e);
         this.error = "재고 목록 로딩 실패";
