@@ -109,38 +109,20 @@ const fetchOptionList = async (page = 0) => {
   const MIN_LOADING_TIME = 100; // 최소 로딩 시간 (ms)
 
   const response = await api.getOptionList(page, pageSize, searchKeyword.value);
+  console.log('옵션 목록:', response);
   setTimeout(() => {
     if (response) {
-      option_items.value = response.content.map((item) => ({
+      option_items.value = response.content.map(item => ({
         ...item,
-        selected: false,
+        selected: false
       }));
-      currentPage.value = response.page.number;
-      totalPages.value = response.page.totalPages;
+      currentPage.value = response.number;
+      totalPages.value = response.totalPages;
     } else {
-      console.error("옵션 목록 불러오기 실패:", response);
+      console.error('옵션 목록 불러오기 실패:', response);
     }
     isLoading.value = false;
   }, MIN_LOADING_TIME);
-
-    isLoading.value = true;
-    const MIN_LOADING_TIME = 100; // 최소 로딩 시간 (ms)
-
-    const response = await api.getOptionList(page, pageSize, searchKeyword.value);
-    console.log('옵션 목록:', response);
-    setTimeout(() => {
-        if (response) {
-            option_items.value = response.content.map(item => ({
-                ...item,
-                selected: false
-            }));
-            currentPage.value = response.number;
-            totalPages.value = response.totalPages;
-        } else {
-            console.error('옵션 목록 불러오기 실패:', response);
-        }
-        isLoading.value = false;
-    }, MIN_LOADING_TIME);
 
 };
 
@@ -155,13 +137,8 @@ onMounted(() => {
     <h1 class="page_title">옵션 관리</h1>
     <div class="search_container">
       <div class="search_box">
-        <input
-          type="text"
-          v-model="searchKeyword"
-          class="search_input"
-          placeholder="옵션 검색"
-          @keyup.enter="fetchOptionList(0)"
-        />
+        <input type="text" v-model="searchKeyword" class="search_input" placeholder="옵션 검색"
+          @keyup.enter="fetchOptionList(0)" />
         <button class="search_btn" @click="fetchOptionList(0)">
           <img src="@/assets/image/search_button.png" class="search_icon" />
         </button>
@@ -199,11 +176,7 @@ onMounted(() => {
       </table>
 
       <!-- 등록된 메뉴가 없을 때 -->
-      <div
-        v-else-if="!isLoading && option_items.length === 0"
-        key="empty"
-        class="empty-state"
-      >
+      <div v-else-if="!isLoading && option_items.length === 0" key="empty" class="empty-state">
         <img src="@/assets/image/empty.png" alt="빈 메뉴" class="empty-icon" />
         <p class="empty-text">
           등록된 옵션이 없습니다.<br />오른쪽 상단의 [등록] 버튼을 눌러
@@ -217,36 +190,20 @@ onMounted(() => {
           <thead>
             <tr>
               <th>
-                <input
-                  type="checkbox"
-                  v-model="select_all"
-                  @change="toggle_select_all"
-                  class="circle_checkbox"
-                />
+                <input type="checkbox" v-model="select_all" @change="toggle_select_all" class="circle_checkbox" />
               </th>
               <th>옵션명</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="(item, index) in option_items"
-              :key="index"
-              :class="{ 'selected-row': item.selected }"
-            >
+            <tr v-for="(item, index) in option_items" :key="index" :class="{ 'selected-row': item.selected }">
               <td>
-                <input
-                  type="checkbox"
-                  v-model="item.selected"
-                  class="circle_checkbox"
-                />
+                <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
               </td>
               <td>{{ item.name }}</td>
               <td>
-                <button
-                  class="detail_btn"
-                  @click="openEditModal(item.optionId)"
-                >
+                <button class="detail_btn" @click="openEditModal(item.optionId)">
                   상세
                 </button>
               </td>
@@ -255,48 +212,26 @@ onMounted(() => {
         </table>
 
         <div class="pagination_container">
-          <button
-            :disabled="currentPage === 0"
-            @click="goToPage(currentPage - 1)"
-          >
+          <button :disabled="currentPage === 0" @click="goToPage(currentPage - 1)">
             ◀ 이전
           </button>
 
-          <span
-            v-for="page in totalPages"
-            :key="page"
-            @click="goToPage(page - 1)"
-            :class="{ 'page-number': true, active: currentPage === page - 1 }"
-          >
+          <span v-for="page in totalPages" :key="page" @click="goToPage(page - 1)"
+            :class="{ 'page-number': true, active: currentPage === page - 1 }">
             {{ page }}
           </span>
 
-          <button
-            :disabled="currentPage === totalPages - 1"
-            @click="goToPage(currentPage + 1)"
-          >
+          <button :disabled="currentPage === totalPages - 1" @click="goToPage(currentPage + 1)">
             다음 ▶
           </button>
         </div>
       </div>
     </transition>
-    <OptionRegisterModal
-      :isOpen="isRegisterModalOpen"
-      @close="closeRegisterModal"
-      @refresh="fetchOptionList"
-    />
-    <OptionEditModal
-      :isOpen="isEditModalOpen"
-      :optionId="selectedOptionId"
-      @close="isEditModalOpen = false"
-      @refresh="fetchOptionList"
-    />
+    <OptionRegisterModal :isOpen="isRegisterModalOpen" @close="closeRegisterModal" @refresh="fetchOptionList" />
+    <OptionEditModal :isOpen="isEditModalOpen" :optionId="selectedOptionId" @close="isEditModalOpen = false"
+      @refresh="fetchOptionList" />
 
-    <DeleteConfirmModal
-      :isOpen="isDeleteConfirmOpen"
-      @confirm="deleteSelectedItems"
-      @cancel="closeDeleteConfirm"
-    />
+    <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
     <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
   </div>
 </template>

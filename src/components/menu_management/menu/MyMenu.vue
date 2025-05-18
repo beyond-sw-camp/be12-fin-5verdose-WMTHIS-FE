@@ -87,7 +87,7 @@ const deleteSelectedItems = async () => {
 const fetchMenus = async (page = 0) => {
   isLoading.value = true;
 
-  const MIN_LOADING_TIME = 100; // 최소 0.5npm 초
+  const MIN_LOADING_TIME = 100; // 최소 0.5초
 
   const response = await api.getMenuList(page, pageSize, searchKeyword.value);
   console.log("메뉴 목록 응답:", response);
@@ -97,34 +97,9 @@ const fetchMenus = async (page = 0) => {
       menu_items.value = [];
     } else {
       if (response.code === 200) {
-        menu_items.value = response.data.content.map((item) => ({
+        menu_items.value = response.data.content.map(item => ({
           ...item,
-          selected: false,
-        }));
-        currentPage.value = response.data.page.number;
-        totalPages.value = response.data.page.totalPages;
-      } else {
-        menu_items.value = [];
-      }
-    }
-    isLoading.value = false;
-  }, MIN_LOADING_TIME);
-
-  isLoading.value = true;
-
-  //const MIN_LOADING_TIME = 100; // 최소 0.5초
-
-  //const response = await api.getMenuList(page, pageSize, searchKeyword.value);
-  console.log("메뉴 목록 응답:", response);
-
-  setTimeout(() => {
-    if (!response) {
-      menu_items.value = [];
-    } else {
-      if (response.code === 200) {
-        menu_items.value = response.data.content.map((item) => ({
-          ...item,
-          selected: false,
+          selected: false
         }));
         currentPage.value = response.data.number;
         totalPages.value = response.data.totalPages;
@@ -157,7 +132,8 @@ onMounted(() => {
     <!-- 검색 바 및 등록/삭제 버튼 -->
     <div class="search_container">
       <div class="search_box">
-        <input type="text" v-model="searchKeyword" class="search_input" placeholder="메뉴명 검색" @keyup.enter="fetchMenus(0)" />
+        <input type="text" v-model="searchKeyword" class="search_input" placeholder="메뉴명 검색"
+          @keyup.enter="fetchMenus(0)" />
         <button class="search_btn" @click="fetchMenus(0)">
           <img src="@/assets/image/search_button.png" class="search_icon" />
         </button>
@@ -237,19 +213,21 @@ onMounted(() => {
         </table>
 
         <div class="pagination_container">
-          <button :disabled="currentPage === 0 || totalPages <= 1 || menu_items.length === 0" @click="goToPage(currentPage - 1)">◀ 이전</button>
+          <button :disabled="currentPage === 0 || totalPages <= 1 || menu_items.length === 0
+            " @click="goToPage(currentPage - 1)">
+            ◀ 이전
+          </button>
 
-          <span
-            v-for="page in totalPages"
-            :key="page"
-            @click="goToPage(page - 1)"
-            v-if="totalPages >= 1"
-            :class="{ 'page-number': true, active: currentPage === page - 1 }"
-          >
+          <span v-for="page in totalPages" :key="page" @click="goToPage(page - 1)" v-if="totalPages >= 1"
+            :class="{ 'page-number': true, active: currentPage === page - 1 }">
             {{ page }}
           </span>
-
-          <button :disabled="currentPage === totalPages - 1 || totalPages <= 1 || menu_items.length === 0" @click="goToPage(currentPage + 1)">다음 ▶</button>
+          <button :disabled="currentPage === totalPages - 1 ||
+            totalPages <= 1 ||
+            menu_items.length === 0
+            " @click="goToPage(currentPage + 1)">
+            다음 ▶
+          </button>
         </div>
       </div>
     </transition>
