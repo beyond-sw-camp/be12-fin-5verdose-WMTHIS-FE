@@ -20,7 +20,7 @@ const categoryList = ref([]);
 
 const ingredientOptions = ref([]);
 const selectedUnit = computed(() => {
-    const selected = menuStore.ingredientOptions.find(item => item.name === ingredientName.value.name);
+    const selected = menuStore.inventoryOptions.find(item => item.name === ingredientName.value.name);
     if (!selected) return '';
     return selected.unit === 'unit' ? '개' : selected.unit;
 });
@@ -187,7 +187,7 @@ const registerMenu = async () => {
                         <select v-model="ingredientName">
                             <option value="" disabled selected>재료 선택</option>
                             <option v-for="item in menuStore.inventoryOptions" :key="item" :value="item">{{ item.name
-                            }}</option>
+                                }}</option>
                         </select>
                         <input type="number" v-model="ingredientAmount" min="1" placeholder="수량" />
                         <label>{{ selectedUnit }}</label>
