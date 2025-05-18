@@ -35,9 +35,7 @@ const totalPages = ref(0); // 총 페이지 수
 const pageSize = 10; // 페이지당 항목 수
 const errorMessage = ref("");
 const select_all = ref(false);
-const isBlocked = computed(
-  () => isDeleteConfirmOpen.value || isDeleteAlertOpen.value
-);
+const isBlocked = computed(() => isDeleteConfirmOpen.value || isDeleteAlertOpen.value);
 // 전체 선택 토글
 const toggle_select_all = () => {
   if (!isBlocked.value) {
@@ -79,9 +77,7 @@ const closeDeleteAlert = () => {
 // 삭제 실행
 const deleteSelectedItems = async () => {
   isDeleteConfirmOpen.value = false;
-  const selectedIds = menu_items.value
-    .filter((item) => item.selected)
-    .map((item) => item.id);
+  const selectedIds = menu_items.value.filter((item) => item.selected).map((item) => item.id);
   console.log("삭제할 메뉴 ID:", selectedIds);
   const response = await api.deleteMenus(selectedIds);
   console.log("삭제 응답:", response);
@@ -89,7 +85,6 @@ const deleteSelectedItems = async () => {
   menu_items.value = menu_items.value.filter((item) => !item.selected);
 };
 const fetchMenus = async (page = 0) => {
-
   isLoading.value = true;
 
   const MIN_LOADING_TIME = 100; // 최소 0.5초
@@ -114,7 +109,6 @@ const fetchMenus = async (page = 0) => {
     }
     isLoading.value = false;
   }, MIN_LOADING_TIME);
-
 };
 
 const goToPage = (page) => {
@@ -186,10 +180,7 @@ onMounted(() => {
       <!-- 등록된 메뉴가 없을 때 -->
       <div v-else-if="!isLoading && menu_items.length === 0" key="empty" class="empty-state">
         <img src="@/assets/image/empty.png" alt="빈 메뉴" class="empty-icon" />
-        <p class="empty-text">
-          등록된 메뉴가 없습니다.<br />오른쪽 상단의 [등록] 버튼을 눌러
-          추가해보세요.
-        </p>
+        <p class="empty-text">등록된 메뉴가 없습니다.<br />오른쪽 상단의 [등록] 버튼을 눌러 추가해보세요.</p>
       </div>
 
       <!-- 목록이 있을 때 -->
@@ -215,9 +206,7 @@ onMounted(() => {
               <td>{{ item.category }}</td>
               <td>{{ item.ingredients }}</td>
               <td>
-                <button class="detail_btn" @click="openDetailModal(item)">
-                  상세
-                </button>
+                <button class="detail_btn" @click="openDetailModal(item)">상세</button>
               </td>
             </tr>
           </tbody>
@@ -233,7 +222,6 @@ onMounted(() => {
             :class="{ 'page-number': true, active: currentPage === page - 1 }">
             {{ page }}
           </span>
-
           <button :disabled="currentPage === totalPages - 1 ||
             totalPages <= 1 ||
             menu_items.length === 0

@@ -37,9 +37,7 @@ const totalPages = ref(0);
 const pageSize = 10;
 
 const select_all = ref(false);
-const isBlocked = computed(
-  () => isDeleteConfirmOpen.value || isDeleteAlertOpen.value
-);
+const isBlocked = computed(() => isDeleteConfirmOpen.value || isDeleteAlertOpen.value);
 
 const toggle_select_all = () => {
   if (!isBlocked.value) {
@@ -75,16 +73,12 @@ const closeDeleteAlert = () => {
 
 const deleteSelectedItems = async () => {
   isDeleteConfirmOpen.value = false;
-  const selectedIds = category_items.value
-    .filter((item) => item.selected)
-    .map((item) => item.id);
+  const selectedIds = category_items.value.filter((item) => item.selected).map((item) => item.id);
 
   try {
     const res = await api.deleteCategory({ ids: selectedIds });
     if (res.data.code === 200) {
-      category_items.value = category_items.value.filter(
-        (item) => !item.selected
-      );
+      category_items.value = category_items.value.filter((item) => !item.selected);
       select_all.value = false;
       fetchCategoryList(currentPage.value);
     } else {
@@ -96,7 +90,6 @@ const deleteSelectedItems = async () => {
 };
 
 const fetchCategoryList = async (page = 0) => {
-
   isLoading.value = true;
   console.log(searchKeyword.value);
 
@@ -203,9 +196,7 @@ onMounted(() => {
               </td>
               <td>{{ item.name }}</td>
               <td>
-                <button class="detail_btn" @click="openEditModal(item)">
-                  수정
-                </button>
+                <button class="detail_btn" @click="openEditModal(item)">수정</button>
               </td>
             </tr>
           </tbody>

@@ -195,9 +195,12 @@ const stockChangeInfo = computed(() => {
       highlight1: "",
       line2: "",
       highlight2: "",
-      highlight3: "",
       line3: "",
+      highlight3: "",
       line4: "",
+      highlight4: "",
+      line5: "",
+      highlight5: "",
     };
   }
 
@@ -208,24 +211,31 @@ const stockChangeInfo = computed(() => {
       highlight1: `${totalStockChanges.value}`,
       line2: "회 수정했습니다",
       highlight2: "",
-      highlight3: "",
       line3: "",
+      highlight3: "",
       line4: "",
+      highlight4: "",
+      line5: "",
+      highlight5: "",
     };
   }
 
   // itemQuantityDtoList에 항목이 있는 경우
   const mostChangedItems = stockChangeItems.value; // 첫 번째 항목이 가장 많이 변경된 항목이라고 가정
   const itemNames = mostChangedItems.map((item) => item.itemName).join(", ");
+  const totalQuantity = mostChangedItems.map((item) => item.totalQuantity).join(", ");
 
   return {
     line1: "한달 동안 재고를 총",
     highlight1: `${totalStockChanges.value}`,
     line2: "회 수정했습니다",
     highlight2: itemNames,
-    highlight3: "",
-    line3: "의 재고 수정량이 많습니다.",
-    line4: "",
+    line3: "이 각각",
+    highlight3: totalQuantity,
+    line4: "만큼 수정되었습니다",
+    highlight4: "",
+    line5: "",
+    highlight5: "",
   };
 });
 
@@ -240,9 +250,12 @@ const summaries = computed(() => {
         highlight1: "",
         line2: "",
         highlight2: "",
-        highlight3: "",
         line3: "",
+        highlight3: "",
         line4: "",
+        highlight4: "",
+        line5: "",
+        highlight5: "",
       },
       stockChangeInfo.value, // 두 번째 캐러셀 항목을 재고 변경 정보로 교체
     ];
@@ -254,9 +267,12 @@ const summaries = computed(() => {
       highlight1: bestMarketMenu.value.name,
       line2: "입니다.",
       highlight2: bestMarketMenu.value.amount,
+      line3: "",
       highlight3: bestMarketMenu.value.unit,
-      line3: "가 장터에 판매 되었습니다.",
-      line4: "발주양을 조금 적게하는건 어떨까요?",
+      line4: "가 장터에 판매 되었습니다.",
+      highlight4: "",
+      line5: "발주양을 조금 적게하는건 어떨까요?",
+      highlight5: "",
     },
     stockChangeInfo.value, // 두 번째 캐러셀 항목을 재고 변경 정보로 교체
   ];
@@ -317,11 +333,15 @@ const formatNumber = (number) => {
                 {{ text.line2 }}
               </p>
               <p class="carousel-line">
-                <span class="highlight-text font-bold">{{ text.highlight2 }} {{ text.highlight3 }}</span>
+                <span class="highlight-text font-bold">{{ text.highlight2 }} </span>
                 {{ text.line3 }}
+                <span class="highlight-text font-bold">{{ text.highlight3 }}</span>
+                {{ text.line4 }}
+                <span class="highlight-text font-bold">{{ text.highlight4 }}</span>
               </p>
               <p class="carousel-line">
-                {{ text.line4 }}
+                {{ text.line5 }}
+                <span class="highlight-text font-bold">{{ text.highlight5 }}</span>
               </p>
             </div>
           </v-sheet>
