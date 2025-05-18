@@ -37,9 +37,7 @@ const totalPages = ref(0);
 const pageSize = 10;
 
 const select_all = ref(false);
-const isBlocked = computed(
-  () => isDeleteConfirmOpen.value || isDeleteAlertOpen.value
-);
+const isBlocked = computed(() => isDeleteConfirmOpen.value || isDeleteAlertOpen.value);
 
 const toggle_select_all = () => {
   if (!isBlocked.value) {
@@ -75,16 +73,12 @@ const closeDeleteAlert = () => {
 
 const deleteSelectedItems = async () => {
   isDeleteConfirmOpen.value = false;
-  const selectedIds = category_items.value
-    .filter((item) => item.selected)
-    .map((item) => item.id);
+  const selectedIds = category_items.value.filter((item) => item.selected).map((item) => item.id);
 
   try {
     const res = await api.deleteCategory({ ids: selectedIds });
     if (res.data.code === 200) {
-      category_items.value = category_items.value.filter(
-        (item) => !item.selected
-      );
+      category_items.value = category_items.value.filter((item) => !item.selected);
       select_all.value = false;
       fetchCategoryList(currentPage.value);
     } else {
@@ -96,7 +90,6 @@ const deleteSelectedItems = async () => {
 };
 
 const fetchCategoryList = async (page = 0) => {
-
   isLoading.value = true;
   console.log(searchKeyword.value);
 
@@ -118,27 +111,26 @@ const fetchCategoryList = async (page = 0) => {
     isLoading.value = false;
   }, MIN_LOADING_TIME);
 
-    isLoading.value = true;
-    console.log(searchKeyword.value);
+  isLoading.value = true;
+  console.log(searchKeyword.value);
 
-    const MIN_LOADING_TIME = 100; // 최소 0.5초
-    const res = await api.getCategoryList(page, pageSize, searchKeyword.value);
+  //const MIN_LOADING_TIME = 100; // 최소 0.5초
+  //const res = await api.getCategoryList(page, pageSize, searchKeyword.value);
 
-    setTimeout(() => {
-        if (res) {
-            category_items.value = res.content.map(item => ({
-                ...item,
-                selected: false,
-            }));
-            currentPage.value = res.number;
-            totalPages.value = res.totalPages;
-        } else {
-            console.error("카테고리 목록 가져오기 실패:", res.message);
-        }
+  setTimeout(() => {
+    if (res) {
+      category_items.value = res.content.map((item) => ({
+        ...item,
+        selected: false,
+      }));
+      currentPage.value = res.number;
+      totalPages.value = res.totalPages;
+    } else {
+      console.error("카테고리 목록 가져오기 실패:", res.message);
+    }
 
-        isLoading.value = false;
-    }, MIN_LOADING_TIME);
-
+    isLoading.value = false;
+  }, MIN_LOADING_TIME);
 };
 
 const goToPage = (page) => {
@@ -158,13 +150,7 @@ onMounted(() => {
     <h1 class="page_title">카테고리 관리</h1>
     <div class="search_container">
       <div class="search_box">
-        <input
-          type="text"
-          v-model="searchKeyword"
-          class="search_input"
-          placeholder="카테고리 검색"
-          @keyup.enter="fetchCategoryList(0)"
-        />
+        <input type="text" v-model="searchKeyword" class="search_input" placeholder="카테고리 검색" @keyup.enter="fetchCategoryList(0)" />
         <button class="search_btn" @click="fetchCategoryList(0)">
           <img src="@/assets/image/search_button.png" class="search_icon" />
         </button>
@@ -202,11 +188,7 @@ onMounted(() => {
       </table>
 
       <!-- 등록된 메뉴가 없을 때 -->
-      <div
-        v-else-if="!isLoading && category_items.length === 0"
-        key="empty"
-        class="empty-state"
-      >
+      <div v-else-if="!isLoading && category_items.length === 0" key="empty" class="empty-state">
         <img src="@/assets/image/empty.png" alt="빈 메뉴" class="empty-icon" />
         <p class="empty-text">
           등록된 카테고리가 없습니다.<br />
@@ -220,81 +202,38 @@ onMounted(() => {
           <thead>
             <tr>
               <th>
-                <input
-                  type="checkbox"
-                  v-model="select_all"
-                  @change="toggle_select_all"
-                  class="circle_checkbox"
-                />
+                <input type="checkbox" v-model="select_all" @change="toggle_select_all" class="circle_checkbox" />
               </th>
               <th>카테고리 이름</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="(item, index) in category_items"
-              :key="index"
-              :class="{ 'selected-row': item.selected }"
-            >
+            <tr v-for="(item, index) in category_items" :key="index" :class="{ 'selected-row': item.selected }">
               <td>
-                <input
-                  type="checkbox"
-                  v-model="item.selected"
-                  class="circle_checkbox"
-                />
+                <input type="checkbox" v-model="item.selected" class="circle_checkbox" />
               </td>
               <td>{{ item.name }}</td>
               <td>
-                <button class="detail_btn" @click="openEditModal(item)">
-                  수정
-                </button>
+                <button class="detail_btn" @click="openEditModal(item)">수정</button>
               </td>
             </tr>
           </tbody>
         </table>
 
         <div class="pagination_container">
-          <button
-            :disabled="currentPage === 0"
-            @click="goToPage(currentPage - 1)"
-          >
-            ◀ 이전
-          </button>
-          <span
-            v-for="page in totalPages"
-            :key="page"
-            @click="goToPage(page - 1)"
-            :class="{ 'page-number': true, active: currentPage === page - 1 }"
-          >
+          <button :disabled="currentPage === 0" @click="goToPage(currentPage - 1)">◀ 이전</button>
+          <span v-for="page in totalPages" :key="page" @click="goToPage(page - 1)" :class="{ 'page-number': true, active: currentPage === page - 1 }">
             {{ page }}
           </span>
-          <button
-            :disabled="currentPage === totalPages - 1"
-            @click="goToPage(currentPage + 1)"
-          >
-            다음 ▶
-          </button>
+          <button :disabled="currentPage === totalPages - 1" @click="goToPage(currentPage + 1)">다음 ▶</button>
         </div>
       </div>
     </transition>
 
-    <CategoryRegisterModal
-      :isOpen="isRegisterModalOpen"
-      @close="closeRegisterModal"
-      @refresh="fetchCategoryList"
-    />
-    <CategoryEditModal
-      :isOpen="isEditModalOpen"
-      :category="selectedCategory"
-      @close="closeEditModal"
-      @refresh="fetchCategoryList"
-    />
-    <DeleteConfirmModal
-      :isOpen="isDeleteConfirmOpen"
-      @confirm="deleteSelectedItems"
-      @cancel="closeDeleteConfirm"
-    />
+    <CategoryRegisterModal :isOpen="isRegisterModalOpen" @close="closeRegisterModal" @refresh="fetchCategoryList" />
+    <CategoryEditModal :isOpen="isEditModalOpen" :category="selectedCategory" @close="closeEditModal" @refresh="fetchCategoryList" />
+    <DeleteConfirmModal :isOpen="isDeleteConfirmOpen" @confirm="deleteSelectedItems" @cancel="closeDeleteConfirm" />
     <DeleteAlertModal :isOpen="isDeleteAlertOpen" @close="closeDeleteAlert" />
   </div>
 </template>
