@@ -87,6 +87,9 @@ spec:
           image: ${IMAGE_NAME}:${IMAGE_TAG}
           ports:
             - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: wmthis-config
 EOF
                     """
                 }
