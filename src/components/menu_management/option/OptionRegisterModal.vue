@@ -20,7 +20,7 @@ const categoryList = ref([]);
 const category = ref('');
 
 const selectedUnit = computed(() => {
-    const selected = menuStore.ingredientOptions.find(item => item.name === ingredientName.value.name);
+    const selected = menuStore.inventoryOptions.find(item => item.name === ingredientName.value.name);
     if (!selected) return '';
     return selected.unit === 'unit' ? '개' : selected.unit;
 });
