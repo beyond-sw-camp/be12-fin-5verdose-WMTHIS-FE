@@ -83,12 +83,12 @@ async function initMap() {
     });
 
     normalImage = new window.kakao.maps.MarkerImage(
-      "/src/assets/image/bluePing.png",
+      "@/assets/image/bluePing.png",
       new window.kakao.maps.Size(30, 30) // 일반 사이즈
     );
 
     largeImage = new window.kakao.maps.MarkerImage(
-      "/src/assets/image/redPing.png",
+      "@/assets/image/redPing.png",
       new window.kakao.maps.Size(50, 50) // 클릭 시 크게!
     );
 
