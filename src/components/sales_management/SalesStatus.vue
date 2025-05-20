@@ -230,7 +230,7 @@ const stockChangeInfo = computed(() => {
     highlight1: `${totalStockChanges.value}`,
     line2: "회 수정했습니다",
     highlight2: itemNames,
-    line3: "이 각각",
+    line3: "이",
     highlight3: totalQuantity,
     line4: "만큼 수정되었습니다",
     highlight4: "",

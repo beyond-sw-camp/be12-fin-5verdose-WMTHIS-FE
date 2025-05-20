@@ -54,8 +54,7 @@ export const api = {
         console.error("Error in signUp:", error);
         return {
           success: false,
-          message:
-            error.response?.data?.message || "회원가입에 실패하였습니다.",
+          message: error.response?.data?.message || "회원가입에 실패하였습니다.",
         }; // 기본 메시지 반환
       });
   },
@@ -210,10 +209,7 @@ export const api = {
     console.log("updateInventory storeInventoryData", storeInventoryData);
 
     try {
-      const res = instance.put(
-        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
-        storeInventoryData
-      );
+      const res = instance.put(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
       console.log("updateRes", res);
       console.log("code:", res.data.code);
 
@@ -230,10 +226,7 @@ export const api = {
 
   async SearchInventory(storeInventoryData) {
     try {
-      const res = await instance.get(
-        `/inventory/storeInventory/${storeInventoryData.inventoryId}`,
-        storeInventoryData
-      );
+      const res = await instance.get(`/inventory/storeInventory/${storeInventoryData.inventoryId}`, storeInventoryData);
       console.log("searchRes", res);
       console.log("code:", res.data.code);
 
@@ -337,17 +330,12 @@ export const api = {
       .post("/order/create", data)
       .then((res) => {
         if (res.data.code !== 200) {
-          throw new Error(
-            res.data.message || "결제 처리 중 오류가 발생했습니다."
-          );
+          throw new Error(res.data.message || "결제 처리 중 오류가 발생했습니다.");
         }
         return res.data; // 성공한 응답만 반환
       })
       .catch((error) => {
-        const message =
-          error?.response?.data?.message ||
-          error?.message ||
-          "결제 처리 중 오류가 발생했습니다."; // 서버 응답 메시지를 가져옴
+        const message = error?.response?.data?.message || error?.message || "결제 처리 중 오류가 발생했습니다."; // 서버 응답 메시지를 가져옴
         console.error(message); // 오류 메시지 출력
         throw new Error(message);
       });
