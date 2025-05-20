@@ -213,8 +213,6 @@
 
 [**🎨 화면설계서 바로가기**](https://www.figma.com/design/UhQdny2lyLYVBKfeSDM0ER/Untitled?node-id=0-1&p=f&t=BJpdqml8x7np3fWT-0)
 
-[**시연 영상**](https://www.figma.com/design/UhQdny2lyLYVBKfeSDM0ER/Untitled?node-id=0-1&p=f&t=BJpdqml8x7np3fWT-0)
-
 <br>
 
 ---
