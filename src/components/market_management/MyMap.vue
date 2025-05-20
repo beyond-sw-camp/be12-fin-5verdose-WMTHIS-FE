@@ -2,7 +2,8 @@
 import { onMounted, ref, computed } from "vue";
 import Detail from "@/components/market_management/MyMapDetailModal.vue";
 import { marketApi } from "@/api/MarketApi.js";
-import { get } from "lodash";
+import bluePing from '@/assets/image/bluePing.png';
+import redPing from '@/assets/image/redPing.png';
 
 const aList = ref([]);
 const markerList = ref([]);
@@ -83,12 +84,12 @@ async function initMap() {
     });
 
     normalImage = new window.kakao.maps.MarkerImage(
-      "/src/assets/image/bluePing.png",
+      bluePing,
       new window.kakao.maps.Size(30, 30) // 일반 사이즈
     );
 
     largeImage = new window.kakao.maps.MarkerImage(
-      "/src/assets/image/redPing.png",
+      redPing,
       new window.kakao.maps.Size(50, 50) // 클릭 시 크게!
     );
 

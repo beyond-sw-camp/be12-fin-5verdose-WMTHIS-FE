@@ -18,21 +18,35 @@ const content = ref(""); // 물품 설명
 const imagePaths = ref([]); // 서버에서 반환한 경로 저장
 
 watch(files, async (newFiles) => {
-  if (!newFiles || newFiles.length === 0) return;
+  if (!newFiles?.length) return;
 
-  const formData = new FormData();
-  for (const file of newFiles) {
-    formData.append("files", file); // 다중 파일이면 name은 동일하게
-  }
+  // 1) presign URL 요청을 위해 파일명·타입 리스트 만들기
+  const reqs = newFiles.map(file => ({
+    filename: file.name,
+    contentType: file.type,
+  }));
+  const presigns = await marketApi.getPresignedUrls(reqs);
+  // presigns: [{ key, url }, …]
 
-  try {
-    const response = await marketApi.uploadImages(formData);
-    console.log("Uploaded image paths:", response);
-    imagePaths.value = response.data; // ex) ['uploads/abc.jpg', 'uploads/def.jpg']
-  } catch (error) {
-    console.error("이미지 업로드 실패", error);
-  }
+  // 2) S3로 파일 PUT
+  const uploadedKeys = [];
+  await Promise.all(presigns.map(async ({ key, url }, idx) => {
+    const file = newFiles[idx];
+    await fetch(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': file.type },
+      body: file
+    });
+    uploadedKeys.push(key);
+  }));
+
+  // 3) 업로드된 키(객체 경로)를 DB에 저장하거나
+  //    그대로 이미지 URL로 사용
+  imagePaths.value = uploadedKeys.map(k =>
+    `https://wmthis-2025.s3.ap-northeast-2.amazonaws.com/${k}`
+  );
 });
+
 
 // 최대 3장까지 업로드 허용s
 const maxFileRule = (value) => {
@@ -137,11 +151,7 @@ onMounted(() => {
             </div>
             <p class="sub_title">판매할 재고명을 선택해주세요.</p>
             <div class="unit-container">
-              <select
-                v-model="ingredient"
-                class="unit-select"
-                style="width: 200px"
-              >
+              <select v-model="ingredient" class="unit-select" style="width: 200px">
                 <option value="" disabled selected>재료 선택</option>
                 <option v-for="item in ingredients" :key="item" :value="item">
                   {{ item.name }}
@@ -158,13 +168,7 @@ onMounted(() => {
             </div>
             <p class="sub_title">물품의 희망가격을 입력해주세요.</p>
             <div class="unit-container">
-              <input
-                type="text"
-                v-model="price"
-                style="width: 200px"
-                placeholder="ex) 3000"
-                class="min-qty-input"
-              />
+              <input type="text" v-model="price" style="width: 200px" placeholder="ex) 3000" class="min-qty-input" />
               <p style="margin-right: 10px">원</p>
             </div>
           </div>
@@ -179,17 +183,8 @@ onMounted(() => {
 
             <!-- 오른쪽: 수량 입력 + 단위 -->
             <div class="input-inline-row">
-              <input
-                type="text"
-                v-model="quantity"
-                placeholder="ex) 5"
-                class="min-qty-input"
-              />
-              <span
-                class="unit-text"
-                style="margin-left: 10px; margin-right: 10px"
-                >{{ ingredient.unit }}</span
-              >
+              <input type="text" v-model="quantity" placeholder="ex) 5" class="min-qty-input" />
+              <span class="unit-text" style="margin-left: 10px; margin-right: 10px">{{ ingredient.unit }}</span>
             </div>
           </div>
         </div>
@@ -203,16 +198,8 @@ onMounted(() => {
             가능해요.)
           </p>
           <div class="unit-container">
-            <v-file-input
-              v-model="files"
-              variant="outlined"
-              accept="image/*"
-              multiple
-              :counter="true"
-              :rules="[maxFileRule]"
-              :show-size="true"
-              hide-details="auto"
-            />
+            <v-file-input v-model="files" variant="outlined" accept="image/*" multiple :counter="true"
+              :rules="[maxFileRule]" :show-size="true" hide-details="auto" />
           </div>
           <div class="input_group">
             <div class="modal_title2">
@@ -220,11 +207,7 @@ onMounted(() => {
             </div>
             <p class="sub_title">물품의 상태를 자세히 설명해주세요.</p>
             <div class="unit-container">
-              <v-textarea
-                v-model="content"
-                placeholder="상태가 아주 좋아용"
-                variant="outlined"
-              ></v-textarea>
+              <v-textarea v-model="content" placeholder="상태가 아주 좋아용" variant="outlined"></v-textarea>
             </div>
           </div>
         </div>
@@ -564,9 +547,7 @@ onMounted(() => {
   /* 드롭다운 크기 */
   appearance: none;
   /* 기본 스타일 제거 */
-  background: white
-    url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
-    no-repeat right 10px center;
+  background: white url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E") no-repeat right 10px center;
   background-size: 16px;
 }
 

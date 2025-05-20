@@ -17,12 +17,13 @@ const ingredientAmount = ref('');
 const ingredients = ref([]);
 const category = ref('');
 const categoryList = ref([]);
+
+const ingredientOptions = ref([]);
 const selectedUnit = computed(() => {
-    const selected = ingredientOptions.value.find(item => item.name === ingredientName.value.name);
+    const selected = menuStore.inventoryOptions.find(item => item.name === ingredientName.value.name);
     if (!selected) return '';
     return selected.unit === 'unit' ? '개' : selected.unit;
 });
-const ingredientOptions = ref([]);
 const price = ref(0); // 가격을 위한 ref 추가
 const isSubmitting = ref(false);
 
@@ -31,6 +32,7 @@ watch(() => props.menu, (newVal) => {
 });
 watch(() => props.isOpen, (newVal) => {
     if (newVal) {
+
     }
 });
 const displayUnit = (unit) => {
