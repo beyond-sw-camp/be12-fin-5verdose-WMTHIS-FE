@@ -15,27 +15,7 @@
 
 ---
 
-## 📌 목차
-
-
-- [👥 팀원 구성](#-팀원-구성)
-- [🔧 기술 스택](#-기술-스택)
-- [🔮 프로젝트 소개](#-프로젝트-소개)
-    - [자동 재고 관리 시스템](#자동-재고-관리-시스템)
-    - [POS 기능으로 재고 자동화 관리](#pos-기능으로-재고-자동화-관리)
-    - [매장 관리 기능](#매장-관리-기능)
-    - [재료 공유 및 거래 시스템](#재료-공유-및-거래-시스템)
-- [⚠️ 서비스 이용 전 확인](#서비스-이용-전-반드시-확인해-주세요)
-- [🗂️ 프로젝트 기획](#-프로젝트-기획)
-- [📜 프로젝트 설계](#-프로젝트-설계)
-- [📚 기술 소개](#-기술-소개)
-
-
-
----
-
 # <img src="https://i.namu.wiki/i/i4lq7xgSiZoHNJFK7Zcon9-4AJtQMNsCoezqrOcBIgoIst9dfGMn863K0Qmru8prJDtUvOLHky_uuVwGqkuE6MhHGBwrLeMP7cc72-XSaHUdmz8r11xhxCo-pKesnUfavCgH9etSvzhKezlFQ37MIg.svg" alt="logo" width="30"> 팀원 구성
-
 
 <div align="center">
   <table>
@@ -76,7 +56,6 @@
 
 ### DevOps
 
-
 <img src="https://img.shields.io/badge/Ansible-%23000000?logo=ansible&logoColor=white">&nbsp;
 <img src="https://img.shields.io/badge/Helm-%230074C1?logo=helm&logoColor=white">&nbsp;
 
@@ -86,7 +65,6 @@
 <img src="https://img.shields.io/badge/Docker-002260?style=flat&logo=docker&logoColor=white">&nbsp;
 <img src="https://img.shields.io/badge/Jenkins-CF4045?style=flat&logo=jenkins&logoColor=white">&nbsp;
 <img src="https://img.shields.io/badge/GitHub%20Webhook-%23181717?logo=github&logoColor=white">&nbsp;
-
 
 ### Monotoring
 
@@ -107,7 +85,6 @@
 <br>
 
 ---
-
 
 # 🔮 프로젝트 소개
 
@@ -198,7 +175,6 @@
 휴대폰 인증의 경우, 여러 번 시도하면 요금이 발생할 수 있습니다.  
 임시로 인증번호 확인창에 **휴대폰 인증 번호**가 나타나도록 설정해두었습니다.
 
-
 ### 📦 **재고 관리 관련 설명**
 
 - 재고 관리를 위해서 **재고 관리** 탭에서 매장에서 사용할 재고 등록
@@ -220,7 +196,6 @@
 - POS 주문 시 **재고 부족한 경우 경고창**
 
 ---
-
 
 # 🗂️ 프로젝트 기획
 
@@ -251,3 +226,9 @@
 ### ▶ [**Wiki 바로가기**](https://github.com/beyond-sw-camp/be12-fin-5verdose-WMTHIS-FE/wiki)
 
 <br>
+
+# ReadMe 바로가기
+
+🔗 [Frontend](https://github.com/beyond-sw-camp/be12-fin-5verdose-WMTHIS-FE/blob/main/README.md) <br>
+🔗 [Backend](https://github.com/beyond-sw-camp/be12-fin-5verdose-WMTHIS-BE/blob/main/README.md) <br>
+🔗 [CI/CD](https://github.com/beyond-sw-camp/be12-fin-5verdose-WMTHIS-BE/tree/main/cicd/README.md) <br>
