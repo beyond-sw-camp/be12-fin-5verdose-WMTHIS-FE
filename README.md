@@ -230,3 +230,7 @@
 🔗 [Frontend](https://github.com/beyond-sw-camp/be12-fin-5verdose-WMTHIS-FE/blob/main/README.md) <br>
 🔗 [Backend](https://github.com/beyond-sw-camp/be12-fin-5verdose-WMTHIS-BE/blob/main/README.md) <br>
 🔗 [CI/CD](https://github.com/beyond-sw-camp/be12-fin-5verdose-WMTHIS-BE/tree/main/cicd/README.md) <br>
+
+# ppt
+
+[ppt](https://docs.google.com/presentation/d/1sCtGmzpY_VeguWaxbi6kZ9MuvMnsJOjIUtZ-ZFBsZKM/edit?slide=id.p1#slide=id.p1)
